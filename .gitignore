@@ -1,0 +1,5 @@
+node_modules/
+media/assets/
+media-library.json
+.DS_Store
+npm-debug.log*

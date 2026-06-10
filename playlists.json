@@ -1,0 +1,23 @@
+{
+  "activePlaylistId": "pl_mpthmm34_cal83a",
+  "treeFocusId": "pl_mpthmm34_cal83a",
+  "expandedFolderIds": [],
+  "items": [
+    {
+      "id": "pl_mpthmm34_cal83a",
+      "type": "playlist",
+      "name": "오후찬양",
+      "parentId": null,
+      "songs": [
+        "주님만이 왕이십니다",
+        "사랑을 나눠요"
+      ]
+    },
+    {
+      "id": "fd_mq411vd3_qrwk5y",
+      "type": "folder",
+      "name": "새 폴더",
+      "parentId": null
+    }
+  ]
+}

@@ -1,0 +1,273 @@
+{
+  "version": 1,
+  "themes": [
+    {
+      "id": "theme_1780195787301",
+      "name": "김상후",
+      "textLayer": {
+        "x": 10,
+        "y": 49.131776045981596,
+        "w": 90,
+        "h": 32,
+        "style": {
+          "fontFamily": "'Apple SD Gothic Neo', sans-serif",
+          "fontSize": 5.6,
+          "color": "#ffffff",
+          "textAlign": "left",
+          "verticalAlign": "bottom",
+          "fontWeight": "800",
+          "lineHeight": 1.15,
+          "fontStyle": "normal",
+          "textDecoration": "none",
+          "letterSpacing": 0,
+          "opacity": 1,
+          "strokeWidth": 0,
+          "strokeColor": "#000000",
+          "strokeEnabled": false,
+          "shadowX": 0,
+          "shadowY": -2,
+          "shadowBlur": 14,
+          "shadowColor": "rgba(0,0,0,0.85)",
+          "shadowEnabled": true
+        }
+      },
+      "updatedAt": "2026-06-10T06:22:45.502Z",
+      "background": {
+        "type": "color",
+        "color": "#000000",
+        "opacity": 1
+      },
+      "shapeLayers": [
+        {
+          "x": 0,
+          "y": 10.399940531467998,
+          "w": 40,
+          "h": 20,
+          "content": "",
+          "style": {
+            "shape": "rect",
+            "fillType": "solid",
+            "fill": "rgba(91, 141, 239, 0.25)",
+            "fillGradientEnd": "#3d6ec9",
+            "gradientAngle": 135,
+            "stroke": "#5b8def",
+            "strokeWidth": 2,
+            "strokeEnabled": true,
+            "opacity": 1,
+            "borderRadius": 4,
+            "shadowX": 0,
+            "shadowY": 4,
+            "shadowBlur": 12,
+            "shadowColor": "rgba(0,0,0,0.45)",
+            "shadowEnabled": true
+          },
+          "labelStyle": {
+            "color": "#ffffff",
+            "fontSize": 3.5,
+            "fontWeight": "700",
+            "textAlign": "center",
+            "strokeWidth": 2,
+            "strokeColor": "#000000",
+            "strokeEnabled": true,
+            "shadowX": 0,
+            "shadowY": 4,
+            "shadowBlur": 14,
+            "shadowColor": "rgba(0,0,0,0.85)",
+            "shadowEnabled": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "theme_1780866387958",
+      "name": "새 테마",
+      "textLayer": {
+        "x": 5,
+        "y": 75.51287774725274,
+        "w": 90,
+        "h": 24.487122252747252,
+        "style": {
+          "fontFamily": "'Malgun Gothic', sans-serif",
+          "fontSize": 5.2,
+          "color": "#ffffff",
+          "textAlign": "center",
+          "verticalAlign": "middle",
+          "fontWeight": "700",
+          "lineHeight": 1,
+          "fontStyle": "normal",
+          "textDecoration": "none",
+          "letterSpacing": 1,
+          "opacity": 1,
+          "strokeWidth": 2,
+          "strokeColor": "#000000",
+          "strokeEnabled": false,
+          "shadowX": 0,
+          "shadowY": 4,
+          "shadowBlur": 14,
+          "shadowColor": "rgba(0,0,0,0.85)",
+          "shadowEnabled": false
+        }
+      },
+      "updatedAt": "2026-06-08T16:30:04.224Z",
+      "background": {
+        "type": "color",
+        "color": "#000000",
+        "opacity": 1
+      },
+      "shapeLayers": [
+        {
+          "x": 3.3347925646551673,
+          "y": 75.38719093406593,
+          "w": 93.33041487068967,
+          "h": 24.612809065934066,
+          "content": "",
+          "style": {
+            "shape": "rect",
+            "fillType": "solid",
+            "fill": "#a8c8ff",
+            "fillGradientEnd": "#3d6ec9",
+            "gradientAngle": 135,
+            "stroke": "#5b8def",
+            "strokeWidth": 2,
+            "strokeEnabled": true,
+            "opacity": 0.55,
+            "borderRadius": 20,
+            "shadowX": 0,
+            "shadowY": 4,
+            "shadowBlur": 12,
+            "shadowColor": "rgba(0,0,0,0.45)",
+            "shadowEnabled": false
+          },
+          "labelStyle": {
+            "color": "#ffffff",
+            "fontSize": 3.5,
+            "fontWeight": "700",
+            "textAlign": "center",
+            "strokeWidth": 2,
+            "strokeColor": "#000000",
+            "strokeEnabled": true,
+            "shadowX": 0,
+            "shadowY": 4,
+            "shadowBlur": 14,
+            "shadowColor": "rgba(0,0,0,0.85)",
+            "shadowEnabled": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "theme_1780933415620",
+      "name": "찬양가사",
+      "textLayer": {
+        "x": 1.8521012931034482,
+        "y": 67.93372252747253,
+        "w": 40,
+        "h": 31,
+        "style": {
+          "fontFamily": "'Apple SD Gothic Neo', sans-serif",
+          "fontSize": 5.6,
+          "color": "#ffffff",
+          "textAlign": "left",
+          "verticalAlign": "bottom",
+          "fontWeight": "800",
+          "lineHeight": 1.15,
+          "fontStyle": "normal",
+          "textDecoration": "none",
+          "letterSpacing": 0,
+          "opacity": 1,
+          "strokeWidth": 2,
+          "strokeColor": "#000000",
+          "strokeEnabled": false,
+          "shadowX": 0,
+          "shadowY": -2,
+          "shadowBlur": 14,
+          "shadowColor": "rgba(255,0,0,0.85)",
+          "shadowEnabled": false
+        }
+      },
+      "updatedAt": "2026-06-08T15:43:35.620Z",
+      "background": {
+        "type": "color",
+        "color": "#000000",
+        "opacity": 1
+      },
+      "shapeLayers": [
+        {
+          "x": 0.867841748768473,
+          "y": 84.7787300901119,
+          "w": 37.83894016846719,
+          "h": 14.492389415382592,
+          "content": "",
+          "style": {
+            "shape": "rect",
+            "fillType": "solid",
+            "fill": "#4f5b6d",
+            "fillGradientEnd": "#3d6ec9",
+            "gradientAngle": 135,
+            "stroke": "#0055ff",
+            "strokeWidth": 2,
+            "strokeEnabled": false,
+            "opacity": 1,
+            "borderRadius": 12,
+            "shadowX": 0,
+            "shadowY": 4,
+            "shadowBlur": 12,
+            "shadowColor": "rgba(0,0,0,0.45)",
+            "shadowEnabled": false
+          },
+          "labelStyle": {
+            "color": "#ffffff",
+            "fontSize": 3.5,
+            "fontWeight": "700",
+            "textAlign": "center",
+            "strokeWidth": 2,
+            "strokeColor": "#000000",
+            "strokeEnabled": true,
+            "shadowX": 0,
+            "shadowY": 4,
+            "shadowBlur": 14,
+            "shadowColor": "rgba(0,0,0,0.85)",
+            "shadowEnabled": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "theme_1780853408380",
+      "name": "테스트 1",
+      "textLayer": {
+        "x": 5,
+        "y": 6.642857142857139,
+        "w": 90,
+        "h": 32,
+        "style": {
+          "fontFamily": "Georgia, serif",
+          "fontSize": 5.2,
+          "color": "#ffffff",
+          "textAlign": "center",
+          "verticalAlign": "top",
+          "fontWeight": "700",
+          "lineHeight": 1.35,
+          "fontStyle": "normal",
+          "textDecoration": "none",
+          "letterSpacing": 0,
+          "opacity": 1,
+          "strokeWidth": 2,
+          "strokeColor": "#000000",
+          "strokeEnabled": true,
+          "shadowX": 0,
+          "shadowY": 4,
+          "shadowBlur": 14,
+          "shadowColor": "rgba(0,0,0,0.85)",
+          "shadowEnabled": true
+        }
+      },
+      "updatedAt": "2026-06-07T18:01:05.746Z",
+      "background": {
+        "type": "color",
+        "color": "#000000",
+        "opacity": 1
+      }
+    }
+  ]
+}

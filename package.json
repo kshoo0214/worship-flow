@@ -1,0 +1,14 @@
+{
+  "name": "subtitle-broadcast",
+  "version": "1.0.0",
+  "description": "멀티 디스플레이 자막 송출 (순수 Electron)",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "env -u ELECTRON_RUN_AS_NODE electron .",
+    "postinstall": "node scripts/fix-electron.js"
+  },
+  "devDependencies": {
+    "electron": "^35.7.5"
+  }
+}

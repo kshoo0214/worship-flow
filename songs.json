@@ -1,0 +1,2758 @@
+{
+  "테스트 찬양": {
+    "version": 2,
+    "lyrics": "테스트 가사 1절입니다\n여기는 두 번째 줄입니다\n\n테스트 가사 2절입니다\n여기는 네 번째 줄입니다",
+    "slides": [
+      {
+        "id": "ly_mpr0de40_xih1ho",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mpr0de40_it4ksm",
+            "type": "text",
+            "x": 5,
+            "y": 62,
+            "w": 90,
+            "h": 32,
+            "content": "테스트 가사 1절입니다\n여기는 두 번째 줄입니다",
+            "style": {
+              "fontFamily": "-apple-system, BlinkMacSystemFont, \"Apple SD Gothic Neo\", \"Malgun Gothic\", sans-serif",
+              "fontSize": 5.2,
+              "color": "#ffffff",
+              "textAlign": "center",
+              "verticalAlign": "middle",
+              "fontWeight": "700",
+              "lineHeight": 1.35,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mpr0de40_qio0mr",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mpr0de40_1wy7fe",
+            "type": "text",
+            "x": 5,
+            "y": 62,
+            "w": 90,
+            "h": 32,
+            "content": "테스트 가사 2절입니다\n여기는 네 번째 줄입니다",
+            "style": {
+              "fontFamily": "-apple-system, BlinkMacSystemFont, \"Apple SD Gothic Neo\", \"Malgun Gothic\", sans-serif",
+              "fontSize": 5.2,
+              "color": "#ffffff",
+              "textAlign": "center",
+              "verticalAlign": "middle",
+              "fontWeight": "700",
+              "lineHeight": 1.35,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "어ㄹ니먀얼ㄴ": {
+    "version": 2,
+    "lyrics": "ㅁㅇ러ㅏ먀내얾ㄴㅇ\n\nㄴ야럼니올ㄴㅁㅇ\nㅁ니ㅑ얼ㄴㅇ\n\nㄴㅁ이ㅑ로ㅓㅁㄴㅇㄹ",
+    "slides": [
+      {
+        "id": "ly_mpr0de40_pwn7oi",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mpr0de40_euqdlt",
+            "type": "text",
+            "x": 5,
+            "y": 62,
+            "w": 90,
+            "h": 32,
+            "content": "ㅁㅇ러ㅏ먀내얾ㄴㅇ",
+            "style": {
+              "fontFamily": "'Apple SD Gothic Neo', sans-serif",
+              "fontSize": 7.6,
+              "color": "#ffffff",
+              "textAlign": "center",
+              "verticalAlign": "middle",
+              "fontWeight": "800",
+              "lineHeight": 1.35,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 0,
+              "strokeColor": "#000000",
+              "strokeEnabled": false,
+              "shadowX": 0,
+              "shadowY": -2,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mpr0de40_8sflbq",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mpr0de40_yvwcpw",
+            "type": "text",
+            "x": 5,
+            "y": 62,
+            "w": 90,
+            "h": 32,
+            "content": "ㄴ야럼니올ㄴㅁㅇ\nㅁ니ㅑ얼ㄴㅇ",
+            "style": {
+              "fontFamily": "'Apple SD Gothic Neo', sans-serif",
+              "fontSize": 7.6,
+              "color": "#ffffff",
+              "textAlign": "center",
+              "verticalAlign": "middle",
+              "fontWeight": "800",
+              "lineHeight": 1.35,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 0,
+              "strokeColor": "#000000",
+              "strokeEnabled": false,
+              "shadowX": 0,
+              "shadowY": -2,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mpr0de40_6woypr",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mpr0de41_woym0v",
+            "type": "text",
+            "x": 5,
+            "y": 62,
+            "w": 90,
+            "h": 32,
+            "content": "ㄴㅁ이ㅑ로ㅓㅁㄴㅇㄹ",
+            "style": {
+              "fontFamily": "'Apple SD Gothic Neo', sans-serif",
+              "fontSize": 7.6,
+              "color": "#ffffff",
+              "textAlign": "center",
+              "verticalAlign": "middle",
+              "fontWeight": "800",
+              "lineHeight": 1.35,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 0,
+              "strokeColor": "#000000",
+              "strokeEnabled": false,
+              "shadowX": 0,
+              "shadowY": -2,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "사랑을 나눠요": {
+    "version": 2,
+    "lyrics": "진리가 온 세상을\n밝게 비추네\n\n아름답고 놀라운 주의 사랑\n그 사랑을 나눠요\n\n아름답고 놀라운 주의 사랑\n그 사랑을 나눠요\n\n주의 호흡 있는 자 모두\n사랑을 나눠요\n\n온 세상은 주께 속한 것\n함께 노래해요\n\n사랑을 나눠요\n\n주님 우리 안에,\n하늘과 함께 계셔\n\n그 사랑 온 세상에\n알게 하시네\n\n하나로 부르시고\n자유를 선포하니\n\n진리가 온 세상을\n밝게 비추네\n\n아름답고 놀라운 주의 사랑\n그 사랑을 나눠요\n\n아름답고 놀라운 주의 사랑\n그 사랑을 나눠요\n\n사랑을 나눠요\n사랑을 나눠요\n\n사랑을 나눠요\n사랑을 나눠요\n\n함께 사랑을 나눠요\n우리 사랑을 나눠요\n\n함께 사랑을 나눠요\n아름다운 그 사랑을 나눠요",
+    "slides": [
+      {
+        "id": "ly_mq413h3f_th1f96",
+        "group": "Intro",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq7obd7s_yi8jc7",
+            "type": "rect",
+            "x": 0.867841748768473,
+            "y": 84.7787300901119,
+            "w": 37.83894016846719,
+            "h": 14.492389415382592,
+            "style": {
+              "shape": "rect",
+              "fillType": "solid",
+              "fill": "#4f5b6d",
+              "fillGradientEnd": "#3d6ec9",
+              "gradientAngle": 135,
+              "stroke": "#0055ff",
+              "strokeWidth": 2,
+              "strokeEnabled": false,
+              "opacity": 1,
+              "borderRadius": 12,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 12,
+              "shadowColor": "rgba(0,0,0,0.45)",
+              "shadowEnabled": false
+            },
+            "content": "",
+            "labelStyle": {
+              "color": "#ffffff",
+              "fontSize": 3.5,
+              "fontWeight": "700",
+              "textAlign": "center",
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          },
+          {
+            "id": "ly_mq5e3vsk_50y63s",
+            "type": "text",
+            "x": 1.8521012931034482,
+            "y": 67.93372252747253,
+            "w": 40,
+            "h": 31,
+            "content": "진리가 온 세상을\n밝게 비추네",
+            "style": {
+              "fontFamily": "'Apple SD Gothic Neo', sans-serif",
+              "fontSize": 5.6,
+              "color": "#ffffff",
+              "textAlign": "left",
+              "verticalAlign": "bottom",
+              "fontWeight": "800",
+              "lineHeight": 1.15,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 0,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": false,
+              "shadowX": 0,
+              "shadowY": -2,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(255,0,0,0.85)",
+              "shadowEnabled": false
+            },
+            "layoutHidden": true
+          }
+        ]
+      },
+      {
+        "id": "ly_mq413h3f_slp4f2",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq7obd7s_93dksi",
+            "type": "rect",
+            "x": 0.867841748768473,
+            "y": 84.7787300901119,
+            "w": 37.83894016846719,
+            "h": 14.492389415382592,
+            "style": {
+              "shape": "rect",
+              "fillType": "solid",
+              "fill": "#4f5b6d",
+              "fillGradientEnd": "#3d6ec9",
+              "gradientAngle": 135,
+              "stroke": "#0055ff",
+              "strokeWidth": 2,
+              "strokeEnabled": false,
+              "opacity": 1,
+              "borderRadius": 12,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 12,
+              "shadowColor": "rgba(0,0,0,0.45)",
+              "shadowEnabled": false
+            },
+            "content": "",
+            "labelStyle": {
+              "color": "#ffffff",
+              "fontSize": 3.5,
+              "fontWeight": "700",
+              "textAlign": "center",
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          },
+          {
+            "id": "ly_mq5e3vsk_6nmlzg",
+            "type": "text",
+            "x": 1.8521012931034482,
+            "y": 67.93372252747253,
+            "w": 40,
+            "h": 31,
+            "content": "아름답고 놀라운 주의 사랑\n그 사랑을 나눠요",
+            "style": {
+              "fontFamily": "'Apple SD Gothic Neo', sans-serif",
+              "fontSize": 5.6,
+              "color": "#ffffff",
+              "textAlign": "left",
+              "verticalAlign": "bottom",
+              "fontWeight": "800",
+              "lineHeight": 1.15,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": false,
+              "shadowX": 0,
+              "shadowY": -2,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(255,0,0,0.85)",
+              "shadowEnabled": false
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq413h3f_x68ajo",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq7obd7t_rzi7zn",
+            "type": "rect",
+            "x": 0.867841748768473,
+            "y": 84.7787300901119,
+            "w": 37.83894016846719,
+            "h": 14.492389415382592,
+            "style": {
+              "shape": "rect",
+              "fillType": "solid",
+              "fill": "#4f5b6d",
+              "fillGradientEnd": "#3d6ec9",
+              "gradientAngle": 135,
+              "stroke": "#0055ff",
+              "strokeWidth": 2,
+              "strokeEnabled": false,
+              "opacity": 1,
+              "borderRadius": 12,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 12,
+              "shadowColor": "rgba(0,0,0,0.45)",
+              "shadowEnabled": false
+            },
+            "content": "",
+            "labelStyle": {
+              "color": "#ffffff",
+              "fontSize": 3.5,
+              "fontWeight": "700",
+              "textAlign": "center",
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          },
+          {
+            "id": "ly_mq5e3vsk_gq9dmx",
+            "type": "text",
+            "x": 1.8521012931034482,
+            "y": 67.93372252747253,
+            "w": 40,
+            "h": 31,
+            "content": "아름답고 놀라운 주의 사랑\n그 사랑을 나눠요",
+            "style": {
+              "fontFamily": "'Apple SD Gothic Neo', sans-serif",
+              "fontSize": 5.6,
+              "color": "#ffffff",
+              "textAlign": "left",
+              "verticalAlign": "bottom",
+              "fontWeight": "800",
+              "lineHeight": 1.15,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": false,
+              "shadowX": 0,
+              "shadowY": -2,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(255,0,0,0.85)",
+              "shadowEnabled": false
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq413h3f_e2ft5y",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq7obd7t_sf13nj",
+            "type": "rect",
+            "x": 0.867841748768473,
+            "y": 84.7787300901119,
+            "w": 37.83894016846719,
+            "h": 14.492389415382592,
+            "style": {
+              "shape": "rect",
+              "fillType": "solid",
+              "fill": "#4f5b6d",
+              "fillGradientEnd": "#3d6ec9",
+              "gradientAngle": 135,
+              "stroke": "#0055ff",
+              "strokeWidth": 2,
+              "strokeEnabled": false,
+              "opacity": 1,
+              "borderRadius": 12,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 12,
+              "shadowColor": "rgba(0,0,0,0.45)",
+              "shadowEnabled": false
+            },
+            "content": "",
+            "labelStyle": {
+              "color": "#ffffff",
+              "fontSize": 3.5,
+              "fontWeight": "700",
+              "textAlign": "center",
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          },
+          {
+            "id": "ly_mq5e3vsk_ju8re9",
+            "type": "text",
+            "x": 1.8521012931034482,
+            "y": 67.93372252747253,
+            "w": 40,
+            "h": 31,
+            "content": "주의 호흡 있는 자 모두\n사랑을 나눠요",
+            "style": {
+              "fontFamily": "'Apple SD Gothic Neo', sans-serif",
+              "fontSize": 5.6,
+              "color": "#ffffff",
+              "textAlign": "left",
+              "verticalAlign": "bottom",
+              "fontWeight": "800",
+              "lineHeight": 1.15,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": false,
+              "shadowX": 0,
+              "shadowY": -2,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(255,0,0,0.85)",
+              "shadowEnabled": false
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq413h3f_vvbzh9",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq7obd7t_thhtsg",
+            "type": "rect",
+            "x": 0.867841748768473,
+            "y": 84.7787300901119,
+            "w": 37.83894016846719,
+            "h": 14.492389415382592,
+            "style": {
+              "shape": "rect",
+              "fillType": "solid",
+              "fill": "#4f5b6d",
+              "fillGradientEnd": "#3d6ec9",
+              "gradientAngle": 135,
+              "stroke": "#0055ff",
+              "strokeWidth": 2,
+              "strokeEnabled": false,
+              "opacity": 1,
+              "borderRadius": 12,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 12,
+              "shadowColor": "rgba(0,0,0,0.45)",
+              "shadowEnabled": false
+            },
+            "content": "",
+            "labelStyle": {
+              "color": "#ffffff",
+              "fontSize": 3.5,
+              "fontWeight": "700",
+              "textAlign": "center",
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          },
+          {
+            "id": "ly_mq5e3vsk_anpymt",
+            "type": "text",
+            "x": 1.8521012931034482,
+            "y": 67.93372252747253,
+            "w": 40,
+            "h": 31,
+            "content": "온 세상은 주께 속한 것\n함께 노래해요",
+            "style": {
+              "fontFamily": "'Apple SD Gothic Neo', sans-serif",
+              "fontSize": 5.6,
+              "color": "#ffffff",
+              "textAlign": "left",
+              "verticalAlign": "bottom",
+              "fontWeight": "800",
+              "lineHeight": 1.15,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": false,
+              "shadowX": 0,
+              "shadowY": -2,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(255,0,0,0.85)",
+              "shadowEnabled": false
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq413h3f_4q44kl",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq7obd7t_apzphe",
+            "type": "rect",
+            "x": 0.867841748768473,
+            "y": 84.7787300901119,
+            "w": 37.83894016846719,
+            "h": 14.492389415382592,
+            "style": {
+              "shape": "rect",
+              "fillType": "solid",
+              "fill": "#4f5b6d",
+              "fillGradientEnd": "#3d6ec9",
+              "gradientAngle": 135,
+              "stroke": "#0055ff",
+              "strokeWidth": 2,
+              "strokeEnabled": false,
+              "opacity": 1,
+              "borderRadius": 12,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 12,
+              "shadowColor": "rgba(0,0,0,0.45)",
+              "shadowEnabled": false
+            },
+            "content": "",
+            "labelStyle": {
+              "color": "#ffffff",
+              "fontSize": 3.5,
+              "fontWeight": "700",
+              "textAlign": "center",
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          },
+          {
+            "id": "ly_mq5e3vsk_pzkpnl",
+            "type": "text",
+            "x": 1.8521012931034482,
+            "y": 67.93372252747253,
+            "w": 40,
+            "h": 31,
+            "content": "사랑을 나눠요",
+            "style": {
+              "fontFamily": "'Apple SD Gothic Neo', sans-serif",
+              "fontSize": 5.6,
+              "color": "#ffffff",
+              "textAlign": "left",
+              "verticalAlign": "bottom",
+              "fontWeight": "800",
+              "lineHeight": 1.15,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": false,
+              "shadowX": 0,
+              "shadowY": -2,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(255,0,0,0.85)",
+              "shadowEnabled": false
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq413h3f_v9bfsr",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq7obd7t_mzkpxu",
+            "type": "rect",
+            "x": 0.867841748768473,
+            "y": 84.7787300901119,
+            "w": 37.83894016846719,
+            "h": 14.492389415382592,
+            "style": {
+              "shape": "rect",
+              "fillType": "solid",
+              "fill": "#4f5b6d",
+              "fillGradientEnd": "#3d6ec9",
+              "gradientAngle": 135,
+              "stroke": "#0055ff",
+              "strokeWidth": 2,
+              "strokeEnabled": false,
+              "opacity": 1,
+              "borderRadius": 12,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 12,
+              "shadowColor": "rgba(0,0,0,0.45)",
+              "shadowEnabled": false
+            },
+            "content": "",
+            "labelStyle": {
+              "color": "#ffffff",
+              "fontSize": 3.5,
+              "fontWeight": "700",
+              "textAlign": "center",
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          },
+          {
+            "id": "ly_mq5e3vsk_wcyegq",
+            "type": "text",
+            "x": 1.8521012931034482,
+            "y": 67.93372252747253,
+            "w": 40,
+            "h": 31,
+            "content": "주님 우리 안에,\n하늘과 함께 계셔",
+            "style": {
+              "fontFamily": "'Apple SD Gothic Neo', sans-serif",
+              "fontSize": 5.6,
+              "color": "#ffffff",
+              "textAlign": "left",
+              "verticalAlign": "bottom",
+              "fontWeight": "800",
+              "lineHeight": 1.15,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": false,
+              "shadowX": 0,
+              "shadowY": -2,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(255,0,0,0.85)",
+              "shadowEnabled": false
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq413h3f_mx8uis",
+        "group": "Verse",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq7obd7t_nskciq",
+            "type": "rect",
+            "x": 0.867841748768473,
+            "y": 84.7787300901119,
+            "w": 37.83894016846719,
+            "h": 14.492389415382592,
+            "style": {
+              "shape": "rect",
+              "fillType": "solid",
+              "fill": "#4f5b6d",
+              "fillGradientEnd": "#3d6ec9",
+              "gradientAngle": 135,
+              "stroke": "#0055ff",
+              "strokeWidth": 2,
+              "strokeEnabled": false,
+              "opacity": 1,
+              "borderRadius": 12,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 12,
+              "shadowColor": "rgba(0,0,0,0.45)",
+              "shadowEnabled": false
+            },
+            "content": "",
+            "labelStyle": {
+              "color": "#ffffff",
+              "fontSize": 3.5,
+              "fontWeight": "700",
+              "textAlign": "center",
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          },
+          {
+            "id": "ly_mq5e3vsk_75ture",
+            "type": "text",
+            "x": 1.8521012931034482,
+            "y": 67.93372252747253,
+            "w": 40,
+            "h": 31,
+            "content": "그 사랑 온 세상에\n알게 하시네",
+            "style": {
+              "fontFamily": "'Apple SD Gothic Neo', sans-serif",
+              "fontSize": 5.6,
+              "color": "#ffffff",
+              "textAlign": "left",
+              "verticalAlign": "bottom",
+              "fontWeight": "800",
+              "lineHeight": 1.15,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": false,
+              "shadowX": 0,
+              "shadowY": -2,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(255,0,0,0.85)",
+              "shadowEnabled": false
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq413h3f_aij3k7",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq7obd7t_9xvc63",
+            "type": "rect",
+            "x": 0.867841748768473,
+            "y": 84.7787300901119,
+            "w": 37.83894016846719,
+            "h": 14.492389415382592,
+            "style": {
+              "shape": "rect",
+              "fillType": "solid",
+              "fill": "#4f5b6d",
+              "fillGradientEnd": "#3d6ec9",
+              "gradientAngle": 135,
+              "stroke": "#0055ff",
+              "strokeWidth": 2,
+              "strokeEnabled": false,
+              "opacity": 1,
+              "borderRadius": 12,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 12,
+              "shadowColor": "rgba(0,0,0,0.45)",
+              "shadowEnabled": false
+            },
+            "content": "",
+            "labelStyle": {
+              "color": "#ffffff",
+              "fontSize": 3.5,
+              "fontWeight": "700",
+              "textAlign": "center",
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          },
+          {
+            "id": "ly_mq5e3vsk_sooiq1",
+            "type": "text",
+            "x": 1.8521012931034482,
+            "y": 67.93372252747253,
+            "w": 40,
+            "h": 31,
+            "content": "하나로 부르시고\n자유를 선포하니",
+            "style": {
+              "fontFamily": "'Apple SD Gothic Neo', sans-serif",
+              "fontSize": 5.6,
+              "color": "#ffffff",
+              "textAlign": "left",
+              "verticalAlign": "bottom",
+              "fontWeight": "800",
+              "lineHeight": 1.15,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": false,
+              "shadowX": 0,
+              "shadowY": -2,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(255,0,0,0.85)",
+              "shadowEnabled": false
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq413h3f_k7eb8c",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq7obd7t_sokak0",
+            "type": "rect",
+            "x": 0.867841748768473,
+            "y": 84.7787300901119,
+            "w": 37.83894016846719,
+            "h": 14.492389415382592,
+            "style": {
+              "shape": "rect",
+              "fillType": "solid",
+              "fill": "#4f5b6d",
+              "fillGradientEnd": "#3d6ec9",
+              "gradientAngle": 135,
+              "stroke": "#0055ff",
+              "strokeWidth": 2,
+              "strokeEnabled": false,
+              "opacity": 1,
+              "borderRadius": 12,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 12,
+              "shadowColor": "rgba(0,0,0,0.45)",
+              "shadowEnabled": false
+            },
+            "content": "",
+            "labelStyle": {
+              "color": "#ffffff",
+              "fontSize": 3.5,
+              "fontWeight": "700",
+              "textAlign": "center",
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          },
+          {
+            "id": "ly_mq5e3vsl_ax99c2",
+            "type": "text",
+            "x": 1.8521012931034482,
+            "y": 67.93372252747253,
+            "w": 40,
+            "h": 31,
+            "content": "진리가 온 세상을\n밝게 비추네",
+            "style": {
+              "fontFamily": "'Apple SD Gothic Neo', sans-serif",
+              "fontSize": 5.6,
+              "color": "#ffffff",
+              "textAlign": "left",
+              "verticalAlign": "bottom",
+              "fontWeight": "800",
+              "lineHeight": 1.15,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": false,
+              "shadowX": 0,
+              "shadowY": -2,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(255,0,0,0.85)",
+              "shadowEnabled": false
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq413h3g_w4de4i",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq7obd7t_i9xpj8",
+            "type": "rect",
+            "x": 0.867841748768473,
+            "y": 84.7787300901119,
+            "w": 37.83894016846719,
+            "h": 14.492389415382592,
+            "style": {
+              "shape": "rect",
+              "fillType": "solid",
+              "fill": "#4f5b6d",
+              "fillGradientEnd": "#3d6ec9",
+              "gradientAngle": 135,
+              "stroke": "#0055ff",
+              "strokeWidth": 2,
+              "strokeEnabled": false,
+              "opacity": 1,
+              "borderRadius": 12,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 12,
+              "shadowColor": "rgba(0,0,0,0.45)",
+              "shadowEnabled": false
+            },
+            "content": "",
+            "labelStyle": {
+              "color": "#ffffff",
+              "fontSize": 3.5,
+              "fontWeight": "700",
+              "textAlign": "center",
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          },
+          {
+            "id": "ly_mq5e3vsl_s073om",
+            "type": "text",
+            "x": 1.8521012931034482,
+            "y": 67.93372252747253,
+            "w": 40,
+            "h": 31,
+            "content": "아름답고 놀라운 주의 사랑\n그 사랑을 나눠요",
+            "style": {
+              "fontFamily": "'Apple SD Gothic Neo', sans-serif",
+              "fontSize": 5.6,
+              "color": "#ffffff",
+              "textAlign": "left",
+              "verticalAlign": "bottom",
+              "fontWeight": "800",
+              "lineHeight": 1.15,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": false,
+              "shadowX": 0,
+              "shadowY": -2,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(255,0,0,0.85)",
+              "shadowEnabled": false
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq414nwg_fw7ml6",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq7obd7t_anqz4z",
+            "type": "rect",
+            "x": 0.867841748768473,
+            "y": 84.7787300901119,
+            "w": 37.83894016846719,
+            "h": 14.492389415382592,
+            "style": {
+              "shape": "rect",
+              "fillType": "solid",
+              "fill": "#4f5b6d",
+              "fillGradientEnd": "#3d6ec9",
+              "gradientAngle": 135,
+              "stroke": "#0055ff",
+              "strokeWidth": 2,
+              "strokeEnabled": false,
+              "opacity": 1,
+              "borderRadius": 12,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 12,
+              "shadowColor": "rgba(0,0,0,0.45)",
+              "shadowEnabled": false
+            },
+            "content": "",
+            "labelStyle": {
+              "color": "#ffffff",
+              "fontSize": 3.5,
+              "fontWeight": "700",
+              "textAlign": "center",
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          },
+          {
+            "id": "ly_mq5e3vsl_lasno5",
+            "type": "text",
+            "x": 1.8521012931034482,
+            "y": 67.93372252747253,
+            "w": 40,
+            "h": 31,
+            "content": "아름답고 놀라운 주의 사랑\n그 사랑을 나눠요",
+            "style": {
+              "fontFamily": "'Apple SD Gothic Neo', sans-serif",
+              "fontSize": 5.6,
+              "color": "#ffffff",
+              "textAlign": "left",
+              "verticalAlign": "bottom",
+              "fontWeight": "800",
+              "lineHeight": 1.15,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": false,
+              "shadowX": 0,
+              "shadowY": -2,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(255,0,0,0.85)",
+              "shadowEnabled": false
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq414q0d_9svav5",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq7obd7u_0gtk58",
+            "type": "rect",
+            "x": 0.867841748768473,
+            "y": 84.7787300901119,
+            "w": 37.83894016846719,
+            "h": 14.492389415382592,
+            "style": {
+              "shape": "rect",
+              "fillType": "solid",
+              "fill": "#4f5b6d",
+              "fillGradientEnd": "#3d6ec9",
+              "gradientAngle": 135,
+              "stroke": "#0055ff",
+              "strokeWidth": 2,
+              "strokeEnabled": false,
+              "opacity": 1,
+              "borderRadius": 12,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 12,
+              "shadowColor": "rgba(0,0,0,0.45)",
+              "shadowEnabled": false
+            },
+            "content": "",
+            "labelStyle": {
+              "color": "#ffffff",
+              "fontSize": 3.5,
+              "fontWeight": "700",
+              "textAlign": "center",
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          },
+          {
+            "id": "ly_mq5e3vsl_5orl7f",
+            "type": "text",
+            "x": 1.8521012931034482,
+            "y": 67.93372252747253,
+            "w": 40,
+            "h": 31,
+            "content": "사랑을 나눠요\n사랑을 나눠요",
+            "style": {
+              "fontFamily": "'Apple SD Gothic Neo', sans-serif",
+              "fontSize": 5.6,
+              "color": "#ffffff",
+              "textAlign": "left",
+              "verticalAlign": "bottom",
+              "fontWeight": "800",
+              "lineHeight": 1.15,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": false,
+              "shadowX": 0,
+              "shadowY": -2,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(255,0,0,0.85)",
+              "shadowEnabled": false
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq414qmo_h4qtzb",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq7obd7u_5xe87b",
+            "type": "rect",
+            "x": 0.867841748768473,
+            "y": 84.7787300901119,
+            "w": 37.83894016846719,
+            "h": 14.492389415382592,
+            "style": {
+              "shape": "rect",
+              "fillType": "solid",
+              "fill": "#4f5b6d",
+              "fillGradientEnd": "#3d6ec9",
+              "gradientAngle": 135,
+              "stroke": "#0055ff",
+              "strokeWidth": 2,
+              "strokeEnabled": false,
+              "opacity": 1,
+              "borderRadius": 12,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 12,
+              "shadowColor": "rgba(0,0,0,0.45)",
+              "shadowEnabled": false
+            },
+            "content": "",
+            "labelStyle": {
+              "color": "#ffffff",
+              "fontSize": 3.5,
+              "fontWeight": "700",
+              "textAlign": "center",
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          },
+          {
+            "id": "ly_mq5e3vsl_lk9nx8",
+            "type": "text",
+            "x": 1.8521012931034482,
+            "y": 67.93372252747253,
+            "w": 40,
+            "h": 31,
+            "content": "사랑을 나눠요\n사랑을 나눠요",
+            "style": {
+              "fontFamily": "'Apple SD Gothic Neo', sans-serif",
+              "fontSize": 5.6,
+              "color": "#ffffff",
+              "textAlign": "left",
+              "verticalAlign": "bottom",
+              "fontWeight": "800",
+              "lineHeight": 1.15,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": false,
+              "shadowX": 0,
+              "shadowY": -2,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(255,0,0,0.85)",
+              "shadowEnabled": false
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq414rrx_6xzvkz",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq7obd7u_uowv2l",
+            "type": "rect",
+            "x": 0.867841748768473,
+            "y": 84.7787300901119,
+            "w": 37.83894016846719,
+            "h": 14.492389415382592,
+            "style": {
+              "shape": "rect",
+              "fillType": "solid",
+              "fill": "#4f5b6d",
+              "fillGradientEnd": "#3d6ec9",
+              "gradientAngle": 135,
+              "stroke": "#0055ff",
+              "strokeWidth": 2,
+              "strokeEnabled": false,
+              "opacity": 1,
+              "borderRadius": 12,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 12,
+              "shadowColor": "rgba(0,0,0,0.45)",
+              "shadowEnabled": false
+            },
+            "content": "",
+            "labelStyle": {
+              "color": "#ffffff",
+              "fontSize": 3.5,
+              "fontWeight": "700",
+              "textAlign": "center",
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          },
+          {
+            "id": "ly_mq5e3vsl_u2l2xa",
+            "type": "text",
+            "x": 1.8521012931034482,
+            "y": 67.93372252747253,
+            "w": 40,
+            "h": 31,
+            "content": "함께 사랑을 나눠요\n우리 사랑을 나눠요",
+            "style": {
+              "fontFamily": "'Apple SD Gothic Neo', sans-serif",
+              "fontSize": 5.6,
+              "color": "#ffffff",
+              "textAlign": "left",
+              "verticalAlign": "bottom",
+              "fontWeight": "800",
+              "lineHeight": 1.15,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": false,
+              "shadowX": 0,
+              "shadowY": -2,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(255,0,0,0.85)",
+              "shadowEnabled": false
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq414t72_xrs2fq",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq7obd7u_uf8fyt",
+            "type": "rect",
+            "x": 0.867841748768473,
+            "y": 84.7787300901119,
+            "w": 37.83894016846719,
+            "h": 14.492389415382592,
+            "style": {
+              "shape": "rect",
+              "fillType": "solid",
+              "fill": "#4f5b6d",
+              "fillGradientEnd": "#3d6ec9",
+              "gradientAngle": 135,
+              "stroke": "#0055ff",
+              "strokeWidth": 2,
+              "strokeEnabled": false,
+              "opacity": 1,
+              "borderRadius": 12,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 12,
+              "shadowColor": "rgba(0,0,0,0.45)",
+              "shadowEnabled": false
+            },
+            "content": "",
+            "labelStyle": {
+              "color": "#ffffff",
+              "fontSize": 3.5,
+              "fontWeight": "700",
+              "textAlign": "center",
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          },
+          {
+            "id": "ly_mq5e3vsl_hshwve",
+            "type": "text",
+            "x": 1.8521012931034482,
+            "y": 67.93372252747253,
+            "w": 40,
+            "h": 31,
+            "content": "함께 사랑을 나눠요\n아름다운 그 사랑을 나눠요",
+            "style": {
+              "fontFamily": "'Apple SD Gothic Neo', sans-serif",
+              "fontSize": 5.6,
+              "color": "#ffffff",
+              "textAlign": "left",
+              "verticalAlign": "bottom",
+              "fontWeight": "800",
+              "lineHeight": 1.15,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": false,
+              "shadowX": 0,
+              "shadowY": -2,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(255,0,0,0.85)",
+              "shadowEnabled": false
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "주님만이 왕이십니다": {
+    "version": 2,
+    "lyrics": "Jesus you’re the only one our King\nJesus you’re the only one our King\n\nJesus you’re the only one our King\nJesus you’re the only one our King\n\nIn this Place In this Place\nIn this Place In this Place\n\nIn this Place In this Place\nIn this Place In this Place\n\n주님만이 왕이십니다\n주님만이 왕이십니다\n\n주님만이 왕이십니다\n주님만이 왕이십니다\n\n내 삶에 내 삶에 \n내 삶에 내 삶에\n\n내 삶에 내 삶에 \n내 삶에 내 삶에\n\n주님만이 왕이십니다\n주님만이 왕이십니다\n\n주님만이 왕이십니다\n주님만이 왕이십니다\n\n온 땅에 온 땅에 \n온 땅에 온 땅에\n\n온 땅에 온 땅에 \n온 땅에 온 땅에\n\n경배해 경배해 \n경배해 경배해\n\n경배해 경배해 \n경배해 경배해\n\n모든 이름 위에 뛰어나신 이름\n왕의 왕 예수께 엎드려 경배해\n\n모든 이름 위에 뛰어나신 이름\n왕의 왕 예수께 손들고 경배해\n\n모든 이름 위에 뛰어나신 이름\n왕의 왕 예수께 엎드려 경배해\n\n모든 이름 위에 뛰어나신 이름\n왕의 왕 예수께 손들고 경배해\n\nTo the name of all names\nJesus, we give you praise\n\nTo the King of all kings\nLord, we bow down to You\n\nTo the name of all names\nJesus, we give you praise\n\nTo the King of all kings\nWe lift our hands to You\n\nJesus you’re the only one our King\nJesus you’re the only one our King\n\nJesus you’re the only one our King\nJesus you’re the only one our King\n\n주님만이 왕이십니다\n주님만이 왕이십니다\n\n주님만이 왕이십니다\n주님만이 왕이십니다\n\n주님만이 왕이십니다\n주님만이 왕이십니다\n\n주님만이 왕이십니다\n주님만이 왕이십니다\n\n주님만이 왕이십니다\n주님만이 왕이십니다\n\n주님만이 왕이십니다\n주님만이 왕이십니다",
+    "slides": [
+      {
+        "id": "ly_mq42lstx_g42d3f",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq42lstx_fe2tad",
+            "type": "text",
+            "x": 5,
+            "y": 6.642857142857139,
+            "w": 90,
+            "h": 32,
+            "content": "Jesus you’re the only one our King\nJesus you’re the only one our King",
+            "style": {
+              "fontFamily": "Georgia, serif",
+              "fontSize": 5.2,
+              "color": "#ffffff",
+              "textAlign": "center",
+              "verticalAlign": "top",
+              "fontWeight": "700",
+              "lineHeight": 1.35,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq42lstx_3ukhcq",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq42lstx_3n9lyp",
+            "type": "text",
+            "x": 5,
+            "y": 6.642857142857139,
+            "w": 90,
+            "h": 32,
+            "content": "Jesus you’re the only one our King\nJesus you’re the only one our King",
+            "style": {
+              "fontFamily": "Georgia, serif",
+              "fontSize": 5.2,
+              "color": "#ffffff",
+              "textAlign": "center",
+              "verticalAlign": "top",
+              "fontWeight": "700",
+              "lineHeight": 1.35,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq42lstx_ckdwxr",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq42lstx_uxi6yo",
+            "type": "text",
+            "x": 5,
+            "y": 6.642857142857139,
+            "w": 90,
+            "h": 32,
+            "content": "In this Place In this Place\nIn this Place In this Place",
+            "style": {
+              "fontFamily": "Georgia, serif",
+              "fontSize": 5.2,
+              "color": "#ffffff",
+              "textAlign": "center",
+              "verticalAlign": "top",
+              "fontWeight": "700",
+              "lineHeight": 1.35,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq42lstx_zyn7be",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq42lstx_vp4rs2",
+            "type": "text",
+            "x": 5,
+            "y": 6.642857142857139,
+            "w": 90,
+            "h": 32,
+            "content": "In this Place In this Place\nIn this Place In this Place",
+            "style": {
+              "fontFamily": "Georgia, serif",
+              "fontSize": 5.2,
+              "color": "#ffffff",
+              "textAlign": "center",
+              "verticalAlign": "top",
+              "fontWeight": "700",
+              "lineHeight": 1.35,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq42lstx_sz4s51",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq42lstx_up7uiq",
+            "type": "text",
+            "x": 5,
+            "y": 6.642857142857139,
+            "w": 90,
+            "h": 32,
+            "content": "주님만이 왕이십니다\n주님만이 왕이십니다",
+            "style": {
+              "fontFamily": "Georgia, serif",
+              "fontSize": 5.2,
+              "color": "#ffffff",
+              "textAlign": "center",
+              "verticalAlign": "top",
+              "fontWeight": "700",
+              "lineHeight": 1.35,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq42lstx_gb0kql",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq42lstx_wsqhrk",
+            "type": "text",
+            "x": 5,
+            "y": 6.642857142857139,
+            "w": 90,
+            "h": 32,
+            "content": "주님만이 왕이십니다\n주님만이 왕이십니다",
+            "style": {
+              "fontFamily": "Georgia, serif",
+              "fontSize": 5.2,
+              "color": "#ffffff",
+              "textAlign": "center",
+              "verticalAlign": "top",
+              "fontWeight": "700",
+              "lineHeight": 1.35,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq42lstx_yscja1",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq42lstx_arc48u",
+            "type": "text",
+            "x": 5,
+            "y": 6.642857142857139,
+            "w": 90,
+            "h": 32,
+            "content": "내 삶에 내 삶에 \n내 삶에 내 삶에",
+            "style": {
+              "fontFamily": "Georgia, serif",
+              "fontSize": 5.2,
+              "color": "#ffffff",
+              "textAlign": "center",
+              "verticalAlign": "top",
+              "fontWeight": "700",
+              "lineHeight": 1.35,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq42lstx_7gvry0",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq42lstx_dp3csd",
+            "type": "text",
+            "x": 5,
+            "y": 6.642857142857139,
+            "w": 90,
+            "h": 32,
+            "content": "내 삶에 내 삶에 \n내 삶에 내 삶에",
+            "style": {
+              "fontFamily": "Georgia, serif",
+              "fontSize": 5.2,
+              "color": "#ffffff",
+              "textAlign": "center",
+              "verticalAlign": "top",
+              "fontWeight": "700",
+              "lineHeight": 1.35,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq42lstx_3i0q9m",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq42lstx_kylu7q",
+            "type": "text",
+            "x": 5,
+            "y": 6.642857142857139,
+            "w": 90,
+            "h": 32,
+            "content": "주님만이 왕이십니다\n주님만이 왕이십니다",
+            "style": {
+              "fontFamily": "Georgia, serif",
+              "fontSize": 5.2,
+              "color": "#ffffff",
+              "textAlign": "center",
+              "verticalAlign": "top",
+              "fontWeight": "700",
+              "lineHeight": 1.35,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq42lstx_nih2qy",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq42lstx_pi7whr",
+            "type": "text",
+            "x": 5,
+            "y": 6.642857142857139,
+            "w": 90,
+            "h": 32,
+            "content": "주님만이 왕이십니다\n주님만이 왕이십니다",
+            "style": {
+              "fontFamily": "Georgia, serif",
+              "fontSize": 5.2,
+              "color": "#ffffff",
+              "textAlign": "center",
+              "verticalAlign": "top",
+              "fontWeight": "700",
+              "lineHeight": 1.35,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq42lsty_hxslgm",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq42lsty_87zona",
+            "type": "text",
+            "x": 5,
+            "y": 6.642857142857139,
+            "w": 90,
+            "h": 32,
+            "content": "온 땅에 온 땅에 \n온 땅에 온 땅에",
+            "style": {
+              "fontFamily": "Georgia, serif",
+              "fontSize": 5.2,
+              "color": "#ffffff",
+              "textAlign": "center",
+              "verticalAlign": "top",
+              "fontWeight": "700",
+              "lineHeight": 1.35,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq42lsty_t164v4",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq42lsty_x9j1hb",
+            "type": "text",
+            "x": 5,
+            "y": 6.642857142857139,
+            "w": 90,
+            "h": 32,
+            "content": "온 땅에 온 땅에 \n온 땅에 온 땅에",
+            "style": {
+              "fontFamily": "Georgia, serif",
+              "fontSize": 5.2,
+              "color": "#ffffff",
+              "textAlign": "center",
+              "verticalAlign": "top",
+              "fontWeight": "700",
+              "lineHeight": 1.35,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq42lsty_a77t96",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq42lsty_2q1inj",
+            "type": "text",
+            "x": 5,
+            "y": 6.642857142857139,
+            "w": 90,
+            "h": 32,
+            "content": "경배해 경배해 \n경배해 경배해",
+            "style": {
+              "fontFamily": "Georgia, serif",
+              "fontSize": 5.2,
+              "color": "#ffffff",
+              "textAlign": "center",
+              "verticalAlign": "top",
+              "fontWeight": "700",
+              "lineHeight": 1.35,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq42lsty_wqr15i",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq42lsty_wh1gn5",
+            "type": "text",
+            "x": 5,
+            "y": 6.642857142857139,
+            "w": 90,
+            "h": 32,
+            "content": "경배해 경배해 \n경배해 경배해",
+            "style": {
+              "fontFamily": "Georgia, serif",
+              "fontSize": 5.2,
+              "color": "#ffffff",
+              "textAlign": "center",
+              "verticalAlign": "top",
+              "fontWeight": "700",
+              "lineHeight": 1.35,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq42lsty_tibrt3",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq42lsty_l74ker",
+            "type": "text",
+            "x": 5,
+            "y": 6.642857142857139,
+            "w": 90,
+            "h": 32,
+            "content": "모든 이름 위에 뛰어나신 이름\n왕의 왕 예수께 엎드려 경배해",
+            "style": {
+              "fontFamily": "Georgia, serif",
+              "fontSize": 5.2,
+              "color": "#ffffff",
+              "textAlign": "center",
+              "verticalAlign": "top",
+              "fontWeight": "700",
+              "lineHeight": 1.35,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq42maed_qnohl5",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq42maed_khjsn5",
+            "type": "text",
+            "x": 5,
+            "y": 6.642857142857139,
+            "w": 90,
+            "h": 32,
+            "content": "모든 이름 위에 뛰어나신 이름\n왕의 왕 예수께 손들고 경배해",
+            "style": {
+              "fontFamily": "Georgia, serif",
+              "fontSize": 5.2,
+              "color": "#ffffff",
+              "textAlign": "center",
+              "verticalAlign": "top",
+              "fontWeight": "700",
+              "lineHeight": 1.35,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq42mcl5_2bgwgg",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq42mcl5_u70i6r",
+            "type": "text",
+            "x": 5,
+            "y": 6.642857142857139,
+            "w": 90,
+            "h": 32,
+            "content": "모든 이름 위에 뛰어나신 이름\n왕의 왕 예수께 엎드려 경배해",
+            "style": {
+              "fontFamily": "Georgia, serif",
+              "fontSize": 5.2,
+              "color": "#ffffff",
+              "textAlign": "center",
+              "verticalAlign": "top",
+              "fontWeight": "700",
+              "lineHeight": 1.35,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq42mdo0_qoo1qc",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq42mdo0_n7368f",
+            "type": "text",
+            "x": 5,
+            "y": 6.642857142857139,
+            "w": 90,
+            "h": 32,
+            "content": "모든 이름 위에 뛰어나신 이름\n왕의 왕 예수께 손들고 경배해",
+            "style": {
+              "fontFamily": "Georgia, serif",
+              "fontSize": 5.2,
+              "color": "#ffffff",
+              "textAlign": "center",
+              "verticalAlign": "top",
+              "fontWeight": "700",
+              "lineHeight": 1.35,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq42mfnt_hg6siq",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq42mfnt_flc7gt",
+            "type": "text",
+            "x": 5,
+            "y": 6.642857142857139,
+            "w": 90,
+            "h": 32,
+            "content": "To the name of all names\nJesus, we give you praise",
+            "style": {
+              "fontFamily": "Georgia, serif",
+              "fontSize": 5.2,
+              "color": "#ffffff",
+              "textAlign": "center",
+              "verticalAlign": "top",
+              "fontWeight": "700",
+              "lineHeight": 1.35,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq42mieu_rcdzo6",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq42mieu_melegn",
+            "type": "text",
+            "x": 5,
+            "y": 6.642857142857139,
+            "w": 90,
+            "h": 32,
+            "content": "To the King of all kings\nLord, we bow down to You",
+            "style": {
+              "fontFamily": "Georgia, serif",
+              "fontSize": 5.2,
+              "color": "#ffffff",
+              "textAlign": "center",
+              "verticalAlign": "top",
+              "fontWeight": "700",
+              "lineHeight": 1.35,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq42mmb8_o2gdii",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq42mmb8_h2g6f2",
+            "type": "text",
+            "x": 5,
+            "y": 6.642857142857139,
+            "w": 90,
+            "h": 32,
+            "content": "To the name of all names\nJesus, we give you praise",
+            "style": {
+              "fontFamily": "Georgia, serif",
+              "fontSize": 5.2,
+              "color": "#ffffff",
+              "textAlign": "center",
+              "verticalAlign": "top",
+              "fontWeight": "700",
+              "lineHeight": 1.35,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq42mp0b_0f64jc",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq42mp0b_yme4zx",
+            "type": "text",
+            "x": 5,
+            "y": 6.642857142857139,
+            "w": 90,
+            "h": 32,
+            "content": "To the King of all kings\nWe lift our hands to You",
+            "style": {
+              "fontFamily": "Georgia, serif",
+              "fontSize": 5.2,
+              "color": "#ffffff",
+              "textAlign": "center",
+              "verticalAlign": "top",
+              "fontWeight": "700",
+              "lineHeight": 1.35,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq42mqoj_reoppk",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq42mqoj_4du85i",
+            "type": "text",
+            "x": 5,
+            "y": 6.642857142857139,
+            "w": 90,
+            "h": 32,
+            "content": "Jesus you’re the only one our King\nJesus you’re the only one our King",
+            "style": {
+              "fontFamily": "Georgia, serif",
+              "fontSize": 5.2,
+              "color": "#ffffff",
+              "textAlign": "center",
+              "verticalAlign": "top",
+              "fontWeight": "700",
+              "lineHeight": 1.35,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq42mse4_lc70cl",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq42mse4_fxmphj",
+            "type": "text",
+            "x": 5,
+            "y": 6.642857142857139,
+            "w": 90,
+            "h": 32,
+            "content": "Jesus you’re the only one our King\nJesus you’re the only one our King",
+            "style": {
+              "fontFamily": "Georgia, serif",
+              "fontSize": 5.2,
+              "color": "#ffffff",
+              "textAlign": "center",
+              "verticalAlign": "top",
+              "fontWeight": "700",
+              "lineHeight": 1.35,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq42mu1y_zjpnt9",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq42mu1y_k3yq8p",
+            "type": "text",
+            "x": 5,
+            "y": 6.642857142857139,
+            "w": 90,
+            "h": 32,
+            "content": "주님만이 왕이십니다\n주님만이 왕이십니다",
+            "style": {
+              "fontFamily": "Georgia, serif",
+              "fontSize": 5.2,
+              "color": "#ffffff",
+              "textAlign": "center",
+              "verticalAlign": "top",
+              "fontWeight": "700",
+              "lineHeight": 1.35,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq42mv5f_s6dnhr",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq42mv5f_h9ablm",
+            "type": "text",
+            "x": 5,
+            "y": 6.642857142857139,
+            "w": 90,
+            "h": 32,
+            "content": "주님만이 왕이십니다\n주님만이 왕이십니다",
+            "style": {
+              "fontFamily": "Georgia, serif",
+              "fontSize": 5.2,
+              "color": "#ffffff",
+              "textAlign": "center",
+              "verticalAlign": "top",
+              "fontWeight": "700",
+              "lineHeight": 1.35,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq42mxd7_0992v4",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq42mxd7_5dc3vm",
+            "type": "text",
+            "x": 5,
+            "y": 6.642857142857139,
+            "w": 90,
+            "h": 32,
+            "content": "주님만이 왕이십니다\n주님만이 왕이십니다",
+            "style": {
+              "fontFamily": "Georgia, serif",
+              "fontSize": 5.2,
+              "color": "#ffffff",
+              "textAlign": "center",
+              "verticalAlign": "top",
+              "fontWeight": "700",
+              "lineHeight": 1.35,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq42mypu_x665ig",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq42mypu_pp3kqn",
+            "type": "text",
+            "x": 5,
+            "y": 6.642857142857139,
+            "w": 90,
+            "h": 32,
+            "content": "주님만이 왕이십니다\n주님만이 왕이십니다",
+            "style": {
+              "fontFamily": "Georgia, serif",
+              "fontSize": 5.2,
+              "color": "#ffffff",
+              "textAlign": "center",
+              "verticalAlign": "top",
+              "fontWeight": "700",
+              "lineHeight": 1.35,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq42mzz4_8cj4z3",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq42mzz4_e2b1ny",
+            "type": "text",
+            "x": 5,
+            "y": 6.642857142857139,
+            "w": 90,
+            "h": 32,
+            "content": "주님만이 왕이십니다\n주님만이 왕이십니다",
+            "style": {
+              "fontFamily": "Georgia, serif",
+              "fontSize": 5.2,
+              "color": "#ffffff",
+              "textAlign": "center",
+              "verticalAlign": "top",
+              "fontWeight": "700",
+              "lineHeight": 1.35,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          }
+        ]
+      },
+      {
+        "id": "ly_mq42n0zi_t0cd25",
+        "group": "",
+        "background": {
+          "type": "color",
+          "color": "#000000",
+          "opacity": 1
+        },
+        "layers": [
+          {
+            "id": "ly_mq42n0zi_rvketr",
+            "type": "text",
+            "x": 5,
+            "y": 6.642857142857139,
+            "w": 90,
+            "h": 32,
+            "content": "주님만이 왕이십니다\n주님만이 왕이십니다",
+            "style": {
+              "fontFamily": "Georgia, serif",
+              "fontSize": 5.2,
+              "color": "#ffffff",
+              "textAlign": "center",
+              "verticalAlign": "top",
+              "fontWeight": "700",
+              "lineHeight": 1.35,
+              "fontStyle": "normal",
+              "textDecoration": "none",
+              "letterSpacing": 0,
+              "opacity": 1,
+              "strokeWidth": 2,
+              "strokeColor": "#000000",
+              "strokeEnabled": true,
+              "shadowX": 0,
+              "shadowY": 4,
+              "shadowBlur": 14,
+              "shadowColor": "rgba(0,0,0,0.85)",
+              "shadowEnabled": true
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
