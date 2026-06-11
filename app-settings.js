@@ -47,8 +47,14 @@ const DEFAULTS = {
   editorCanvasZoom: 100,
   /** Slides filmstrip thumbnail size % (16:9 locked per card) */
   slidesFilmstripZoom: 100,
+  /** Bible search result preview card size % (16:9 locked per card) */
+  biblePreviewZoom: 80,
   /** Media library item id for Logo quick-send overlay */
   logoMediaId: '',
+  /** Theme id applied to Bible workspace slides (empty = default black) */
+  bibleThemeId: '',
+  /** Prefix each verse with its number in bible slide body text */
+  bibleShowVerseNumbers: false,
   shortcuts: null,
   panelSizes: null,
 };
@@ -61,6 +67,7 @@ const PANEL_SIZE_DEFAULTS = {
   editRail: 128,
   inspector: 280,
   reflowSlides: 380,
+  bibleSearch: 280,
 };
 
 const PANEL_SIZE_LIMITS = {
@@ -71,6 +78,7 @@ const PANEL_SIZE_LIMITS = {
   editRail: { min: 96, max: 220 },
   inspector: { min: 200, max: 480 },
   reflowSlides: { min: 220, max: 720 },
+  bibleSearch: { min: 220, max: 420 },
 };
 
 function normalizePanelSizes(raw) {
@@ -139,7 +147,10 @@ function normalize(raw) {
   s.showEditorGrid = s.showEditorGrid !== false;
   s.editorCanvasZoom = clamp(Math.round(Number(s.editorCanvasZoom) || 100), 40, 200);
   s.slidesFilmstripZoom = clamp(Math.round(Number(s.slidesFilmstripZoom ?? s.slidesCanvasZoom) || 100), 50, 200);
+  s.biblePreviewZoom = clamp(Math.round(Number(s.biblePreviewZoom) || 80), 50, 200);
   s.logoMediaId = String(s.logoMediaId || '').trim();
+  s.bibleThemeId = String(s.bibleThemeId || '').trim();
+  s.bibleShowVerseNumbers = Boolean(s.bibleShowVerseNumbers);
   s.shortcuts = normalizeShortcuts(s.shortcuts);
   s.panelSizes = normalizePanelSizes(s.panelSizes);
   return s;

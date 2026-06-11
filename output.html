@@ -138,11 +138,11 @@
       <div id="stage">
         <div id="bgStack">
           <div class="bg-pane is-visible" id="bgPaneA" data-pane="A">
-            <video class="bg-video" loop muted playsinline webkit-playsinline preload="auto"></video>
+            <video class="bg-video" loop playsinline webkit-playsinline preload="auto"></video>
             <img class="bg-image" alt="" />
           </div>
           <div class="bg-pane" id="bgPaneB" data-pane="B">
-            <video class="bg-video" loop muted playsinline webkit-playsinline preload="auto"></video>
+            <video class="bg-video" loop playsinline webkit-playsinline preload="auto"></video>
             <img class="bg-image" alt="" />
           </div>
         </div>
@@ -189,6 +189,7 @@
     let slideClearTimer = null;
     let activePaneEl = bgPaneA;
     let activeBgKey = '';
+    let bgTeardownTimer = null;
     let mediaClearTimer = null;
     let lastSlideSeq = 0;
     let lastMacroSeq = 0;
@@ -268,7 +269,10 @@
       document.documentElement.style.setProperty('--fade-layer', `${layerMs}ms`);
       panes.forEach((p) => {
         const v = p.querySelector('.bg-video');
-        if (v) v.loop = appSettings.loopBackgroundVideo;
+        if (v) {
+          v.loop = appSettings.loopBackgroundVideo;
+          ensureBgVideoPlaying(v);
+        }
       });
       applyStageDimensions();
       fitStageToViewport();
@@ -283,6 +287,16 @@
     ipcRenderer.on('output:viewport-changed', () => forceFitStage());
     ipcRenderer.on('output:force-fit', () => forceFitStage());
 
+    function mediaSrcKey(src) {
+      if (!src) return '';
+      try { return new URL(src).href; } catch (_) { return String(src); }
+    }
+
+    function mediaSrcMatches(el, src) {
+      if (!el || !src) return false;
+      return mediaSrcKey(el.src) === mediaSrcKey(src);
+    }
+
     function getPaneMedia(pane) {
       return {
         video: pane.querySelector('.bg-video'),
@@ -290,57 +304,89 @@
       };
     }
 
+    function ensureBgVideoPlaying(video) {
+      if (!video?.classList.contains('is-on') || !video.src) return;
+      video.loop = appSettings.loopBackgroundVideo !== false;
+      if (video.paused || video.ended) video.play().catch(() => {});
+    }
+
+    function wireBgVideoElement(video) {
+      if (!video || video.dataset.bgWired === '1') return;
+      video.dataset.bgWired = '1';
+      video.addEventListener('ended', () => ensureBgVideoPlaying(video));
+      video.addEventListener('stalled', () => ensureBgVideoPlaying(video));
+      video.addEventListener('pause', () => {
+        if (video.classList.contains('is-on') && !outputBlackoutActive && !mediaCleared) {
+          requestAnimationFrame(() => ensureBgVideoPlaying(video));
+        }
+      });
+    }
+
+    panes.forEach((pane) => wireBgVideoElement(pane.querySelector('.bg-video')));
+
     function hidePaneMedia(pane) {
       const { video, image } = getPaneMedia(pane);
-      video.pause();
-      video.removeAttribute('src');
-      video.load();
-      video.classList.remove('is-on');
-      image.removeAttribute('src');
-      image.classList.remove('is-on');
+      if (video) {
+        video.pause();
+        video.removeAttribute('src');
+        video.load();
+        video.classList.remove('is-on');
+      }
+      if (image) {
+        image.removeAttribute('src');
+        image.classList.remove('is-on');
+      }
     }
 
     function teardownPane(pane) {
       hidePaneMedia(pane);
     }
 
-    function mountBackgroundToPane(pane, data) {
+    function resetPaneMedia(pane) {
       const { video, image } = getPaneMedia(pane);
-      if (data.type === 'color') {
+      if (video) {
         video.classList.remove('is-on');
         video.pause();
         video.removeAttribute('src');
         video.load();
+      }
+      if (image) {
         image.classList.remove('is-on');
         image.removeAttribute('src');
+      }
+    }
+
+    function mountBackgroundToPane(pane, data) {
+      const { video, image } = getPaneMedia(pane);
+      resetPaneMedia(pane);
+      if (data.type === 'color') {
         pane.style.backgroundColor = data.color || '#000000';
         pane.style.opacity = String(data.opacity ?? 1);
         return;
       }
       pane.style.opacity = '1';
       pane.style.backgroundColor = '#000';
-      if (data.type === 'video') {
-        image.classList.remove('is-on');
-        image.removeAttribute('src');
+      if (data.type === 'video' && video) {
+        wireBgVideoElement(video);
         video.classList.add('is-on');
-        if (video.src !== data.src) {
-          video.src = data.src;
-          video.load();
-          const onReady = () => {
-            video.removeEventListener('canplay', onReady);
-            video.play().catch(() => {});
-          };
-          video.addEventListener('canplay', onReady);
-        } else if (video.paused) {
+        video.loop = appSettings.loopBackgroundVideo !== false;
+        video.src = data.src;
+        video.load();
+        const onReady = () => {
+          video.removeEventListener('canplay', onReady);
+          video.removeEventListener('error', onReady);
           video.play().catch(() => {});
-        }
+        };
+        video.addEventListener('canplay', onReady);
+        video.addEventListener('error', onReady);
+        if (video.readyState >= 2) onReady();
+        applyMasterVolume();
+        ensureBgVideoPlaying(video);
         return;
       }
-      if (data.type === 'image') {
-        video.classList.remove('is-on');
-        video.pause();
+      if (data.type === 'image' && image) {
         image.classList.add('is-on');
-        if (image.src !== data.src) image.src = data.src;
+        image.src = data.src;
       }
     }
 
@@ -351,34 +397,19 @@
       const key = data.type === 'color'
         ? `${data.id || ''}:color:${data.color || '#000000'}:${data.opacity ?? 1}`
         : `${data.id || ''}:${data.type}:${data.src}`;
+
+      clearTimeout(bgTeardownTimer);
+      bgTeardownTimer = null;
       bgStack.classList.remove('is-cleared');
       mediaCleared = false;
-
-      if (!activeBgKey) {
-        activeBgKey = key;
-        mountBackgroundToPane(activePaneEl, data);
-        panes.forEach((p) => p.classList.toggle('is-visible', p === activePaneEl));
-        return;
-      }
-
-      if (activeBgKey === key) {
-        mountBackgroundToPane(activePaneEl, data);
-        return;
-      }
-
-      const incoming = activePaneEl === bgPaneA ? bgPaneB : bgPaneA;
-      const outgoing = activePaneEl;
-      mountBackgroundToPane(incoming, data);
-      incoming.classList.add('is-visible');
-      outgoing.classList.remove('is-visible');
-      activePaneEl = incoming;
       activeBgKey = key;
 
-      const fadeMs = appSettings.backgroundFadeMs;
-      setTimeout(() => {
-        if (activePaneEl !== incoming) return;
-        teardownPane(outgoing);
-      }, fadeMs + 40);
+      const hidden = activePaneEl === bgPaneA ? bgPaneB : bgPaneA;
+      hidden.classList.remove('is-visible');
+      resetPaneMedia(hidden);
+
+      mountBackgroundToPane(activePaneEl, data);
+      activePaneEl.classList.add('is-visible');
     }
 
     function slideFingerprint(slide) {
@@ -391,6 +422,7 @@
       const { height } = getStageSize();
       SlideEngine.renderSlide(slide, pane, {
         clear: true,
+        foregroundOnly: true,
         scale: 1,
         fontUnit: 'px',
         refHeight: height,
@@ -480,6 +512,13 @@
       mediaCleared = false;
       clearTimeout(mediaClearTimer);
       bgStack.classList.remove('is-cleared');
+      if (!activePaneEl) activePaneEl = bgPaneA;
+      if (activeBgKey) {
+        activePaneEl.classList.add('is-visible');
+        panes.forEach((p) => p.classList.toggle('is-visible', p === activePaneEl));
+        const { video } = getPaneMedia(activePaneEl);
+        ensureBgVideoPlaying(video);
+      }
     }
 
     function clearAllLayers() {
@@ -527,6 +566,7 @@
 
       bodyEl.classList.remove('is-blackout');
       restoreTextLayerIfNeeded();
+      if (!mediaCleared && activeBgKey) restoreMediaLayer();
       crossfadeSlide(slide);
       sendSlideAck(data, slide);
     }
@@ -534,10 +574,6 @@
     ipcRenderer.on('background:set', (_e, data) => {
       restoreMediaLayer();
       crossfadeBackground(data);
-      if (lastSlideState?.slide && !outputBlackoutActive) {
-        restoreTextLayerIfNeeded();
-        crossfadeSlide(lastSlideState.slide);
-      }
     });
 
     ipcRenderer.on('background:clear', () => {

@@ -377,6 +377,10 @@
       position: absolute; inset: 0; width: 100%; height: 100%;
     }
     .pp-edit-strip .strip-thumb:hover { border-color: rgba(255,255,255,0.22); }
+    .pp-edit-strip .strip-thumb.is-selected:not(.active) {
+      border-color: rgba(77,142,247,0.55);
+      box-shadow: 0 0 0 1px rgba(77,142,247,0.25);
+    }
     .pp-edit-strip .strip-thumb.active {
       border-color: var(--accent);
       box-shadow: 0 0 0 1px var(--accent-dim), 0 4px 16px rgba(77,142,247,0.25);
@@ -432,6 +436,7 @@
     .scaled-stage-viewport,
     .thumb-scaled-viewport {
       position: absolute; inset: 0; overflow: hidden;
+      width: 100%; height: 100%;
     }
     .scaled-stage,
     .thumb-scaled-stage {
@@ -522,6 +527,61 @@
     }
     .pp-reflow-slide-list::-webkit-scrollbar { width: 8px; }
     .pp-reflow-slide-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 99px; }
+    .pp-bible { background: var(--bg); flex-direction: column; }
+    .pp-bible-body { flex: 1; min-height: 0; display: flex; overflow: hidden; }
+    .bible-search-col {
+      width: var(--panel-bible-search-w, 280px); min-width: 220px; max-width: 420px;
+      display: flex; flex-direction: column; gap: 10px; padding: 12px;
+      border-right: 1px solid var(--border); background: var(--surface-1); overflow-y: auto;
+    }
+    .bible-search-col label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 4px; }
+    .bible-search-col input, .bible-search-col select {
+      width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border);
+      background: var(--surface-2); color: var(--text); font-size: 13px;
+    }
+    .bible-ref-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .bible-preview-col { flex: 1; min-width: 0; display: flex; flex-direction: column; min-height: 0; }
+    .bible-preview-head {
+      padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 12px; color: var(--muted);
+      display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+    }
+    .bible-preview-title { font-weight: 600; white-space: nowrap; }
+    .bible-result-meta { font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .bible-preview-zoom {
+      display: flex; align-items: center; gap: 6px; flex: 1; justify-content: center;
+      min-width: 0; font-size: 11px; color: var(--muted);
+    }
+    .bible-preview-zoom label { font-weight: 600; white-space: nowrap; }
+    .bible-preview-zoom input[type="range"] { width: 96px; max-width: 32vw; }
+    .bible-preview-zoom .zoom-val { min-width: 36px; font-weight: 700; color: var(--text); font-size: 10px; }
+    .bible-preview-grid {
+      flex: 1; min-height: 0; overflow-y: auto;
+      background: linear-gradient(180deg, var(--surface) 0%, var(--surface-2) 55%, var(--bg) 100%);
+    }
+    .bible-preview-grid .slide-grid-board { padding: 10px 12px 12px; }
+    .bible-verse-card.slide-card {
+      background: var(--surface-1);
+      border-color: var(--border);
+    }
+    .bible-verse-card.slide-card:hover { border-color: rgba(77,142,247,0.45); }
+    .bible-verse-card.slide-card.is-selected {
+      border-color: rgba(77,142,247,0.75);
+      box-shadow: 0 0 0 1px rgba(77,142,247,0.35);
+    }
+    .bible-verse-card .slide-card-media { position: relative; }
+    .bible-verse-card .thumb-stage .slide-layer { pointer-events: none; }
+    .bible-verse-card .slide-caption { color: var(--accent); }
+    .bible-verse-card .bible-card-check {
+      position: absolute; top: 6px; left: 6px; z-index: 4; width: 18px; height: 18px;
+      border-radius: 4px; border: 1px solid rgba(255,255,255,0.5); background: rgba(0,0,0,0.45);
+      display: flex; align-items: center; justify-content: center; font-size: 12px; color: #fff;
+    }
+    .bible-verse-card.is-selected .bible-card-check { background: var(--accent); border-color: var(--accent); }
+    .bible-foot {
+      flex-shrink: 0; padding: 10px 14px; border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center; gap: 12px; background: var(--surface-1);
+    }
+    .bible-empty { padding: 24px; text-align: center; color: var(--muted); font-size: 13px; grid-column: 1 / -1; }
     .reflow-slide-card {
       display: flex; flex-direction: column; gap: 6px;
       padding: 6px; border-radius: 8px; cursor: pointer;
@@ -533,6 +593,10 @@
       border-color: var(--accent);
       background: var(--accent-dim);
       box-shadow: 0 0 0 1px var(--accent-dim);
+    }
+    .reflow-slide-card.is-selected:not(.active) {
+      border-color: rgba(77,142,247,0.55);
+      box-shadow: 0 0 0 1px rgba(77,142,247,0.25);
     }
     .reflow-slide-thumb {
       width: 100%; aspect-ratio: var(--stage-aspect-ratio, 16 / 9);
@@ -595,13 +659,17 @@
     .app-body.mode-theme .operator-panel,
     .app-body.mode-theme .media-panel,
     .app-body.mode-reflow .operator-panel,
-    .app-body.mode-reflow .media-panel { display: none !important; }
+    .app-body.mode-reflow .media-panel,
+    .app-body.mode-bible .operator-panel,
+    .app-body.mode-bible .media-panel { display: none !important; }
     .app-body.mode-edit .resize-handle[data-panel="operator"],
     .app-body.mode-edit .resize-handle[data-panel="media"],
     .app-body.mode-theme .resize-handle[data-panel="operator"],
     .app-body.mode-theme .resize-handle[data-panel="media"],
     .app-body.mode-reflow .resize-handle[data-panel="operator"],
-    .app-body.mode-reflow .resize-handle[data-panel="media"] { display: none; }
+    .app-body.mode-reflow .resize-handle[data-panel="media"],
+    .app-body.mode-bible .resize-handle[data-panel="operator"],
+    .app-body.mode-bible .resize-handle[data-panel="media"] { display: none; }
     .app-body.mode-theme .pp-edit-rail-foot { display: none; }
     .app-body.mode-theme #btnEditorUndo,
     .app-body.mode-theme #btnEditorRedo,
@@ -668,6 +736,10 @@
     .slide-card.active {
       border-color: var(--accent);
       box-shadow: 0 0 0 1px var(--accent-dim), 0 8px 24px rgba(77,142,247,0.22);
+    }
+    .slide-card.is-selected:not(.active) {
+      border-color: rgba(77,142,247,0.55);
+      box-shadow: 0 0 0 1px rgba(77,142,247,0.25);
     }
     .slide-card .thumb-stage {
       position: absolute; inset: 0;
@@ -857,9 +929,26 @@
       overflow: hidden;
       background: #000;
     }
+    #previewBg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      background: #000;
+    }
+    #previewBg video, #previewBg img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+    }
+    #previewBg video.is-on, #previewBg img.is-on { display: block; }
     #previewStage {
       position: absolute;
       left: 0; top: 0;
+      z-index: 1;
       transform-origin: top left;
       container-type: size;
       will-change: transform;
@@ -1019,15 +1108,38 @@
     }
     .media-thumb:hover { border-color: rgba(255,255,255,0.2); transform: translateY(-1px); }
     .media-thumb.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent-dim); }
-    .media-thumb video, .media-thumb img {
-      width: 100%; height: 100%; object-fit: cover; pointer-events: none;
+    .media-thumb-preview {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      pointer-events: none;
+      z-index: 0;
     }
     .media-thumb .media-name {
-      position: absolute; left: 0; right: 0; bottom: 0;
+      position: absolute; left: 0; right: 0; bottom: 0; z-index: 1;
       padding: 4px 6px; font-size: 9px;
       background: linear-gradient(transparent, rgba(0,0,0,0.85));
       color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
+    .media-thumb-delete {
+      position: absolute; top: 4px; right: 4px; z-index: 3;
+      width: 20px; height: 20px; box-sizing: border-box;
+      border: none; border-radius: 4px;
+      background: rgba(0,0,0,0.72); color: #ffb8b8;
+      font-size: 13px; font-weight: 700; line-height: 1;
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 0; cursor: pointer;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.15s var(--ease), background 0.15s var(--ease);
+    }
+    .media-thumb:hover .media-thumb-delete,
+    .media-thumb:focus-within .media-thumb-delete {
+      opacity: 1; pointer-events: auto;
+    }
+    .media-thumb-delete:hover { background: rgba(220, 80, 80, 0.85); color: #fff; }
     .media-empty {
       font-size: 11px; color: var(--muted); padding: 20px 8px; align-self: center;
     }
@@ -1136,6 +1248,41 @@
       outline: 2px solid var(--accent); outline-offset: -1px;
       box-shadow: 0 0 0 1px rgba(77, 141, 255, 0.35);
       cursor: grab;
+    }
+    .interactive-layer.selected[data-layer-type="text"] {
+      outline: none;
+      box-shadow: inset 0 0 0 2px rgba(77,142,247,0.95), 0 0 0 1px rgba(77,142,247,0.35);
+    }
+    .interactive-layer.selected[data-layer-type="text"]::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border: 1px dashed rgba(255,255,255,0.45);
+      pointer-events: none;
+    }
+    .inspector-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border-strong), transparent);
+      margin: 14px 0 12px;
+    }
+    .inspector-divider-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .bible-option-check {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--muted); cursor: pointer; user-select: none;
+    }
+    .layer-role-tag {
+      font-style: normal;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-left: 4px;
     }
     #editCanvas.is-dragging-layer { cursor: grabbing; user-select: none; }
     #editCanvas.is-dragging-layer .interactive-layer.selected { cursor: grabbing; }
@@ -1403,6 +1550,7 @@
     <button type="button" class="nav-btn" data-action="editor" id="navEditor" data-i18n="navEditor">편집</button>
     <button type="button" class="nav-btn" data-action="reflow" id="navReflow" data-i18n="navReflow">리플로우</button>
     <button type="button" class="nav-btn" data-action="theme" id="navTheme" data-i18n="navTheme">테마</button>
+    <button type="button" class="nav-btn" data-action="bible" id="navBible" data-i18n="navBible">성경</button>
   </div>
   <div class="header-search-wrap" id="librarySearchWrap">
     <label for="librarySearch" class="sr-only" data-i18n="navSearch">검색</label>
@@ -1411,11 +1559,11 @@
   <div class="header-actions">
     <button id="btnNewSong" class="ghost btn-new-song" type="button" data-i18n="btnNew">+ 새 곡</button>
     <button id="btnSettings" class="ghost" type="button" title="Settings" aria-label="Settings">⚙</button>
-  </div>
-</header>
+    </div>
+  </header>
 
 <div class="app-body">
-<div class="main-container">
+  <div class="main-container">
   <aside class="sidebar sidebar-playlists">
     <div class="sidebar-block playlist">
       <span class="section-label" data-i18n="playlist" data-i18n-title="playlistHint">플레이리스트</span>
@@ -1423,6 +1571,7 @@
         <button type="button" id="btnPlaylistNewFolder" class="ghost playlist-tool-btn" data-i18n-title="playlistNewFolder">📁</button>
         <button type="button" id="btnPlaylistNew" class="ghost playlist-tool-btn" data-i18n-title="playlistNew">+</button>
         <button type="button" id="btnPlaylistRename" class="ghost playlist-tool-btn" data-i18n-title="playlistRename">✎</button>
+        <button type="button" id="btnPlaylistCopy" class="ghost playlist-tool-btn" data-i18n-title="playlistCopy">⧉</button>
         <button type="button" id="btnPlaylistDelete" class="ghost playlist-tool-btn" data-i18n-title="playlistDelete">×</button>
       </div>
       <div id="playlistTree" class="playlist-tree" role="tree" aria-label="Playlist folders"></div>
@@ -1536,7 +1685,7 @@
             <button type="button" id="btnSaveSlideEdit" class="primary" data-i18n="btnSave">저장</button>
           </div>
         </div>
-      </div>
+    </div>
 
       <div id="workspaceReflow" class="workspace-pane pp-reflow" aria-label="Reflow editor">
         <div class="pp-reflow-toolbar">
@@ -1563,6 +1712,70 @@
             <button type="button" id="btnDiscardReflow" class="secondary" data-i18n="btnCancel">취소</button>
             <button type="button" id="btnSaveReflow" class="primary" data-i18n="btnSave">저장</button>
           </div>
+      </div>
+    </div>
+
+      <div id="workspaceBible" class="workspace-pane pp-bible" aria-label="Bible search">
+        <div class="pp-bible-body">
+          <aside class="bible-search-col" aria-label="Bible search controls">
+            <div>
+              <label for="bibleThemeSelect" data-i18n="bibleTheme">성경 테마</label>
+              <select id="bibleThemeSelect" aria-label="Bible theme">
+                <option value="" data-i18n="bibleThemeNone">(기본)</option>
+              </select>
+            </div>
+            <div>
+              <label for="bibleTranslation" data-i18n="bibleTranslation">역본</label>
+              <select id="bibleTranslation" aria-label="Translation">
+                <option value="ko" data-i18n="bibleTranslationKo">개역개정 (ko)</option>
+              </select>
+            </div>
+            <div>
+              <label for="bibleQueryInput" data-i18n="bibleSearchLabel">성경 검색</label>
+              <input type="search" id="bibleQueryInput" data-i18n-placeholder="bibleSearchPh" placeholder="예: 창 1:1, 요 3:16-18, 롬 12" spellcheck="false" autocomplete="off">
+            </div>
+            <button type="button" id="btnBibleSearch" class="secondary" data-i18n="bibleSearchBtn">검색</button>
+            <div>
+              <label for="bibleBookSelect" data-i18n="bibleBook">성경 권</label>
+              <select id="bibleBookSelect" aria-label="Book"><option value="">—</option></select>
+            </div>
+            <div class="bible-ref-row">
+              <div>
+                <label for="bibleChapterSelect" data-i18n="bibleChapter">장</label>
+                <select id="bibleChapterSelect" aria-label="Chapter"><option value="">—</option></select>
+              </div>
+              <div>
+                <label for="bibleVerseInput" data-i18n="bibleVerse">절</label>
+                <input type="text" id="bibleVerseInput" placeholder="1 또는 16-18">
+              </div>
+            </div>
+            <button type="button" id="btnBibleLookup" class="ghost" data-i18n="bibleSearchBtn">검색</button>
+          </aside>
+          <div class="resize-handle resize-handle-v" data-panel="bibleSearch" data-axis="x" data-grow="right" role="separator" aria-orientation="vertical" title="드래그하여 크기 조절"></div>
+          <section class="bible-preview-col" aria-label="Bible preview">
+            <div class="bible-preview-head">
+              <span class="bible-preview-title" data-i18n="biblePreview">검색 결과</span>
+              <div class="bible-preview-zoom" id="biblePreviewZoomBar">
+                <label for="biblePreviewZoom" data-i18n="biblePreviewZoom">미리보기 크기</label>
+                <button type="button" id="btnBiblePreviewZoomDown" class="ghost head-nav-btn" aria-label="Zoom out">−</button>
+                <input type="range" id="biblePreviewZoom" min="50" max="200" step="5" value="80">
+                <button type="button" id="btnBiblePreviewZoomUp" class="ghost head-nav-btn" aria-label="Zoom in">+</button>
+                <span id="biblePreviewZoomVal" class="zoom-val">80%</span>
+                <button type="button" id="btnBiblePreviewZoomFit" class="ghost head-nav-btn" data-i18n="editorCanvasFit">맞춤</button>
+              </div>
+              <span id="bibleResultMeta" class="bible-result-meta"></span>
+            </div>
+            <div id="biblePreviewGrid" class="bible-preview-grid">
+              <div class="bible-empty" data-i18n="bibleSearchPh">예: 창 1:1, 요 3:16-18, 롬 12</div>
+            </div>
+          </section>
+        </div>
+        <div class="bible-foot">
+          <label class="bible-option-check">
+            <input type="checkbox" id="bibleShowVerseNumbers">
+            <span data-i18n="bibleShowVerseNumbers">절 번호 표시</span>
+          </label>
+          <button type="button" id="btnBibleAddPlaylist" class="primary" data-i18n="bibleAddToPlaylist">플레이리스트에 추가</button>
         </div>
       </div>
     </div>
@@ -1572,6 +1785,10 @@
     <span class="operator-preview-label" data-i18n="programPreview">송출 미리보기</span>
     <div id="preview" class="empty">
       <div id="previewViewport">
+        <div id="previewBg" aria-hidden="true">
+          <video class="preview-bg-video" playsinline muted loop></video>
+          <img class="preview-bg-image" alt="" />
+        </div>
         <div id="previewStage"></div>
       </div>
     </div>
@@ -1582,8 +1799,8 @@
     </div>
     <button type="button" id="macroBlackout" class="blackout-master-btn off" data-i18n="blackout">암전</button>
   </aside>
-</div>
-
+      </div>
+      
 <div class="resize-handle resizer resize-handle-h" data-panel="media" data-axis="y" data-grow="up" role="separator" aria-orientation="horizontal" title="드래그하여 크기 조절"></div>
 <section class="media-panel">
   <div class="media-panel-header">
@@ -1704,8 +1921,8 @@
       <button type="button" id="btnResetSettings" class="secondary" data-i18n="btnReset">기본값</button>
       <button type="button" id="btnSaveSettings" class="primary" data-i18n="btnSave">저장</button>
     </div>
-  </div>
-</div>
+      </div>
+    </div>
 
 <div id="playlistModal" class="modal-overlay">
   <div class="song-form-modal" role="dialog" aria-labelledby="playlistModalTitle">
@@ -1718,7 +1935,7 @@
       <button type="button" id="btnPlaylistModalConfirm" class="primary" data-i18n="btnConfirm">확인</button>
     </div>
   </div>
-</div>
+  </div>
 
 <div id="newSongModal" class="modal-overlay">
   <div class="song-form-modal" role="dialog" aria-labelledby="newSongModalTitle">
@@ -1730,16 +1947,17 @@
     <div class="song-form-actions">
       <button type="button" id="btnCancelNewSong" class="secondary" data-i18n="btnCancel">취소</button>
       <button type="button" id="btnSaveNewSong" class="primary" data-i18n="btnSave">저장</button>
+      </div>
     </div>
   </div>
-</div>
 
-<script>
+  <script>
 const path = require('path');
 const fs = require('fs');
 const { pathToFileURL } = require('url');
-const { ipcRenderer } = require('electron');
+    const { ipcRenderer } = require('electron');
 const SE = require('./slide-engine');
+const BE = require('./bible-engine');
 const I18N = require('./i18n');
 const AppSettings = require('./app-settings');
 const SC = require('./shortcuts');
@@ -1759,16 +1977,16 @@ function resolveMediaFileUrl(filename) {
   return pathToFileURL(fp).href;
 }
 
-let songLibrary = {};
+    let songLibrary = {};
 let playlistsState = { activePlaylistId: '', treeFocusId: '', expandedFolderIds: [], items: [] };
 const DND_SONG = 'application/x-sb-song';
 const DND_SOURCE = 'application/x-sb-source';
 const DND_INDEX = 'application/x-sb-index';
 let activeSongDrag = null;
-let currentSlides = [];
+    let currentSlides = [];
 let currentSongTitle = '';
-let activeSlideIndex = -1;
-let isBlackout = false;
+    let activeSlideIndex = -1;
+    let isBlackout = false;
 let logoVisible = false;
 let editingOriginalTitle = null;
 let librarySearchQuery = '';
@@ -1802,6 +2020,16 @@ let filmstripThumbTimer = null;
 let editorStripThumbTimer = null;
 let layerVisibility = { lyrics: true, media: true, design: true };
 let appWorkspaceMode = 'slides';
+let bibleData = {};
+let bibleParsedRef = null;
+let bibleSearchVerses = [];
+let bibleSelectedVerseKeys = new Set();
+let bibleSelectionAnchorIndex = -1;
+let filmstripSelectedKeys = new Set();
+let filmstripSelectionAnchor = null;
+let editorSelectedIndices = new Set();
+let editorSelectionAnchor = -1;
+let bibleThumbResizeObs = null;
 const editorHistory = new EditorHistory();
 let skipEditorHistory = false;
 let historyPushTimer = null;
@@ -1817,7 +2045,7 @@ const mediaFileInput = document.getElementById('mediaFileInput');
 const editCanvas = document.getElementById('editCanvas');
 const inspectorPanel = document.getElementById('inspectorPanel');
 const reflowTextarea = document.getElementById('reflowTextarea');
-const preview = document.getElementById('preview');
+    const preview = document.getElementById('preview');
 const slideGrid = document.getElementById('slideGrid');
 const settingsModal = document.getElementById('settingsModal');
 let settingsDraft = { ...appSettings };
@@ -2175,6 +2403,7 @@ const PANEL_LAYOUT_VARS = {
   editRail: { cssVar: '--panel-edit-rail-w', axis: 'x' },
   inspector: { cssVar: '--panel-inspector-w', axis: 'x' },
   reflowSlides: { cssVar: '--panel-reflow-slides-w', axis: 'x' },
+  bibleSearch: { cssVar: '--panel-bible-search-w', axis: 'x' },
 };
 
 const MAIN_GRID_KEYS = ['sidebar', 'operator', 'media'];
@@ -2218,6 +2447,10 @@ function onPanelResizeLive(key) {
   if (key === 'operator' || key === 'sidebar') layoutPreviewStage();
   if (key === 'editRail' || key === 'inspector') {
     if (appWorkspaceMode === 'slide-edit' || appWorkspaceMode === 'theme-edit') renderEditorCanvas();
+  }
+  if (key === 'bibleSearch' && appWorkspaceMode === 'bible') {
+    layoutBiblePreviewGrid();
+    refreshBibleThumbnails({ relayoutOnly: true });
   }
   if (MAIN_GRID_KEYS.includes(key) || key === 'sidebar' || key === 'operator') {
     if (slideGrid.classList.contains('has-slides')) layoutSlideGrid();
@@ -2381,6 +2614,8 @@ ipcRenderer.on('settings:sync', (_e, settings) => {
   applyPanelSizes();
   applyStageAspectToUI();
   applyI18n();
+  renderBibleThemeSelect();
+  syncBibleOptionsUI();
   updateEditorGridUI();
   if (isModalOpen(settingsModal)) {
     writeSettingsForm(appSettings);
@@ -2391,7 +2626,12 @@ ipcRenderer.on('settings:sync', (_e, settings) => {
     renderEditorCanvas();
   }
   if (appWorkspaceMode === 'slides') syncSlidesFilmstripZoomUI();
+  if (appWorkspaceMode === 'bible') syncBiblePreviewZoomUI();
   if (slideGrid.classList.contains('has-slides')) layoutSlideGrid();
+  if (appWorkspaceMode === 'bible' && bibleSearchVerses.length) {
+    layoutBiblePreviewGrid();
+    refreshBibleThumbnails({ relayoutOnly: true });
+  }
   layoutPreviewStage();
 });
 
@@ -2631,10 +2871,11 @@ function previewEditorChange(opts = {}) {
 }
 
 function sendBroadcastFullState(slide, meta = {}) {
+  if (meta.allowClear === false && !slide) return;
   const norm = SE.normalizeSlide(JSON.parse(JSON.stringify(slide)));
   const outSlide = slideForOutput(norm);
   if (!SE.hasSlideRenderableContent(outSlide)) {
-    if (!isBlackout) ipcRenderer.send('send-slide', null);
+    if (!isBlackout && meta.allowClear !== false) ipcRenderer.send('send-slide', null);
     return;
   }
   ipcRenderer.send('send-slide', {
@@ -2642,6 +2883,7 @@ function sendBroadcastFullState(slide, meta = {}) {
     slideIndex: meta.slideIndex ?? activeSlideIndex,
     songTitle: meta.songTitle ?? currentSongTitle,
     source: meta.source ?? 'controller',
+    mediaLayerVisible: layerVisibility.media,
   });
   renderPreviewSlide(norm);
 }
@@ -2677,6 +2919,7 @@ function commitEditorChange(syncLyrics = true) {
   }
   if (syncLyrics) syncLyricsFromSlides();
   if (appWorkspaceMode === 'reflow') {
+    pruneEditorSelectedIndices();
     renderReflowMiniPreview();
     updateEditorMeta();
     scheduleEditorHistoryPush();
@@ -2685,6 +2928,7 @@ function commitEditorChange(syncLyrics = true) {
   }
   if (appWorkspaceMode === 'slide-edit') {
     if (syncLyrics) syncLyricsFromSlides();
+    pruneEditorSelectedIndices();
     scheduleEditorStripRefresh();
     syncLayerListUI(getCurrentSlide());
     layoutSlideEditCanvas();
@@ -2847,6 +3091,43 @@ function setSlidesFilmstripZoom(pct, save = true) {
   if (save) ipcRenderer.send('settings:save', { slidesFilmstripZoom: z });
 }
 
+function setBiblePreviewZoom(pct, save = true) {
+  const z = clamp(Math.round(Number(pct) || 80), 50, 200);
+  appSettings.biblePreviewZoom = z;
+  const slider = document.getElementById('biblePreviewZoom');
+  const val = document.getElementById('biblePreviewZoomVal');
+  if (slider) slider.value = String(z);
+  if (val) val.textContent = `${z}%`;
+  if (bibleSearchVerses.length) {
+    layoutBiblePreviewGrid();
+    refreshBibleThumbnails({ relayoutOnly: true });
+  }
+  if (save) ipcRenderer.send('settings:save', { biblePreviewZoom: z });
+}
+
+function syncBiblePreviewZoomUI() {
+  setBiblePreviewZoom(appSettings.biblePreviewZoom || 80, false);
+}
+
+function initBiblePreviewZoom() {
+  const slider = document.getElementById('biblePreviewZoom');
+  if (slider && !slider.dataset.bound) {
+    slider.addEventListener('input', (e) => setBiblePreviewZoom(Number(e.target.value), false));
+    slider.addEventListener('change', (e) => setBiblePreviewZoom(Number(e.target.value), true));
+    slider.dataset.bound = '1';
+  }
+  document.getElementById('btnBiblePreviewZoomDown')?.addEventListener('click', () => {
+    setBiblePreviewZoom((appSettings.biblePreviewZoom || 80) - 10);
+  });
+  document.getElementById('btnBiblePreviewZoomUp')?.addEventListener('click', () => {
+    setBiblePreviewZoom((appSettings.biblePreviewZoom || 80) + 10);
+  });
+  document.getElementById('btnBiblePreviewZoomFit')?.addEventListener('click', () => {
+    setBiblePreviewZoom(100);
+  });
+  syncBiblePreviewZoomUI();
+}
+
 function syncSlidesFilmstripZoomUI() {
   setSlidesFilmstripZoom(appSettings.slidesFilmstripZoom || 100, false);
 }
@@ -2873,10 +3154,11 @@ function initSlidesFilmstripZoom() {
 function updateAppLayoutMode() {
   const body = document.querySelector('.app-body');
   if (!body) return;
-  body.classList.remove('mode-slides', 'mode-edit', 'mode-theme', 'mode-reflow');
+  body.classList.remove('mode-slides', 'mode-edit', 'mode-theme', 'mode-reflow', 'mode-bible');
   if (appWorkspaceMode === 'slide-edit') body.classList.add('mode-edit');
   else if (appWorkspaceMode === 'theme-edit') body.classList.add('mode-theme');
   else if (appWorkspaceMode === 'reflow') body.classList.add('mode-reflow');
+  else if (appWorkspaceMode === 'bible') body.classList.add('mode-bible');
   else body.classList.add('mode-slides');
   applyPanelSizes();
 }
@@ -2888,6 +3170,7 @@ function updateWorkspaceStatusHint() {
   if (appWorkspaceMode === 'slide-edit') key = 'workflowEditShort';
   else if (appWorkspaceMode === 'theme-edit') key = 'themeManagerTitle';
   else if (appWorkspaceMode === 'reflow') key = 'workflowReflowShort';
+  else if (appWorkspaceMode === 'bible') key = 'workflowBible';
   else if (!currentSongTitle) key = 'workflowNoSong';
   else if (activeSlideIndex < 0) key = 'workflowPickSlide';
   else if (isBlackout) key = 'workflowBlackout';
@@ -2914,6 +3197,7 @@ function setWorkspaceMode(mode) {
   document.getElementById('workspaceSlides')?.classList.toggle('is-active', mode === 'slides');
   document.getElementById('workspaceSlideEdit')?.classList.toggle('is-active', mode === 'slide-edit' || mode === 'theme-edit');
   document.getElementById('workspaceReflow')?.classList.toggle('is-active', mode === 'reflow');
+  document.getElementById('workspaceBible')?.classList.toggle('is-active', mode === 'bible');
   updateAppLayoutMode();
   updateWorkspaceHeadForMode();
   if (mode === 'slide-edit') {
@@ -2942,6 +3226,12 @@ function setWorkspaceMode(mode) {
       renderReflowMiniPreview();
       reflowTextarea.focus();
     });
+  } else if (mode === 'bible') {
+    requestAnimationFrame(() => {
+      syncBiblePreviewZoomUI();
+      renderBiblePreview();
+      document.getElementById('bibleQueryInput')?.focus();
+    });
   } else {
     requestAnimationFrame(() => {
       syncSlidesFilmstripZoomUI();
@@ -2957,7 +3247,12 @@ function updateWorkspaceHeadForMode() {
   const meta = document.getElementById('slideCounter');
   if (!h2 || !meta) return;
   if (head) head.classList.toggle('is-live', activeSlideIndex >= 0 && appWorkspaceMode === 'slides' && !isBlackout);
-  if (!currentSongTitle) {
+  if (appWorkspaceMode === 'bible') {
+    h2.textContent = I18N.t('navBible');
+    meta.textContent = bibleParsedRef
+      ? BE.formatReferenceFromVerses(bibleSearchVerses, bibleParsedRef)
+      : I18N.t('bibleSearchLabel');
+  } else if (!currentSongTitle) {
     h2.textContent = I18N.t('selectSong');
     meta.textContent = I18N.t('slideCount', { current: 0, total: 0 });
   } else if (appWorkspaceMode === 'slide-edit') {
@@ -3061,6 +3356,7 @@ function enterSlideEditWorkspace(opts = {}) {
     start = activeSlideIndex >= 0 && activeSlideIndex < total ? activeSlideIndex : 0;
   }
   editorSlideIndex = Math.max(0, Math.min(start, total - 1));
+  setEditorSlideSelection(editorSlideIndex);
   editorContext = { singleSlide: false, slideIndex: 0, fullSong: null };
   selectedLayerId = pickLayerForSlide(editorSongData.slides[editorSlideIndex], null);
   setWorkspaceMode('slide-edit');
@@ -3077,6 +3373,7 @@ function enterReflowWorkspace() {
   if (!loadEditorSession()) return false;
   onReflowInput();
   reflowHistorySlideCount = editorSongData.slides.length;
+  setEditorSlideSelection(editorSlideIndex >= 0 ? editorSlideIndex : 0);
   setWorkspaceMode('reflow');
   resetEditorHistory();
   requestAnimationFrame(() => reflowTextarea?.focus());
@@ -3088,6 +3385,539 @@ function exitEditWorkspace() {
   setWorkspaceMode('slides');
   setNavHighlight('slides');
   highlightFilmstripSelection();
+}
+
+function enterBibleWorkspace() {
+  if (appWorkspaceMode === 'bible') return true;
+  if (appWorkspaceMode === 'theme-edit') exitThemeEditWorkspace();
+  else if (appWorkspaceMode === 'slide-edit' || appWorkspaceMode === 'reflow') exitEditWorkspace();
+  setWorkspaceMode('bible');
+  setNavHighlight('bible');
+  populateBibleBookSelect();
+  renderBibleThemeSelect();
+  syncBibleOptionsUI();
+  ensureBibleThumbResizeObserver();
+  return true;
+}
+
+function getBibleThemeRecord() {
+  const id = appSettings.bibleThemeId || document.getElementById('bibleThemeSelect')?.value || '';
+  if (!id) return null;
+  return themeCatalog.find((t) => t.id === id) || null;
+}
+
+function getBibleThemePayload() {
+  const rec = getBibleThemeRecord();
+  if (!rec) return null;
+  return Themes.normalizeThemePayload(rec);
+}
+
+function applyBibleThemeToSlide(slide) {
+  const theme = getBibleThemePayload();
+  const norm = SE.normalizeSlide(JSON.parse(JSON.stringify(slide)));
+  return theme ? SE.applyBibleThemeToSlide(norm, theme) : norm;
+}
+
+function getBibleSlideOpts() {
+  return {
+    showVerseNumbers: !!appSettings.bibleShowVerseNumbers,
+    oneVersePerSlide: true,
+  };
+}
+
+function buildBibleSlidesForVerse(verse) {
+  if (!verse || !bibleParsedRef) return [];
+  return BE.reflowVersesToSlides([verse], bibleParsedRef, getBibleSlideOpts()).map((s) => applyBibleThemeToSlide(s));
+}
+
+function buildBibleSlidesForVerses(verses) {
+  if (!verses.length || !bibleParsedRef) return [];
+  return BE.reflowVersesToSlides(verses, bibleParsedRef, getBibleSlideOpts()).map((s) => applyBibleThemeToSlide(s));
+}
+
+function syncBibleOptionsUI() {
+  const verseChk = document.getElementById('bibleShowVerseNumbers');
+  if (verseChk) verseChk.checked = !!appSettings.bibleShowVerseNumbers;
+}
+
+function renderBibleThemeSelect() {
+  const sel = document.getElementById('bibleThemeSelect');
+  if (!sel) return;
+  const prev = sel.value || appSettings.bibleThemeId || '';
+  sel.innerHTML = `<option value="">${I18N.t('bibleThemeNone')}</option>`;
+  themeCatalog.forEach((t) => {
+    const opt = document.createElement('option');
+    opt.value = t.id;
+    opt.textContent = t.name;
+    sel.appendChild(opt);
+  });
+  if (prev && themeCatalog.some((t) => t.id === prev)) sel.value = prev;
+}
+
+let bibleThumbResizeTimer = 0;
+
+function ensureBibleThumbResizeObserver() {
+  const grid = document.getElementById('biblePreviewGrid');
+  if (!grid || bibleThumbResizeObs) return;
+  bibleThumbResizeObs = new ResizeObserver(() => {
+    if (appWorkspaceMode !== 'bible' || !bibleSearchVerses.length) return;
+    clearTimeout(bibleThumbResizeTimer);
+    bibleThumbResizeTimer = setTimeout(() => {
+      layoutBiblePreviewGrid();
+      refreshBibleThumbnails({ relayoutOnly: true });
+    }, 80);
+  });
+  bibleThumbResizeObs.observe(grid);
+}
+
+function finishBiblePreviewLayout() {
+  layoutBiblePreviewGrid();
+  requestAnimationFrame(() => {
+    layoutBiblePreviewGrid();
+    requestAnimationFrame(() => {
+      refreshBibleThumbnails({ force: true });
+    });
+  });
+}
+
+function verseKey(verse) {
+  return `${verse.book}|${verse.chapter}|${verse.verse}`;
+}
+
+function populateBibleBookSelect() {
+  const sel = document.getElementById('bibleBookSelect');
+  if (!sel) return;
+  const books = BE.listBooks(bibleData);
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">—</option>' + books.map((b) => `<option value="${escapeHtml(b)}">${escapeHtml(b)}</option>`).join('');
+  if (prev && books.includes(prev)) sel.value = prev;
+  else if (bibleParsedRef?.book && books.includes(bibleParsedRef.book)) sel.value = bibleParsedRef.book;
+  populateBibleChapterSelect();
+}
+
+function populateBibleChapterSelect() {
+  const bookSel = document.getElementById('bibleBookSelect');
+  const chSel = document.getElementById('bibleChapterSelect');
+  if (!bookSel || !chSel) return;
+  const book = bookSel.value;
+  const prev = Number.parseInt(chSel.value, 10);
+  if (!book) {
+    chSel.innerHTML = '<option value="">—</option>';
+    return;
+  }
+  const chapters = BE.listChapters(bibleData, book);
+  chSel.innerHTML = '<option value="">—</option>'
+    + chapters.map((c) => `<option value="${c}">${c}</option>`).join('');
+  if (Number.isFinite(prev) && chapters.includes(prev)) chSel.value = String(prev);
+  else if (bibleParsedRef?.book === book && bibleParsedRef.chapter && chapters.includes(bibleParsedRef.chapter)) {
+    chSel.value = String(bibleParsedRef.chapter);
+  } else if (chapters.length) {
+    chSel.value = String(chapters[0]);
+  }
+}
+
+function syncBibleLookupFormFromParsed(parsed) {
+  if (!parsed) return;
+  const bookSel = document.getElementById('bibleBookSelect');
+  const chSel = document.getElementById('bibleChapterSelect');
+  const verseInput = document.getElementById('bibleVerseInput');
+  const books = BE.listBooks(bibleData);
+  if (bookSel && books.includes(parsed.book)) {
+    bookSel.value = parsed.book;
+    populateBibleChapterSelect();
+    if (chSel) chSel.value = String(parsed.chapter);
+  }
+  if (verseInput) {
+    if (parsed.verseStart != null) {
+      verseInput.value = parsed.verseEnd != null && parsed.verseEnd !== parsed.verseStart
+        ? `${parsed.verseStart}-${parsed.verseEnd}`
+        : String(parsed.verseStart);
+    } else {
+      verseInput.value = '';
+    }
+  }
+}
+
+function runBibleSearch(query) {
+  const parsed = BE.parseBibleReference(query);
+  if (!parsed) {
+    alert(I18N.t('bibleInvalidRef'));
+    return;
+  }
+  const verses = BE.fetchVerses(bibleData, parsed);
+  bibleParsedRef = parsed;
+  bibleSearchVerses = verses;
+  bibleSelectedVerseKeys = new Set();
+  bibleSelectionAnchorIndex = -1;
+  syncBibleLookupFormFromParsed(parsed);
+  renderBiblePreview();
+  updateWorkspaceHeadForMode();
+  if (!verses.length) alert(I18N.t('bibleNoResults'));
+}
+
+function runBibleLookupFromForm() {
+  const book = document.getElementById('bibleBookSelect')?.value;
+  const chapter = Number.parseInt(document.getElementById('bibleChapterSelect')?.value, 10);
+  const verseRaw = String(document.getElementById('bibleVerseInput')?.value || '').trim();
+  if (!book || !Number.isFinite(chapter) || chapter < 1) {
+    alert(I18N.t('bibleInvalidRef'));
+    return;
+  }
+  let q = `${book} ${chapter}`;
+  if (verseRaw) q += `:${verseRaw}`;
+  document.getElementById('bibleQueryInput').value = q;
+  runBibleSearch(q);
+}
+
+function toggleBibleVerseSelection(key, on) {
+  if (on) bibleSelectedVerseKeys.add(key);
+  else bibleSelectedVerseKeys.delete(key);
+  const card = document.querySelector(`.bible-verse-card[data-verse-key="${CSS.escape(key)}"]`);
+  card?.classList.toggle('is-selected', on);
+  const check = card?.querySelector('.bible-card-check');
+  if (check) check.textContent = on ? '✓' : '';
+}
+
+function syncBibleVerseSelectionUI() {
+  document.querySelectorAll('.bible-verse-card').forEach((card) => {
+    const key = card.dataset.verseKey;
+    const on = bibleSelectedVerseKeys.has(key);
+    card.classList.toggle('is-selected', on);
+    const check = card.querySelector('.bible-card-check');
+    if (check) check.textContent = on ? '✓' : '';
+  });
+}
+
+function bibleVerseIndexFromKey(key) {
+  return bibleSearchVerses.findIndex((v) => verseKey(v) === key);
+}
+
+function selectBibleVerseIndexRange(fromIndex, toIndex) {
+  const lo = Math.min(fromIndex, toIndex);
+  const hi = Math.max(fromIndex, toIndex);
+  bibleSelectedVerseKeys.clear();
+  for (let i = lo; i <= hi; i += 1) {
+    const verse = bibleSearchVerses[i];
+    if (verse) bibleSelectedVerseKeys.add(verseKey(verse));
+  }
+  syncBibleVerseSelectionUI();
+}
+
+function handleBibleVerseSelect(key, { shiftKey = false, toggle = false } = {}) {
+  const index = bibleVerseIndexFromKey(key);
+  if (index < 0) return;
+  if (shiftKey && bibleSelectionAnchorIndex >= 0) {
+    selectBibleVerseIndexRange(bibleSelectionAnchorIndex, index);
+    return;
+  }
+  if (toggle) {
+    toggleBibleVerseSelection(key, !bibleSelectedVerseKeys.has(key));
+  } else {
+    bibleSelectedVerseKeys.clear();
+    bibleSelectedVerseKeys.add(key);
+    syncBibleVerseSelectionUI();
+  }
+  bibleSelectionAnchorIndex = index;
+}
+
+function filmstripSlideKey(songTitle, slideIndex) {
+  return `${songTitle}|${slideIndex}`;
+}
+
+function syncFilmstripSelectionUI() {
+  slideGrid.querySelectorAll('.slide-card[data-song-title]').forEach((card) => {
+    const key = filmstripSlideKey(card.dataset.songTitle, Number(card.dataset.slideIndex));
+    card.classList.toggle('is-selected', filmstripSelectedKeys.has(key));
+  });
+}
+
+function selectFilmstripSlideRange(songTitle, fromIndex, toIndex) {
+  const lo = Math.min(fromIndex, toIndex);
+  const hi = Math.max(fromIndex, toIndex);
+  filmstripSelectedKeys.clear();
+  for (let i = lo; i <= hi; i += 1) {
+    filmstripSelectedKeys.add(filmstripSlideKey(songTitle, i));
+  }
+  syncFilmstripSelectionUI();
+}
+
+function setFilmstripSlideSelection(songTitle, slideIndex) {
+  filmstripSelectionAnchor = { songTitle, slideIndex };
+  filmstripSelectedKeys.clear();
+  filmstripSelectedKeys.add(filmstripSlideKey(songTitle, slideIndex));
+  syncFilmstripSelectionUI();
+}
+
+function pruneFilmstripSelectedKeys() {
+  if (!slideGrid.querySelector('.slide-card[data-song-title]')) {
+    filmstripSelectedKeys.clear();
+    filmstripSelectionAnchor = null;
+    return;
+  }
+  const valid = new Set();
+  slideGrid.querySelectorAll('.slide-card[data-song-title]').forEach((card) => {
+    valid.add(filmstripSlideKey(card.dataset.songTitle, Number(card.dataset.slideIndex)));
+  });
+  filmstripSelectedKeys = new Set([...filmstripSelectedKeys].filter((key) => valid.has(key)));
+  if (filmstripSelectionAnchor) {
+    const anchorKey = filmstripSlideKey(
+      filmstripSelectionAnchor.songTitle,
+      filmstripSelectionAnchor.slideIndex,
+    );
+    if (!valid.has(anchorKey)) filmstripSelectionAnchor = null;
+  }
+}
+
+function handleFilmstripSlideClick(songTitle, slideIndex, ev) {
+  if (ev?.shiftKey && filmstripSelectionAnchor?.songTitle === songTitle) {
+    selectFilmstripSlideRange(songTitle, filmstripSelectionAnchor.slideIndex, slideIndex);
+    selectPlaylistSlide(songTitle, slideIndex, { preserveMultiSelect: true });
+    return;
+  }
+  setFilmstripSlideSelection(songTitle, slideIndex);
+  selectPlaylistSlide(songTitle, slideIndex);
+}
+
+function syncEditorStripMultiSelectUI() {
+  document.querySelectorAll('#slideEditStrip .strip-thumb').forEach((thumb, i) => {
+    thumb.classList.toggle('is-selected', editorSelectedIndices.has(i));
+  });
+  document.querySelectorAll('#reflowMiniList .reflow-slide-card').forEach((card, i) => {
+    card.classList.toggle('is-selected', editorSelectedIndices.has(i));
+  });
+}
+
+function selectEditorSlideIndexRange(fromIndex, toIndex) {
+  const lo = Math.min(fromIndex, toIndex);
+  const hi = Math.max(fromIndex, toIndex);
+  editorSelectedIndices.clear();
+  for (let i = lo; i <= hi; i += 1) editorSelectedIndices.add(i);
+  syncEditorStripMultiSelectUI();
+}
+
+function setEditorSlideSelection(index) {
+  editorSelectionAnchor = index;
+  editorSelectedIndices.clear();
+  editorSelectedIndices.add(index);
+  syncEditorStripMultiSelectUI();
+}
+
+function pruneEditorSelectedIndices() {
+  const max = editorSongData.slides?.length || 0;
+  if (!max) {
+    editorSelectedIndices.clear();
+    editorSelectionAnchor = -1;
+    return;
+  }
+  editorSelectedIndices = new Set([...editorSelectedIndices].filter((i) => i >= 0 && i < max));
+  if (editorSelectionAnchor >= max) editorSelectionAnchor = Math.max(0, max - 1);
+  if (!editorSelectedIndices.size) {
+    editorSelectedIndices.add(Math.min(editorSlideIndex, max - 1));
+  }
+}
+
+function handleEditorSlidePick(index, ev) {
+  if (ev?.shiftKey && editorSelectionAnchor >= 0) {
+    selectEditorSlideIndexRange(editorSelectionAnchor, index);
+    if (appWorkspaceMode === 'reflow') scrollReflowToSlide(index);
+    else editorSelectSlide(index, { preserveMultiSelect: true });
+    return;
+  }
+  setEditorSlideSelection(index);
+  if (appWorkspaceMode === 'reflow') scrollReflowToSlide(index);
+  else editorSelectSlide(index, { preserveMultiSelect: true });
+}
+
+function broadcastBibleVerse(verse) {
+  if (!verse || !bibleParsedRef) return;
+  const slides = buildBibleSlidesForVerse(verse);
+  if (!slides.length) return;
+  const slide = SE.normalizeSlide(JSON.parse(JSON.stringify(slides[0])));
+  const songTitle = BE.buildSongTitleFromReference(bibleParsedRef, [verse]);
+  if (isBlackout) {
+    stealthQueueSlide(slide, slideForOutput(slide));
+    renderPreviewSlide(slide);
+    return;
+  }
+  sendBroadcastFullState(slide, { songTitle, source: 'bible-preview' });
+  setBroadcastStatus(true, 'statusLive');
+  updateWorkspaceHeadForMode();
+}
+
+let bibleThumbQueue = [];
+let bibleThumbFlushId = 0;
+
+function renderBibleCardThumbnail(card, verse, opts = {}, attempt = 0) {
+  const media = card?.querySelector('.slide-card-media');
+  const thumb = card?.querySelector('.thumb-inner');
+  if (!verse || !thumb || !bibleParsedRef) return;
+  const mediaRect = media?.getBoundingClientRect?.();
+  if ((!mediaRect?.width || mediaRect.height < 4) && attempt < 24 && !opts.relayoutOnly) {
+    requestAnimationFrame(() => renderBibleCardThumbnail(card, verse, opts, attempt + 1));
+    return;
+  }
+  const slides = buildBibleSlidesForVerse(verse);
+  if (!slides[0]) return;
+  const thumbOpts = opts.relayoutOnly ? { relayoutOnly: true } : { force: true };
+  renderSlideThumbnail(slides[0], thumb, thumbOpts);
+  const viewport = thumb.querySelector('.thumb-scaled-viewport, .scaled-stage-viewport');
+  const pending = viewport?.classList.contains('is-scale-pending');
+  const ready = thumb.classList.contains('is-thumb-ready');
+  if ((!ready || pending) && attempt < 24) {
+    const nextOpts = viewport && !pending && attempt % 3 !== 2
+      ? { relayoutOnly: true }
+      : { force: true };
+    requestAnimationFrame(() => renderBibleCardThumbnail(card, verse, nextOpts, attempt + 1));
+  }
+}
+
+function flushBibleThumbQueue() {
+  bibleThumbFlushId = 0;
+  const batch = bibleThumbQueue.splice(0, 5);
+  batch.forEach((item) => renderBibleCardThumbnail(item.card, item.verse, item.opts || {}));
+  if (bibleThumbQueue.length) {
+    bibleThumbFlushId = requestAnimationFrame(flushBibleThumbQueue);
+  }
+}
+
+function scheduleBibleThumbnails(cards, opts = {}) {
+  if (opts.relayoutOnly) {
+    cards.forEach((card) => {
+      const key = card.dataset.verseKey;
+      const verse = bibleSearchVerses.find((v) => verseKey(v) === key);
+      if (!verse) return;
+      renderBibleCardThumbnail(card, verse, opts);
+    });
+    return;
+  }
+  bibleThumbQueue = cards.map((card) => {
+    const key = card.dataset.verseKey;
+    const verse = bibleSearchVerses.find((v) => verseKey(v) === key);
+    return verse ? { card, verse, opts } : null;
+  }).filter(Boolean);
+  if (bibleThumbFlushId) cancelAnimationFrame(bibleThumbFlushId);
+  bibleThumbFlushId = requestAnimationFrame(flushBibleThumbQueue);
+}
+
+function refreshBibleThumbnails(opts = {}) {
+  const cards = [...document.querySelectorAll('.bible-verse-card')];
+  if (!cards.length) return;
+  if (opts.force || opts.relayoutOnly) {
+    cards.forEach((card) => {
+      const key = card.dataset.verseKey;
+      const verse = bibleSearchVerses.find((v) => verseKey(v) === key);
+      if (verse) renderBibleCardThumbnail(card, verse, opts);
+    });
+    return;
+  }
+  scheduleBibleThumbnails(cards, opts);
+}
+
+function renderBiblePreview() {
+  const grid = document.getElementById('biblePreviewGrid');
+  const meta = document.getElementById('bibleResultMeta');
+  if (!grid) return;
+  grid.innerHTML = '';
+  if (!bibleSearchVerses.length) {
+    grid.innerHTML = `<div class="bible-empty">${escapeHtml(I18N.t('bibleNoResults'))}</div>`;
+    if (meta) meta.textContent = '';
+    return;
+  }
+  if (meta) meta.textContent = `${bibleSearchVerses.length}`;
+  const board = document.createElement('div');
+  board.className = 'slide-grid-board bible-preview-board';
+  bibleSearchVerses.forEach((verse) => {
+    const key = verseKey(verse);
+    const selected = bibleSelectedVerseKeys.has(key);
+    const ref = BE.formatVerseReference(verse);
+    const card = document.createElement('div');
+    card.className = 'slide-card bible-verse-card has-caption' + (selected ? ' is-selected' : '');
+    card.dataset.verseKey = key;
+    card.setAttribute('role', 'button');
+    card.tabIndex = 0;
+    card.innerHTML = `
+      <div class="slide-card-media">
+        <span class="bible-card-check" aria-hidden="true">${selected ? '✓' : ''}</span>
+        <div class="thumb-stage"><div class="thumb-inner"></div></div>
+      </div>
+      <div class="slide-caption">${escapeHtml(ref)}</div>`;
+    card.querySelector('.bible-card-check')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      handleBibleVerseSelect(key, { shiftKey: e.shiftKey, toggle: !e.shiftKey });
+    });
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.bible-card-check')) return;
+      if (e.shiftKey && bibleSelectionAnchorIndex >= 0) {
+        handleBibleVerseSelect(key, { shiftKey: true });
+        return;
+      }
+      bibleSelectionAnchorIndex = bibleVerseIndexFromKey(key);
+      broadcastBibleVerse(verse);
+    });
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        broadcastBibleVerse(verse);
+      }
+    });
+    board.appendChild(card);
+  });
+  grid.appendChild(board);
+  ensureBibleThumbResizeObserver();
+  requestAnimationFrame(() => finishBiblePreviewLayout());
+}
+
+function uniqueBibleSongTitle(base) {
+  if (!songLibrary[base]) return base;
+  let i = 2;
+  while (songLibrary[`${base} (${i})`]) i += 1;
+  return `${base} (${i})`;
+}
+
+function addSelectedBibleToPlaylist() {
+  const pl = getActivePlaylist();
+  if (!pl) {
+    alert(I18N.t('playlistNeedActive'));
+    return;
+  }
+  if (!bibleParsedRef || !bibleSearchVerses.length) {
+    alert(I18N.t('bibleNoResults'));
+    return;
+  }
+  const selected = bibleSearchVerses.filter((v) => bibleSelectedVerseKeys.has(verseKey(v)));
+  if (!selected.length) {
+    alert(I18N.t('bibleSelectVerses'));
+    return;
+  }
+  const slides = buildBibleSlidesForVerses(selected).map((s) => SE.normalizeSlide(JSON.parse(JSON.stringify(s))));
+  const baseTitle = BE.buildSongTitleFromReference(bibleParsedRef, selected);
+  const title = uniqueBibleSongTitle(baseTitle);
+  const payload = { version: 2, lyrics: '', slides };
+  pendingLocalLibrarySave = true;
+  songLibrary[title] = SE.migrateSongEntry(payload);
+  ipcRenderer.send('save-song', { title, data: payload });
+  insertSongIntoActivePlaylist(title, getActivePlaylistSongs().length);
+  renderSetlist();
+  renderSlideFilmstrip();
+  alert(I18N.t('bibleAdded'));
+}
+
+function copyActivePlaylist() {
+  const pl = getActivePlaylist();
+  if (!pl) {
+    alert(I18N.t('playlistNeedActive'));
+    return;
+  }
+  const copy = {
+    id: PlaylistStore.playlistId(),
+    type: PlaylistStore.TYPE_PLAYLIST,
+    name: I18N.t('playlistCopyName', { name: pl.name }),
+    parentId: pl.parentId,
+    songs: [...pl.songs],
+  };
+  playlistsState.items.push(copy);
+  persistPlaylists();
+  switchActivePlaylist(copy.id);
 }
 
 function persistEditorToLibrary() {
@@ -3214,8 +4044,10 @@ function syncInspectorTransformInputs(layer) {
 function toggleTextEffectRows() {
   const strokeOn = document.getElementById('inspStrokeOn')?.checked === true;
   const shadowOn = document.getElementById('inspShadowOn')?.checked === true;
+  const boxFillOn = document.getElementById('inspBoxFillOn')?.checked === true;
   document.getElementById('textStrokeDetails')?.classList.toggle('is-disabled', !strokeOn);
   document.getElementById('textShadowDetails')?.classList.toggle('is-disabled', !shadowOn);
+  document.getElementById('textBoxFillDetails')?.classList.toggle('is-disabled', !boxFillOn);
 }
 
 function toggleShapeEffectRows() {
@@ -3259,10 +4091,32 @@ function refreshShapeLayerOnCanvas(layer, fullLabel = false) {
   label.style.textShadow = SE.buildTextShadow(ls, scale);
 }
 
+function measureThumbViewportSize(viewport) {
+  if (!viewport) return { cw: 0, ch: 0 };
+  const media = viewport.closest?.('.slide-card-media');
+  if (media) {
+    const rect = media.getBoundingClientRect();
+    if (rect.width > 0 && rect.height > 0) {
+      return { cw: rect.width, ch: rect.height };
+    }
+  }
+  let node = viewport;
+  for (let i = 0; i < 8 && node; i++) {
+    const cw = node.clientWidth;
+    const ch = node.clientHeight;
+    if (cw > 0 && ch > 0) return { cw, ch };
+    const rect = node.getBoundingClientRect?.();
+    if (rect && rect.width > 0 && rect.height > 0) {
+      return { cw: rect.width, ch: rect.height };
+    }
+    node = node.parentElement;
+  }
+  return { cw: 0, ch: 0 };
+}
+
 function layoutScaledStageIn(viewport, stageEl) {
   const dims = SE.getStageDimensions(appSettings);
-  const cw = viewport.clientWidth || viewport.parentElement?.clientWidth || 0;
-  const ch = viewport.clientHeight || viewport.parentElement?.clientHeight || 0;
+  const { cw, ch } = measureThumbViewportSize(viewport);
   if (!cw || !ch) return 0;
   const scale = SE.computeViewportFitScale(cw, ch, dims.width, dims.height, { autoFit: true, userScalePct: 100 });
   const scaledW = dims.width * scale;
@@ -3316,12 +4170,14 @@ function renderScaledStage(hostEl, slide, options = {}) {
   };
   const relayout = (attempt = 0) => {
     const ok = layoutScaledStageIn(viewport, stage);
-    if (!ok && attempt < 8) {
+    if (!ok && attempt < 12) {
       requestAnimationFrame(() => relayout(attempt + 1));
       return;
     }
-    revealScaledStage();
-    if (options.onLayout) options.onLayout(stage, viewport);
+    if (ok) {
+      revealScaledStage();
+      if (options.onLayout) options.onLayout(stage, viewport);
+    }
   };
   if (!layoutScaledStageIn(viewport, stage)) {
     requestAnimationFrame(() => relayout(0));
@@ -3754,7 +4610,7 @@ function renderLayerList(slide) {
   if (!list) return;
   list.innerHTML = '';
   [...slide.layers].reverse().forEach((ly) => {
-    const item = document.createElement('div');
+        const item = document.createElement('div');
     item.className = 'layer-list-item' + (ly.id === selectedLayerId ? ' selected' : '');
     item.dataset.layerId = ly.id;
     const shapeKind = ly.type === 'rect' ? (ly.style?.shape || 'rect') : '';
@@ -3763,8 +4619,14 @@ function renderLayerList(slide) {
     const preview = ly.type === 'text'
       ? (ly.content || '').split('\n')[0].slice(0, 24) || I18N.t('addText')
       : (ly.content || '').split('\n')[0].slice(0, 24) || shapeLabel;
+    const roleTag = ly.type === 'text' && ly.textRole === 'body'
+      ? I18N.t('textRoleBody')
+      : ly.type === 'text' && ly.textRole === 'reference'
+        ? I18N.t('textRoleReference')
+        : '';
     const typeLabel = ly.type === 'text' ? I18N.t('addText') : I18N.t('inspectorShapeProps');
-    item.innerHTML = `<span class="layer-type">${ly.type === 'text' ? 'T' : shapeIcon} <strong>${typeLabel}</strong> · ${preview}</span>
+    const roleSuffix = roleTag ? ` <em class="layer-role-tag">${roleTag}</em>` : '';
+    item.innerHTML = `<span class="layer-type">${ly.type === 'text' ? 'T' : shapeIcon} <strong>${typeLabel}</strong>${roleSuffix} · ${preview}</span>
       <span class="layer-mini-btns">
         <button type="button" data-layer-up="${ly.id}">↑</button>
         <button type="button" data-layer-down="${ly.id}">↓</button>
@@ -3902,9 +4764,16 @@ function renderInspector() {
   if (layer?.type === 'text') {
     html += `<div class="inspector-section inspector-props-anchor"><span class="inspector-context-tag text-tag">${I18N.t('inspectorTextProps')}</span>`;
     html += inspectorTransformHtml();
-    html += `<h3 style="margin-top:10px">${I18N.t('addText')}</h3>`;
     if (!isTheme) {
       html += `<div class="inspector-row"><label>${I18N.t('inspContent')}</label><textarea id="inspTextContent"></textarea></div>`;
+    }
+    html += `<div class="inspector-divider"></div><div class="inspector-divider-label">${I18N.t('inspectorDesignDivider')}</div>`;
+    if (isTheme) {
+      html += `<div class="inspector-row"><label>${I18N.t('inspTextRole')}</label><select id="inspTextRole">
+        <option value="">${I18N.t('textRoleNone')}</option>
+        <option value="body">${I18N.t('textRoleBody')}</option>
+        <option value="reference">${I18N.t('textRoleReference')}</option>
+      </select></div>`;
     }
     html += `<div class="inspector-row"><label>${I18N.t('inspFont')}</label><select id="inspFontFamily">
       <option value="-apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif">System</option>
@@ -3923,6 +4792,13 @@ function renderInspector() {
     html += `<div class="inspector-row"><label>${I18N.t('letterSpacing')}</label><input type="range" id="inspLetterSpacing" min="0" max="10" step="0.1"></div>`;
     html += `<div class="inspector-row"><label>${I18N.t('textColor')}</label><input type="color" id="inspTextColor"></div>`;
     html += `<div class="inspector-row"><label>${I18N.t('textOpacity')}</label><input type="range" id="inspTextOpacity" min="0" max="1" step="0.05"></div>`;
+    html += `<h3 style="margin-top:12px">${I18N.t('textBoxSection')}</h3>`;
+    html += `<div class="inspector-row inspector-toggle-row"><label><input type="checkbox" id="inspBoxFillOn"> ${I18N.t('textBoxFill')}</label></div>`;
+    html += `<div class="inspector-effect-details" id="textBoxFillDetails">
+      <div class="inspector-row"><label>${I18N.t('textBoxFill')}</label><input type="color" id="inspBoxFillColor"></div>
+      <div class="inspector-row"><label>${I18N.t('textBoxFillOpacity')}</label><input type="range" id="inspBoxFillOpacity" min="0" max="1" step="0.05"></div>
+      <div class="inspector-row"><label>${I18N.t('textBoxRadius')}</label><input type="range" id="inspBoxRadius" min="0" max="24" step="1"></div>
+    </div>`;
     html += `<div class="inspector-row"><label>${I18N.t('hAlign')}</label><div class="align-btns">
       <button type="button" data-align="left">L</button><button type="button" data-align="center">C</button><button type="button" data-align="right">R</button></div></div>`;
     html += `<div class="inspector-row"><label>${I18N.t('verticalAlign')}</label><div class="align-btns" id="inspVAlignBtns">
@@ -4144,6 +5020,7 @@ function focusMainWorkspace() {
     return;
   }
   if (appWorkspaceMode === 'theme-edit') exitThemeEditWorkspace();
+  else if (appWorkspaceMode === 'bible') setWorkspaceMode('slides');
   else exitEditWorkspace();
   setNavHighlight('slides');
   if (isModalOpen(settingsModal)) closeSettings();
@@ -4153,6 +5030,7 @@ function navHighlightForMode() {
   if (appWorkspaceMode === 'slide-edit') return 'editor';
   if (appWorkspaceMode === 'theme-edit') return 'theme';
   if (appWorkspaceMode === 'reflow') return 'reflow';
+  if (appWorkspaceMode === 'bible') return 'bible';
   return 'slides';
 }
 
@@ -4174,6 +5052,11 @@ function handleNavAction(action) {
     case 'theme':
       if (appWorkspaceMode === 'theme-edit') return;
       enterThemeEditWorkspace({ force: true });
+      return;
+    case 'bible':
+      setNavHighlight('bible');
+      if (appWorkspaceMode === 'bible') return;
+      enterBibleWorkspace();
       return;
     default:
       break;
@@ -4488,8 +5371,7 @@ function syncLayerOutput() {
   }
   if (activeSlideIndex >= 0 && activeSlideIndex < currentSlides.length) {
     sendBroadcastFullState(currentSlides[activeSlideIndex], { source: 'macro-sync' });
-  } else if (!layerVisibility.lyrics) {
-    ipcRenderer.send('send-slide', null);
+  } else if (!layerVisibility.lyrics && activeMediaId) {
     renderPreviewSlide(null);
   }
 }
@@ -4508,17 +5390,13 @@ function toggleLogo() {
 
 ipcRenderer.on('themes:sync', (_e, themes) => {
   themeCatalog = Array.isArray(themes) ? themes : [];
+  renderBibleThemeSelect();
   renderThemeSelect();
   if (appWorkspaceMode === 'theme-edit') {
     renderThemeListRail();
     if (themeEditId && !String(themeEditId).startsWith('draft_')) {
       const still = themeCatalog.find((t) => t.id === themeEditId);
-      if (still && !themeEditDirty) {
-        themeEditName = still.name;
-        loadThemeDraft(still);
-        renderEditorCanvas();
-        renderInspector();
-      }
+      if (still) themeEditName = still.name;
     } else if (!themeEditId && themeCatalog.length) {
       selectThemeForEdit(themeCatalog[0].id);
     } else if (!themeCatalog.length && !themeDraftSlide) {
@@ -4698,6 +5576,47 @@ function bindTextInspector(layer) {
   if (textColor) {
     textColor.value = st.color;
     textColor.oninput = (e) => set(() => { st.color = e.target.value; });
+  }
+  const roleEl = document.getElementById('inspTextRole');
+  if (roleEl) {
+    roleEl.value = layer.textRole || '';
+    roleEl.onchange = (e) => {
+      set(() => {
+        const next = SE.normalizeTextRole(e.target.value);
+        const slide = getCurrentSlide();
+        if (slide && next) {
+          slide.layers.forEach((l) => {
+            if (l.type === 'text' && l.id !== layer.id && l.textRole === next) delete l.textRole;
+          });
+        }
+        if (next) layer.textRole = next;
+        else delete layer.textRole;
+      });
+      renderLayerList(getCurrentSlide());
+    };
+  }
+  const boxFillOn = document.getElementById('inspBoxFillOn');
+  if (boxFillOn) {
+    boxFillOn.checked = st.boxFillEnabled === true;
+    boxFillOn.onchange = () => set(() => {
+      st.boxFillEnabled = boxFillOn.checked;
+      toggleTextEffectRows();
+    });
+  }
+  const boxFillColor = document.getElementById('inspBoxFillColor');
+  if (boxFillColor) {
+    boxFillColor.value = st.boxFillColor || '#000000';
+    boxFillColor.oninput = (e) => set(() => { st.boxFillColor = e.target.value; });
+  }
+  const boxFillOpacity = document.getElementById('inspBoxFillOpacity');
+  if (boxFillOpacity) {
+    boxFillOpacity.value = st.boxFillOpacity ?? 0.45;
+    boxFillOpacity.oninput = (e) => set(() => { st.boxFillOpacity = Number(e.target.value); });
+  }
+  const boxRadius = document.getElementById('inspBoxRadius');
+  if (boxRadius) {
+    boxRadius.value = st.boxRadius ?? 0;
+    boxRadius.oninput = (e) => set(() => { st.boxRadius = Number(e.target.value); });
   }
   document.querySelectorAll('.align-btns button[data-align]').forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.align === st.textAlign);
@@ -4974,18 +5893,23 @@ function updateEditorStripSelection(prevIndex, nextIndex) {
     thumbs[nextIndex].classList.add('active');
     thumbs[nextIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
+  syncEditorStripMultiSelectUI();
   return true;
 }
 
-function editorSelectSlide(index) {
+function editorSelectSlide(index, opts = {}) {
   if (appWorkspaceMode === 'reflow') {
-    if (index >= 0 && index < editorSongData.slides.length) scrollReflowToSlide(index);
+    if (index >= 0 && index < editorSongData.slides.length) {
+      if (!opts.preserveMultiSelect) setEditorSlideSelection(index);
+      scrollReflowToSlide(index);
+    }
     return;
   }
   if (index < 0 || index >= editorSongData.slides.length) return;
   const prevIndex = editorSlideIndex;
   const prevLayer = selectedLayerId ? getLayerById(selectedLayerId) : null;
   editorSlideIndex = index;
+  if (!opts.preserveMultiSelect) setEditorSlideSelection(index);
   const slide = editorSongData.slides[index];
   selectedLayerId = pickLayerForSlide(slide, prevLayer);
   if (!updateEditorStripSelection(prevIndex, index)) renderSlideStrip();
@@ -5103,9 +6027,18 @@ function applyBackgroundMediaItem(item) {
   renderPreviewBackground(item);
   ipcRenderer.send('background-set', item.id);
   if (!isBlackout && activeSlideIndex >= 0 && activeSlideIndex < currentSlides.length) {
-    sendBroadcastFullState(currentSlides[activeSlideIndex], { source: 'media-sync' });
+    renderPreviewSlide(currentSlides[activeSlideIndex]);
+  } else if (!isBlackout) {
+    renderPreviewSlide(null);
   }
   return true;
+}
+
+function deleteMediaItem(item) {
+  if (!item?.id) return;
+  const msg = I18N.t('deleteMediaConfirm', { name: item.name || item.id });
+  if (!window.confirm(msg)) return;
+  ipcRenderer.send('delete-media-item', item.id);
 }
 
 function cycleBackground(dir) {
@@ -5484,6 +6417,24 @@ function tryGroupHotkeyJump(e) {
   return true;
 }
 
+function scrollCurrentSongSectionIntoView(behavior = 'smooth') {
+  if (!currentSongTitle || appWorkspaceMode !== 'slides') return;
+  const run = () => {
+    const section = slideGrid.querySelector(`.slide-song-section[data-song-title="${escapeAttrValue(currentSongTitle)}"]`)
+      || slideGrid.querySelector('.slide-song-section.is-current-song');
+    if (!section) return;
+    const scroller = slideGrid;
+    const pad = 8;
+    const s = scroller.getBoundingClientRect();
+    const r = section.getBoundingClientRect();
+    const outOfView = r.top < s.top + pad || r.bottom > s.bottom - pad;
+    if (outOfView) {
+      section.scrollIntoView({ behavior, block: 'nearest', inline: 'nearest' });
+    }
+  };
+  requestAnimationFrame(() => requestAnimationFrame(run));
+}
+
 function scrollActiveSlideIntoView(behavior = 'smooth') {
   if (activeSlideIndex < 0 || !currentSongTitle || appWorkspaceMode !== 'slides') return;
   const run = () => {
@@ -5704,11 +6655,13 @@ function renderSlideStrip() {
   let activeThumb = null;
   editorSongData.slides.forEach((slide, i) => {
     const thumb = document.createElement('div');
-    thumb.className = 'strip-thumb' + (i === editorSlideIndex ? ' active' : '');
+    thumb.className = 'strip-thumb'
+      + (i === editorSlideIndex ? ' active' : '')
+      + (editorSelectedIndices.has(i) ? ' is-selected' : '');
     thumb.setAttribute('role', 'button');
     thumb.tabIndex = 0;
     thumb.innerHTML = `<span class="strip-num">${i + 1}</span><div class="thumb-inner"></div>`;
-    thumb.onclick = () => editorSelectSlide(i);
+    thumb.onclick = (ev) => handleEditorSlidePick(i, ev);
     thumb.onkeydown = (ev) => {
       if (ev.key === 'Enter' || ev.key === ' ') {
         ev.preventDefault();
@@ -5789,7 +6742,9 @@ function renderReflowMiniPreview() {
   let activeCard = null;
   editorSongData.slides.forEach((slide, i) => {
     const card = document.createElement('div');
-    card.className = 'reflow-slide-card' + (i === hi ? ' active' : '');
+    card.className = 'reflow-slide-card'
+      + (i === hi ? ' active' : '')
+      + (editorSelectedIndices.has(i) ? ' is-selected' : '');
     card.setAttribute('role', 'button');
     card.tabIndex = 0;
     const line = (SE.getPrimaryText(slide) || '').replace(/\s+/g, ' ').trim();
@@ -5803,11 +6758,11 @@ function renderReflowMiniPreview() {
         <div class="reflow-slide-num">${I18N.t('editorSingleSlide', { n: i + 1 })}</div>
         <div class="reflow-slide-text">${escapeHtml(line || '—')}</div>
       </div>`;
-    card.onclick = () => scrollReflowToSlide(i);
+    card.onclick = (ev) => handleEditorSlidePick(i, ev);
     card.onkeydown = (ev) => {
       if (ev.key === 'Enter' || ev.key === ' ') {
         ev.preventDefault();
-        scrollReflowToSlide(i);
+        handleEditorSlidePick(i, ev);
       }
     };
     list.appendChild(card);
@@ -5917,6 +6872,65 @@ function layoutPreviewStage() {
   stage.style.transformOrigin = 'top left';
 }
 
+function previewBackgroundPayloadFromSlide(slide) {
+  if (!slide?.background) return null;
+  const bg = SE.normalizeBackground(slide.background);
+  if (bg.type === 'color') {
+    return { type: 'color', color: bg.color, opacity: bg.opacity ?? 1 };
+  }
+  if ((bg.type === 'image' || bg.type === 'video') && bg.file) {
+    const src = resolveMediaFileUrl(bg.file);
+    if (!src) return null;
+    return { type: bg.type, src };
+  }
+  if (bg.type === 'image' && bg.src) return { type: 'image', src: bg.src };
+  return null;
+}
+
+function renderPreviewBackground(itemOrPayload) {
+  const pane = document.getElementById('previewBg');
+  if (!pane) return;
+  const video = pane.querySelector('.preview-bg-video');
+  const image = pane.querySelector('.preview-bg-image');
+  let data = itemOrPayload;
+  if (data?.path && !data.src) {
+    data = { type: data.type, src: pathToFileURL(data.path).href };
+  }
+  if (video) {
+    video.classList.remove('is-on');
+    video.pause();
+    video.removeAttribute('src');
+    video.load();
+  }
+  if (image) {
+    image.classList.remove('is-on');
+    image.removeAttribute('src');
+  }
+  if (!layerVisibility.media || !data) {
+    pane.style.backgroundColor = '#000';
+    pane.style.opacity = '1';
+    return;
+  }
+  if (data.type === 'color') {
+    pane.style.backgroundColor = data.color || '#000000';
+    pane.style.opacity = String(data.opacity ?? 1);
+    return;
+  }
+  pane.style.opacity = '1';
+  pane.style.backgroundColor = '#000';
+  if (data.type === 'video' && data.src && video) {
+    video.classList.add('is-on');
+    video.src = data.src;
+    video.load();
+    video.play().catch(() => {});
+    return;
+  }
+  if (data.type === 'image' && data.src && image) {
+    image.classList.add('is-on');
+    image.src = data.src;
+  }
+}
+
 function renderPreviewSlide(slide) {
   const stage = document.getElementById('previewStage');
   preview.classList.toggle('empty', !slide);
@@ -5924,43 +6938,49 @@ function renderPreviewSlide(slide) {
   if (!stage) return;
   if (!slide) {
     stage.innerHTML = '';
+    renderPreviewBackground(null);
     layoutPreviewStage();
     return;
   }
   const raw = SE.normalizeSlide(JSON.parse(JSON.stringify(slide)));
   const norm = slideForOutput(raw);
   const dims = SE.getStageDimensions(appSettings);
+  let previewBg = null;
+  if (layerVisibility.media) {
+    const libItem = activeMediaId ? mediaLibrary.find((m) => m.id === activeMediaId) : null;
+    previewBg = libItem || previewBackgroundPayloadFromSlide(norm);
+  }
+  renderPreviewBackground(previewBg);
+  const useForegroundOnly = layerVisibility.media && !!previewBg;
   stage.classList.add('is-scale-pending');
   stage.style.width = `${dims.width}px`;
   stage.style.height = `${dims.height}px`;
-  SE.renderSlide(norm, stage, getSlideRenderOptions({ clear: true }));
+  SE.renderSlide(norm, stage, getSlideRenderOptions({ clear: true, foregroundOnly: useForegroundOnly }));
   layoutPreviewStage();
   stage.classList.remove('is-scale-pending');
 }
 
-function renderPreviewBackground() {
-  /* Program preview uses full WYSIWYG slide render (theme + background on slide). */
-}
-
 const SLIDE_GRID_GAP = 12;
 const SLIDE_CAPTION_H = 34;
+const BIBLE_CARD_META_H = SLIDE_CAPTION_H;
 
 function getStageMetrics() {
   const dims = SE.getStageDimensions(appSettings);
   return { width: dims.width, height: dims.height, ratio: dims.width / dims.height };
 }
 
-/** 송출 해상도 비율 유지, 슬라이드 개수·영역 크기에 맞춰 열 수 계산 */
-function layoutSlideGridForBoard(board, slides) {
-  if (!board || !slides?.length) return;
-  const filmstrip = slideGrid;
-  const padX = 32;
-  const padY = 30;
-  const areaW = Math.max(filmstrip.clientWidth - padX, 200);
-  const areaH = Math.max(filmstrip.clientHeight - padY, 160);
-  const capH = appSettings.showSlideCaptions ? SLIDE_CAPTION_H : 0;
-  const n = slides.length;
-  const gap = SLIDE_GRID_GAP;
+/** 슬라이드창·성경 미리보기 공통 — 송출 비율 유지 그리드 열 계산 */
+function layoutThumbGridBoard(board, slideCount, areaEl, opts = {}) {
+  if (!board || !slideCount) return;
+  const container = areaEl || board.parentElement || slideGrid;
+  const padX = opts.padX ?? 32;
+  const padY = opts.padY ?? 30;
+  const capH = opts.capH ?? 0;
+  const gap = opts.gap ?? SLIDE_GRID_GAP;
+  const zoomPct = opts.zoomPct ?? (appSettings.slidesFilmstripZoom || 100);
+  const areaW = Math.max((container.clientWidth || 0) - padX, 200);
+  const areaH = Math.max((container.clientHeight || 0) - padY, 160);
+  const n = slideCount;
 
   let bestCols = 1;
   let bestCellW = 0;
@@ -5984,7 +7004,6 @@ function layoutSlideGridForBoard(board, slides) {
     bestCellW = (areaW - gap * (bestCols - 1)) / bestCols;
   }
 
-  const zoomPct = appSettings.slidesFilmstripZoom || 100;
   if (zoomPct === 100) {
     board.style.setProperty('--slide-cols', String(bestCols));
     board.classList.remove('has-zoom-layout');
@@ -5997,6 +7016,26 @@ function layoutSlideGridForBoard(board, slides) {
     board.classList.add('has-zoom-layout');
   }
   board.style.setProperty('--slide-gap', `${gap}px`);
+}
+
+function layoutBiblePreviewGrid() {
+  const grid = document.getElementById('biblePreviewGrid');
+  const board = grid?.querySelector('.bible-preview-board');
+  if (!board || !bibleSearchVerses.length) return;
+  layoutThumbGridBoard(board, bibleSearchVerses.length, grid, {
+    capH: BIBLE_CARD_META_H,
+    padX: 24,
+    padY: 16,
+    zoomPct: appSettings.biblePreviewZoom || 80,
+  });
+}
+
+/** 송출 해상도 비율 유지, 슬라이드 개수·영역 크기에 맞춰 열 수 계산 */
+function layoutSlideGridForBoard(board, slides) {
+  if (!board || !slides?.length) return;
+  layoutThumbGridBoard(board, slides.length, slideGrid, {
+    capH: appSettings.showSlideCaptions ? SLIDE_CAPTION_H : 0,
+  });
 }
 
 function layoutFilmstripGrids(opts = {}) {
@@ -6047,10 +7086,16 @@ function slideThumbCacheKey(slide) {
 }
 
 function relayoutThumbInHost(host) {
-  if (!host) return;
+  if (!host) return 0;
   const viewport = host.querySelector('.thumb-scaled-viewport, .scaled-stage-viewport');
   const stage = host.querySelector('.thumb-scaled-stage, .scaled-stage');
-  if (viewport && stage) layoutScaledStageIn(viewport, stage);
+  if (!viewport || !stage) return 0;
+  const scale = layoutScaledStageIn(viewport, stage);
+  if (scale > 0) {
+    viewport.classList.remove('is-scale-pending');
+    host.classList.add('is-thumb-ready');
+  }
+  return scale;
 }
 
 function renderSlideThumbnail(slide, container, opts = {}) {
@@ -6064,8 +7109,7 @@ function renderSlideThumbnail(slide, container, opts = {}) {
     return;
   }
   if (opts.relayoutOnly && host.dataset.thumbKey === cacheKey) {
-    relayoutThumbInHost(host);
-    return;
+    if (relayoutThumbInHost(host) > 0) return;
   }
   host.classList.remove('is-thumb-ready');
   host.dataset.thumbKey = cacheKey;
@@ -6104,11 +7148,26 @@ function getPlaylistFilmstripSections() {
   }));
 }
 
-function getSlideCardCaption(slide) {
+function getBibleSlideCaption(slide) {
+  const refLayer = slide?.layers?.find((l) => l.type === 'text' && l.textRole === 'reference')
+    || slide?.layers?.filter((l) => l.type === 'text')[1];
+  return (refLayer?.content || '').trim();
+}
+
+function isBiblePlaylistTitle(songTitle, slide) {
+  const title = String(songTitle || '').trim();
+  if (title.startsWith('성경:')) return true;
+  return SE.isBibleSlide(slide);
+}
+
+function getSlideCardCaption(songTitle, slide, slideIndex) {
   if (!appSettings.showSlideCaptions) return '';
-  const group = SE.normalizeGroup(slide?.group);
-  if (group) return group;
-  return (SE.getPrimaryText(slide).split('\n')[0] || '').trim();
+  const title = String(songTitle || '').trim();
+  if (isBiblePlaylistTitle(title, slide)) {
+    const ref = getBibleSlideCaption(slide);
+    if (ref) return ref;
+  }
+  return `${title} · ${slideIndex + 1}`;
 }
 
 function refreshSlideThumbnails(opts = {}) {
@@ -6537,7 +7596,7 @@ function moveSongInActivePlaylist(fromIndex, toIndex) {
   renderSetlist();
 }
 
-function addToSetlist(title) {
+    function addToSetlist(title) {
   insertSongIntoActivePlaylist(title, getActivePlaylistSongs().length);
   loadSongToSlides(title);
 }
@@ -6552,8 +7611,8 @@ function removeSetlistItem(index) {
   pl.songs.splice(index, 1);
   persistPlaylists();
   renderPlaylistTree();
-  renderSetlist();
-}
+      renderSetlist();
+    }
 
 function getPlaylistDropIndex(container, clientY) {
   const items = [...container.querySelectorAll('.playlist-item')];
@@ -6680,7 +7739,7 @@ function renderSetlist(opts = {}) {
   el.innerHTML = '';
   const last = songs.length - 1;
   songs.forEach((title, i) => {
-    const item = document.createElement('div');
+        const item = document.createElement('div');
     item.className = 'playlist-item' + (title === currentSongTitle ? ' selected' : '');
     item.draggable = true;
     item.dataset.songTitle = title;
@@ -6745,7 +7804,7 @@ function clearCurrentSongSelection() {
   if (appWorkspaceMode !== 'slides') exitEditWorkspace();
   currentSongTitle = '';
   currentSlides = [];
-  activeSlideIndex = -1;
+      activeSlideIndex = -1;
   document.getElementById('currentSongTitle').textContent = I18N.t('selectSong');
   updateWorkspaceHeadState();
   renderLiveUI();
@@ -6900,6 +7959,10 @@ function loadSongToSlides(title, opts = {}) {
   const entry = songLibrary[title];
   if (!entry) return;
   const sameSong = currentSongTitle === title;
+  if (!sameSong && !opts.keepFilmstripSelection) {
+    filmstripSelectedKeys.clear();
+    filmstripSelectionAnchor = null;
+  }
   const inEditor = appWorkspaceMode !== 'slides';
   if (inEditor && sameSong && opts.keepWorkspace) {
     const slides = entry.slides.map((s) => SE.normalizeSlide(JSON.parse(JSON.stringify(s))));
@@ -6924,7 +7987,10 @@ function loadSongToSlides(title, opts = {}) {
     else scheduleFilmstripThumbRefresh();
     return;
   }
-  if (inEditor) exitEditWorkspace();
+  if (inEditor) {
+    if (appWorkspaceMode === 'bible') setWorkspaceMode('slides');
+    else exitEditWorkspace();
+  }
   const resumeIndex = Number.isInteger(opts.resumeSlideIndex)
     ? opts.resumeSlideIndex
     : (opts.preserveSlideIndex && activeSlideIndex >= 0 ? activeSlideIndex : -1);
@@ -6944,17 +8010,20 @@ function loadSongToSlides(title, opts = {}) {
     selectSlide(resumeIndex);
     scrollActiveSlideIntoView('auto');
   } else {
-    setBroadcastStatus(false, isBlackout ? 'statusBlackout' : 'statusWaitSlide');
-    if (!isBlackout) clearProgramOutput();
+    scrollCurrentSongSectionIntoView('auto');
   }
 }
 
 function buildSlideCard(songTitle, slide, slideIndex, songIndex) {
   const showGh = !!appSettings.showGroupLabels;
-  const caption = getSlideCardCaption(slide);
+  const caption = getSlideCardCaption(songTitle, slide, slideIndex);
   const isActive = songTitle === currentSongTitle && slideIndex === activeSlideIndex;
-  const card = document.createElement('div');
-  card.className = 'slide-card' + (caption ? ' has-caption' : '') + (isActive ? ' active' : '');
+  const isSelected = filmstripSelectedKeys.has(filmstripSlideKey(songTitle, slideIndex));
+        const card = document.createElement('div');
+  card.className = 'slide-card'
+    + (caption ? ' has-caption' : '')
+    + (isActive ? ' active' : '')
+    + (isSelected ? ' is-selected' : '');
   card.setAttribute('role', 'button');
   card.tabIndex = 0;
   card.dataset.songTitle = songTitle;
@@ -6966,10 +8035,10 @@ function buildSlideCard(songTitle, slide, slideIndex, songIndex) {
   let inner = `<div class="slide-card-media"><div class="thumb-stage"><div class="thumb-inner"></div></div><span class="slide-index">${slideIndex + 1}</span>${badge}</div>`;
   if (caption) inner += `<div class="slide-caption">${escapeHtml(caption)}</div>`;
   card.innerHTML = inner;
-  card.onclick = () => selectPlaylistSlide(songTitle, slideIndex);
+  card.onclick = (ev) => handleFilmstripSlideClick(songTitle, slideIndex, ev);
   card.ondblclick = (ev) => {
     ev.preventDefault();
-    selectPlaylistSlide(songTitle, slideIndex);
+    handleFilmstripSlideClick(songTitle, slideIndex, ev);
     setNavHighlight('editor');
     enterSlideEditWorkspace({ slideIndex });
   };
@@ -7027,13 +8096,16 @@ function renderSlideFilmstrip() {
   });
   slideGrid.innerHTML = '';
   slideGrid.appendChild(wrap);
+  pruneFilmstripSelectedKeys();
+  syncFilmstripSelectionUI();
   requestAnimationFrame(() => {
     layoutFilmstripGrids({ force: true });
-    scrollActiveSlideIntoView('auto');
+    if (activeSlideIndex >= 0) scrollActiveSlideIntoView('auto');
+    else scrollCurrentSongSectionIntoView('auto');
   });
 }
 
-function updateSlideFilmstripSelection(prevSong, prevIndex, nextSong, nextIndex) {
+function updateSlideFilmstripSelection(prevSong, prevIndex, nextSong, nextIndex, opts = {}) {
   const nextCard = findFilmstripCard(nextSong, nextIndex);
   if (!slideGrid.querySelector('.slide-card') || (nextIndex >= 0 && !nextCard)) {
     renderSlideFilmstrip();
@@ -7048,6 +8120,9 @@ function updateSlideFilmstripSelection(prevSong, prevIndex, nextSong, nextIndex)
     nextCard.classList.add('active');
     scrollActiveSlideIntoView('smooth');
   }
+  if (!opts.preserveMultiSelect && nextSong != null && nextIndex >= 0) {
+    setFilmstripSlideSelection(nextSong, nextIndex);
+  }
 }
 
 function highlightFilmstripSelection() {
@@ -7055,12 +8130,16 @@ function highlightFilmstripSelection() {
     section.classList.toggle('is-current-song', section.dataset.songTitle === currentSongTitle);
   });
   slideGrid.querySelectorAll('.slide-card').forEach((card) => {
+    const key = filmstripSlideKey(card.dataset.songTitle, Number(card.dataset.slideIndex));
+    card.classList.toggle('is-selected', filmstripSelectedKeys.has(key));
     card.classList.toggle(
       'active',
       card.dataset.songTitle === currentSongTitle
         && Number(card.dataset.slideIndex) === activeSlideIndex,
     );
   });
+  if (activeSlideIndex >= 0) scrollActiveSlideIntoView('auto');
+  else scrollCurrentSongSectionIntoView('auto');
 }
 
 function renderLiveUI(opts = {}) {
@@ -7090,23 +8169,28 @@ function stealthQueueSlide(slide, outSlide) {
   updateWorkspaceHeadForMode();
 }
 
-function selectPlaylistSlide(songTitle, slideIndex) {
+function selectPlaylistSlide(songTitle, slideIndex, opts = {}) {
   if (!songTitle || slideIndex < 0) return;
   const slides = getSongSlides(songTitle);
   if (slideIndex >= slides.length) return;
   if (songTitle !== currentSongTitle) {
-    loadSongToSlides(songTitle, { resumeSlideIndex: slideIndex, preserveFilmstrip: true });
+    if (!opts.preserveMultiSelect) setFilmstripSlideSelection(songTitle, slideIndex);
+    loadSongToSlides(songTitle, {
+      resumeSlideIndex: slideIndex,
+      preserveFilmstrip: true,
+      keepFilmstripSelection: true,
+    });
     return;
   }
-  selectSlide(slideIndex);
+  selectSlide(slideIndex, opts);
 }
 
-function selectSlide(index) {
+    function selectSlide(index, opts = {}) {
   if (index < 0 || index >= currentSlides.length) return;
   const prevSong = currentSongTitle;
   const prev = activeSlideIndex;
-  activeSlideIndex = index;
-  updateSlideFilmstripSelection(prevSong, prev, currentSongTitle, index);
+      activeSlideIndex = index;
+  updateSlideFilmstripSelection(prevSong, prev, currentSongTitle, index, opts);
   scrollActiveSlideIntoView();
   const slide = SE.normalizeSlide(JSON.parse(JSON.stringify(currentSlides[index])));
   currentSlides[index] = slide;
@@ -7166,40 +8250,112 @@ window.addEventListener('keydown', (e) => {
   handleLiveShortcut(e);
 });
 
+function mediaThumbSrcKey(src) {
+  if (!src) return '';
+  try { return new URL(src).href; } catch (_) { return String(src); }
+}
+
+function mediaThumbSrcMatches(el, src) {
+  if (!el || !src) return false;
+  return mediaThumbSrcKey(el.src) === mediaThumbSrcKey(src);
+}
+
+function showVideoThumbFrame(video) {
+  if (!video?.src) return;
+  const seek = () => {
+    try {
+      const t = Number.isFinite(video.duration) && video.duration > 0
+        ? Math.min(0.12, video.duration * 0.02)
+        : 0.12;
+      if (Math.abs(video.currentTime - t) > 0.05) video.currentTime = t;
+    } catch (_) { /* ignore */ }
+  };
+  if (video.readyState >= 2) seek();
+  else video.addEventListener('loadeddata', seek, { once: true });
+}
+
+function syncMediaThumbPreview(thumb, item) {
+  if (!thumb || !item?.src) return;
+  let preview = thumb.querySelector('.media-thumb-preview');
+  const wantVideo = item.type === 'video';
+
+  if (preview) {
+    const isVideo = preview.tagName === 'VIDEO';
+    if (isVideo !== wantVideo) {
+      preview.remove();
+      preview = null;
+    }
+  }
+
+  if (!preview) {
+    preview = document.createElement(wantVideo ? 'video' : 'img');
+    preview.className = 'media-thumb-preview';
+    thumb.insertBefore(preview, thumb.firstChild);
+  }
+
+  if (wantVideo) {
+    preview.muted = true;
+    preview.playsInline = true;
+    preview.preload = 'metadata';
+    preview.loop = appSettings.loopBackgroundVideo;
+    if (!mediaThumbSrcMatches(preview, item.src)) {
+      preview.src = item.src;
+      preview.load();
+    }
+    showVideoThumbFrame(preview);
+    thumb._sbVideoPreview = preview;
+      } else {
+    preview.alt = item.name;
+    preview.loading = 'eager';
+    preview.decoding = 'async';
+    if (!mediaThumbSrcMatches(preview, item.src)) preview.src = item.src;
+    thumb._sbVideoPreview = null;
+  }
+}
+
+function wireMediaThumbInteractions(thumb, item) {
+  thumb.onclick = () => applyBackgroundMediaItem(item);
+  thumb.onmouseenter = () => {
+    hoveredMediaId = item.id;
+    const video = thumb._sbVideoPreview;
+    if (video && appSettings.mediaHoverPreview) video.play().catch(() => {});
+  };
+  thumb.onmouseleave = () => {
+    if (hoveredMediaId === item.id) hoveredMediaId = null;
+    const video = thumb._sbVideoPreview;
+    if (video && appSettings.mediaHoverPreview) {
+      video.pause();
+      showVideoThumbFrame(video);
+    }
+  };
+}
+
 function buildMediaThumbEl(item) {
   const thumb = document.createElement('div');
   thumb.className = 'media-thumb' + (item.id === activeMediaId ? ' active' : '');
   thumb.dataset.mediaId = item.id;
   thumb.title = item.name;
 
-  if (item.type === 'video') {
-    const v = document.createElement('video');
-    v.src = item.src;
-    v.muted = true;
-    v.loop = appSettings.loopBackgroundVideo;
-    v.playsInline = true;
-    v.preload = 'metadata';
-    thumb.appendChild(v);
-    if (appSettings.mediaHoverPreview) {
-      thumb.onmouseenter = () => v.play().catch(() => {});
-      thumb.onmouseleave = () => { v.pause(); v.currentTime = 0; };
-    }
-  } else {
-    const img = document.createElement('img');
-    img.src = item.src;
-    img.alt = item.name;
-    img.loading = 'lazy';
-    thumb.appendChild(img);
-  }
+  syncMediaThumbPreview(thumb, item);
 
   const label = document.createElement('span');
   label.className = 'media-name';
   label.textContent = item.name;
   thumb.appendChild(label);
 
-  thumb.onmouseenter = () => { hoveredMediaId = item.id; };
-  thumb.onmouseleave = () => { if (hoveredMediaId === item.id) hoveredMediaId = null; };
-  thumb.onclick = () => applyBackgroundMediaItem(item);
+  const delBtn = document.createElement('button');
+  delBtn.type = 'button';
+  delBtn.className = 'media-thumb-delete';
+  delBtn.title = I18N.t('deleteMedia');
+  delBtn.setAttribute('aria-label', I18N.t('deleteMedia'));
+  delBtn.textContent = '×';
+  delBtn.onclick = (e) => {
+    e.stopPropagation();
+    deleteMediaItem(item);
+  };
+  thumb.appendChild(delBtn);
+
+  wireMediaThumbInteractions(thumb, item);
   return thumb;
 }
 
@@ -7224,10 +8380,13 @@ function renderMediaLibrary() {
       thumb.classList.toggle('active', item.id === activeMediaId);
       thumb.title = item.name;
       thumb.querySelector('.media-name').textContent = item.name;
+      syncMediaThumbPreview(thumb, item);
+      wireMediaThumbInteractions(thumb, item);
       return;
     }
     thumb = buildMediaThumbEl(item);
     mediaThumbStrip.appendChild(thumb);
+    thumb.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
   });
 }
 
@@ -7248,10 +8407,8 @@ document.getElementById('btnImportMedia').onclick = () => {
 };
 
 mediaFileInput.onchange = () => {
-  const files = Array.from(mediaFileInput.files || []);
-  files.forEach((file) => {
-    if (file.path) ipcRenderer.send('import-media', file.path);
-  });
+  const paths = Array.from(mediaFileInput.files || []).map((f) => f.path).filter(Boolean);
+  if (paths.length) ipcRenderer.send('import-media-batch', paths);
   mediaFileInput.value = '';
 };
 
@@ -7260,14 +8417,26 @@ ipcRenderer.on('background-state', (_e, state) => {
   activeMediaId = state?.id || null;
   const item = mediaLibrary.find((m) => m.id === activeMediaId);
   renderMediaLibrary();
+  if (item) renderPreviewBackground(item);
+  else if (!activeMediaId) renderPreviewBackground(null);
 });
 
-ipcRenderer.on('update-media-library', (_e, items) => {
-  mediaLibrary = items || [];
+ipcRenderer.on('update-media-library', (_e, payload) => {
+  const items = Array.isArray(payload) ? payload : (payload?.items || []);
+  const autoApplyId = Array.isArray(payload) ? null : (payload?.autoApplyId || null);
+  mediaLibrary = items;
   if (activeMediaId && !mediaLibrary.find((m) => m.id === activeMediaId)) {
     activeMediaId = null;
+    renderPreviewBackground(null);
+    if (activeSlideIndex >= 0 && activeSlideIndex < currentSlides.length) {
+      renderPreviewSlide(currentSlides[activeSlideIndex]);
+    }
   }
   renderMediaLibrary();
+  if (autoApplyId) {
+    const imported = mediaLibrary.find((m) => m.id === autoApplyId);
+    if (imported) applyBackgroundMediaItem(imported);
+  }
 });
 
 window.addEventListener('resize', debounce(() => {
@@ -7275,8 +8444,11 @@ window.addEventListener('resize', debounce(() => {
   if (appWorkspaceMode === 'slide-edit' || appWorkspaceMode === 'theme-edit') {
     renderEditorCanvas();
   }
-  if (!slideGrid.classList.contains('has-slides')) return;
-  layoutSlideGrid();
+  if (appWorkspaceMode === 'bible' && bibleSearchVerses.length) {
+    layoutBiblePreviewGrid();
+    refreshBibleThumbnails({ relayoutOnly: true });
+  }
+  if (slideGrid.classList.contains('has-slides')) layoutSlideGrid();
 }, 150));
 
 initAppNavigation();
@@ -7285,6 +8457,7 @@ initPanelResize();
 initInspectorPointerGuard();
 initEditorCanvasZoom();
 initSlidesFilmstripZoom();
+initBiblePreviewZoom();
 applyPreviewFadeCss();
 applyPanelSizes();
 applyStageAspectToUI();
@@ -7309,7 +8482,42 @@ ipcRenderer.on('playlists:sync', (_e, state) => {
 document.getElementById('btnPlaylistNewFolder')?.addEventListener('click', () => createNewFolder());
 document.getElementById('btnPlaylistNew')?.addEventListener('click', () => createNewPlaylist());
 document.getElementById('btnPlaylistRename')?.addEventListener('click', () => renameTreeFocusItem());
+document.getElementById('btnPlaylistCopy')?.addEventListener('click', () => copyActivePlaylist());
 document.getElementById('btnPlaylistDelete')?.addEventListener('click', () => deleteTreeFocusItem());
+document.getElementById('btnBibleSearch')?.addEventListener('click', () => {
+  const q = document.getElementById('bibleQueryInput')?.value?.trim();
+  if (q) runBibleSearch(q);
+});
+document.getElementById('btnBibleLookup')?.addEventListener('click', () => runBibleLookupFromForm());
+document.getElementById('bibleBookSelect')?.addEventListener('change', () => populateBibleChapterSelect());
+document.getElementById('btnBibleAddPlaylist')?.addEventListener('click', () => addSelectedBibleToPlaylist());
+document.getElementById('bibleQueryInput')?.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const q = e.target.value?.trim();
+    if (q) runBibleSearch(q);
+  }
+});
+document.getElementById('bibleThemeSelect')?.addEventListener('change', (e) => {
+  appSettings.bibleThemeId = e.target.value || '';
+  ipcRenderer.send('settings:save', { bibleThemeId: appSettings.bibleThemeId });
+  if (appWorkspaceMode === 'bible' && bibleSearchVerses.length) {
+    refreshBibleThumbnails({ force: true });
+  }
+});
+document.getElementById('bibleShowVerseNumbers')?.addEventListener('change', (e) => {
+  appSettings.bibleShowVerseNumbers = !!e.target.checked;
+  ipcRenderer.send('settings:save', { bibleShowVerseNumbers: appSettings.bibleShowVerseNumbers });
+  if (appWorkspaceMode === 'bible' && bibleSearchVerses.length) {
+    renderBiblePreview();
+  }
+});
+syncBibleOptionsUI();
+ipcRenderer.on('bible:sync', (_e, data) => {
+  bibleData = data && typeof data === 'object' ? data : {};
+  populateBibleBookSelect();
+  populateBibleChapterSelect();
+});
 document.getElementById('btnPlaylistModalCancel')?.addEventListener('click', () => closePlaylistModal());
 document.getElementById('btnPlaylistModalConfirm')?.addEventListener('click', () => confirmPlaylistModal());
 playlistModal?.addEventListener('click', (e) => {
@@ -7322,10 +8530,11 @@ document.getElementById('playlistModalInput')?.addEventListener('keydown', (e) =
 
 setupSongDragDrop();
 
-ipcRenderer.send('request-library');
+    ipcRenderer.send('request-library');
 ipcRenderer.send('request-playlists');
 ipcRenderer.send('request-themes');
 ipcRenderer.send('request-media-library');
-</script>
+ipcRenderer.send('request-bible');
+  </script>
 </body>
 </html>

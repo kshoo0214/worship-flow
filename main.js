@@ -8,6 +8,7 @@ const ThemeStore = require('./theme-store');
 const Themes = require('./themes');
 const Playlists = require('./playlists');
 const AtomicWrite = require('./atomic-write');
+const BibleEngine = require('./bible-engine');
 
 const appSettings = AppSettings.loadSettings();
 if (!appSettings.hardwareAcceleration) {
@@ -27,18 +28,60 @@ let isBlackout = false;
 let currentBackgroundId = null;
 /** Resolved filesystem path of the background currently on program output. */
 let currentBackgroundPath = null;
+/** False when operator macro hides the media/background layer. */
+let mediaLayerVisible = true;
+/** Dedupes program background IPC — avoids re-mounting video on every slide change. */
+let lastProgramBackgroundKey = '';
 let logoVisible = false;
 
 const DATA_PATH = path.join(__dirname, 'songs.json');
 const PLAYLISTS_PATH = path.join(__dirname, 'playlists.json');
 const MEDIA_META_PATH = path.join(__dirname, 'media-library.json');
+const BIBLE_PATH = path.join(__dirname, 'bible_ko.json');
 const MEDIA_DIR = path.join(__dirname, 'media', 'assets');
+
+let bibleCache = null;
 
 const VIDEO_EXT = new Set(['.mp4', '.mov', '.webm', '.m4v', '.avi']);
 const IMAGE_EXT = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp']);
 
 function ensureMediaDir() {
   fs.mkdirSync(MEDIA_DIR, { recursive: true });
+}
+
+function ensureBibleFile() {
+  if (fs.existsSync(BIBLE_PATH)) return null;
+  const sample = BibleEngine.sampleBibleData();
+  fs.writeFileSync(BIBLE_PATH, JSON.stringify(sample, null, 2), 'utf-8');
+  return sample;
+}
+
+function loadBible() {
+  ensureBibleFile();
+  try {
+    if (fs.existsSync(BIBLE_PATH)) {
+      return JSON.parse(fs.readFileSync(BIBLE_PATH, 'utf-8'));
+    }
+  } catch (err) {
+    console.error('성경 데이터 읽기 오류:', err);
+  }
+  return BibleEngine.sampleBibleData();
+}
+
+function getBibleData() {
+  if (!bibleCache) bibleCache = loadBible();
+  return bibleCache;
+}
+
+function reloadBibleCache() {
+  bibleCache = loadBible();
+  return bibleCache;
+}
+
+function broadcastBible(data) {
+  if (controllerWindow && !controllerWindow.isDestroyed()) {
+    controllerWindow.webContents.send('bible:sync', data || getBibleData());
+  }
 }
 
 function mediaFilePath(filename) {
@@ -93,9 +136,25 @@ function migrateSlideBackground(slide) {
   return normalized;
 }
 
-function migrateSongData(entry) {
+function sanitizeBibleSongSlides(song) {
+  if (!song?.slides?.length) return song;
+  song.slides = song.slides.map((slide) => {
+    const norm = SlideEngine.normalizeSlide(slide);
+    norm.layers.forEach((layer) => {
+      if (layer.type === 'text' && layer.content) {
+        layer.content = BibleEngine.sanitizeVerseText(layer.content);
+      }
+    });
+    return norm;
+  });
+  song.lyrics = SlideEngine.slidesToLyrics(song.slides);
+  return song;
+}
+
+function migrateSongData(entry, title = '') {
   const song = SlideEngine.migrateSongEntry(entry);
   song.slides = song.slides.map(migrateSlideBackground);
+  if (String(title).startsWith('성경:') || SlideEngine.isBibleSongEntry(entry)) sanitizeBibleSongSlides(song);
   return song;
 }
 
@@ -114,7 +173,7 @@ async function saveSongs(songs) {
   try {
     const out = {};
     for (const [title, entry] of Object.entries(songs || {})) {
-      out[title] = migrateSongData(entry);
+      out[title] = migrateSongData(entry, title);
     }
     await AtomicWrite.atomicWriteJson(DATA_PATH, out);
   } catch (err) {
@@ -154,6 +213,23 @@ async function persistSongEntry(title, originalTitle, songData) {
   await saveSongs(songs);
   broadcastLibrary(songs);
   return songs[trimmed];
+}
+
+function programBackgroundKey(payload) {
+  if (!payload) return '';
+  if (payload.type === 'color') {
+    return `color:${payload.id || ''}:${payload.color || '#000000'}:${payload.opacity ?? 1}`;
+  }
+  return `${payload.id || ''}:${payload.type}:${payload.src || ''}`;
+}
+
+function pushBackgroundToOutput(payload, { force = false } = {}) {
+  if (!payload) return false;
+  const key = programBackgroundKey(payload);
+  if (!force && key === lastProgramBackgroundKey) return false;
+  lastProgramBackgroundKey = key;
+  sendToOutput('background:set', payload);
+  return true;
 }
 
 function slideBackgroundToOutputPayload(background) {
@@ -217,7 +293,7 @@ function mediaItemToPayload(item) {
 function normalizeLibrary(raw) {
   const out = {};
   for (const [title, entry] of Object.entries(raw || {})) {
-    out[title] = SlideEngine.migrateSongEntry(entry);
+    out[title] = migrateSongData(entry, title);
   }
   return out;
 }
@@ -284,8 +360,19 @@ function scheduleTransferRetry() {
   }, TRANSFER_ACK_MS);
 }
 
+/** Sync per-slide background only when no global media library item is active. */
+function syncSlideBackgroundForOutput(slide) {
+  if (isBlackout || !mediaLayerVisible || currentBackgroundId) return;
+  const bgPayload = slideBackgroundToOutputPayload(slide?.background);
+  if (bgPayload) pushBackgroundToOutput(bgPayload);
+}
+
 /** Full-state slide broadcast with ACK handshake (retries until output confirms). */
 function pushSlideUpdate(slide, meta = {}) {
+  const resyncBackground = meta.resyncBackground !== false;
+  if (typeof meta.mediaLayerVisible === 'boolean') {
+    mediaLayerVisible = meta.mediaLayerVisible;
+  }
   const migrated = slide ? migrateSlideBackground(slide) : null;
   lastSlide = migrated && SlideEngine.hasSlideRenderableContent(migrated)
     ? SlideEngine.prepareSlideForBroadcast(migrated)
@@ -313,6 +400,7 @@ function pushSlideUpdate(slide, meta = {}) {
     timestamp: Date.now(),
   };
   pendingTransfer = { transferId, payload, retries: 0 };
+  if (resyncBackground) syncSlideBackgroundForOutput(lastSlide);
   sendToOutput('subtitle:slide', payload);
   scheduleTransferRetry();
 }
@@ -325,28 +413,29 @@ function notifyBackgroundState() {
 
 function pushBackgroundSet(item) {
   const payload = mediaItemToPayload(item);
-  if (!payload) return;
+  if (!payload) {
+    console.warn('미디어 송출 실패 — 파일 없음:', item?.path || item?.id);
+    return;
+  }
   const resolvedPath = item.path ? path.resolve(item.path) : '';
-  const samePath = resolvedPath && currentBackgroundPath === resolvedPath;
+  mediaLayerVisible = true;
   currentBackgroundId = item.id;
   currentBackgroundPath = resolvedPath || null;
-  if (!samePath) sendToOutput('background:set', payload);
+  pushBackgroundToOutput(payload, { force: true });
   notifyBackgroundState();
-  if (lastSlide && !isBlackout) pushSlideUpdate(lastSlide);
 }
 
 function pushBackgroundClear() {
   currentBackgroundId = null;
   currentBackgroundPath = null;
+  lastProgramBackgroundKey = '';
   sendToOutput('background:clear', { seq: nextSeq() });
   notifyBackgroundState();
 }
 
 function pushMacroClear(type) {
   if (type === 'media' || type === 'all') {
-    currentBackgroundId = null;
-    currentBackgroundPath = null;
-    notifyBackgroundState();
+    mediaLayerVisible = false;
   }
   const channel = {
     text: 'output:clear-text',
@@ -357,50 +446,83 @@ function pushMacroClear(type) {
   sendToOutput(channel, { seq: nextSeq() });
 }
 
-function importMediaFile(srcPath, options = {}) {
-  const filePath = String(srcPath || '').trim();
-  if (!filePath || !fs.existsSync(filePath)) return false;
-
+function mediaTypeFromPath(filePath) {
   const ext = path.extname(filePath).toLowerCase();
-  let type = null;
-  if (VIDEO_EXT.has(ext)) type = 'video';
-  else if (IMAGE_EXT.has(ext)) type = 'image';
-  else return false;
-
-  ensureMediaDir();
-  const id = `m_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-  const dest = path.join(MEDIA_DIR, id + ext);
-  try {
-    fs.copyFileSync(filePath, dest);
-  } catch (err) {
-    console.error('미디어 복사 오류:', err);
-    return false;
-  }
-
-  const items = loadMediaLibrary();
-  items.push({
-    id,
-    name: path.basename(filePath),
-    type,
-    path: dest,
-    addedAt: Date.now(),
-  });
-  if (options.deferBroadcast) {
-    void saveMediaLibrary(items);
-    return true;
-  }
-  void saveMediaLibrary(items).then(() => broadcastMediaLibrary());
-  return true;
+  if (VIDEO_EXT.has(ext)) return 'video';
+  if (IMAGE_EXT.has(ext)) return 'image';
+  return null;
 }
 
-async function importMediaFiles(paths) {
+async function importMediaFiles(paths, options = {}) {
   const list = Array.isArray(paths) ? paths : [paths];
-  let imported = 0;
-  for (const fp of list) {
-    if (importMediaFile(fp, { deferBroadcast: true })) imported += 1;
+  const items = loadMediaLibrary();
+  ensureMediaDir();
+  const stamp = Date.now();
+
+  const added = (await Promise.all(list.map(async (rawPath, index) => {
+    const filePath = String(rawPath || '').trim();
+    if (!filePath || !fs.existsSync(filePath)) return null;
+    const type = mediaTypeFromPath(filePath);
+    if (!type) return null;
+
+    const id = `m_${stamp}_${index}_${Math.random().toString(36).slice(2, 6)}`;
+    const dest = path.join(MEDIA_DIR, id + path.extname(filePath).toLowerCase());
+    try {
+      await fs.promises.copyFile(filePath, dest);
+    } catch (err) {
+      console.error('미디어 복사 오류:', err);
+      return null;
+    }
+
+    return {
+      id,
+      name: path.basename(filePath),
+      type,
+      path: dest,
+      addedAt: stamp + index,
+    };
+  }))).filter(Boolean);
+
+  if (!added.length) return [];
+
+  items.push(...added);
+  const autoApplyId = options.autoApply === false ? null : added[added.length - 1].id;
+  broadcastMediaLibrary({ autoApplyId, items });
+  void saveMediaLibrary(items);
+  return added;
+}
+
+async function deleteMediaItem(id) {
+  const mediaId = String(id || '').trim();
+  if (!mediaId) return false;
+
+  const items = loadMediaLibrary();
+  const idx = items.findIndex((item) => item.id === mediaId);
+  if (idx < 0) return false;
+
+  const [removed] = items.splice(idx, 1);
+  await saveMediaLibrary(items);
+
+  if (removed?.path && fs.existsSync(removed.path)) {
+    try {
+      fs.unlinkSync(removed.path);
+    } catch (err) {
+      console.error('미디어 파일 삭제 오류:', err);
+    }
   }
-  if (imported > 0) broadcastMediaLibrary();
-  return imported;
+
+  if (currentBackgroundId === mediaId) {
+    currentBackgroundId = null;
+    currentBackgroundPath = null;
+    lastProgramBackgroundKey = '';
+    if (mediaLayerVisible) {
+      sendToOutput('background:clear', { seq: nextSeq() });
+    }
+    notifyBackgroundState();
+  }
+
+  broadcastMediaLibrary();
+  return true;
 }
 
 function pushBlackout() {
@@ -416,9 +538,10 @@ function pushForegroundClear() {
   sendToOutput('subtitle:clear', { seq: nextSeq() });
 }
 
-function broadcastMediaLibrary() {
-  const items = loadMediaLibrary()
-    .filter((item) => fs.existsSync(item.path))
+function broadcastMediaLibrary(meta = {}) {
+  const source = Array.isArray(meta.items) ? meta.items : loadMediaLibrary();
+  const items = source
+    .filter((item) => item?.path && fs.existsSync(item.path))
     .map((item) => ({
       id: item.id,
       name: item.name,
@@ -426,7 +549,8 @@ function broadcastMediaLibrary() {
       src: pathToFileURL(item.path).href,
     }));
   if (controllerWindow && !controllerWindow.isDestroyed()) {
-    controllerWindow.webContents.send('update-media-library', items);
+    const payload = { items, autoApplyId: meta.autoApplyId || null };
+    controllerWindow.webContents.send('update-media-library', payload);
   }
 }
 
@@ -798,6 +922,12 @@ ipcMain.on('request-library', (event) => {
   event.reply('update-library', normalizeLibrary(loadSongs()));
 });
 
+ipcMain.on('request-bible', (event) => {
+  event.reply('bible:sync', reloadBibleCache());
+});
+
+ipcMain.handle('bible:get', () => getBibleData());
+
 ipcMain.on('request-playlists', (event) => {
   event.reply('playlists:sync', loadPlaylists());
 });
@@ -913,8 +1043,13 @@ ipcMain.on('request-media-library', () => {
   broadcastMediaLibrary();
 });
 
-ipcMain.on('import-media', (_event, filePath) => {
-  importMediaFile(filePath);
+ipcMain.on('import-media', (_event, payload) => {
+  const paths = Array.isArray(payload) ? payload : [payload];
+  void importMediaFiles(paths, { autoApply: true });
+});
+
+ipcMain.on('import-media-batch', (_event, paths) => {
+  void importMediaFiles(paths, { autoApply: true });
 });
 
 ipcMain.on('import-slide-background', (event, payload) => {
@@ -941,7 +1076,7 @@ ipcMain.on('pick-media-files', async () => {
     ],
   });
   if (result.canceled || !result.filePaths?.length) return;
-  void importMediaFiles(result.filePaths);
+  void importMediaFiles(result.filePaths, { autoApply: true });
 });
 
 ipcMain.on('pick-slide-background', async (event, payload) => {
@@ -962,6 +1097,11 @@ ipcMain.on('background-set', (_event, payload) => {
   const id = typeof payload === 'string' ? payload : payload?.id;
   const item = loadMediaLibrary().find((i) => i.id === id);
   if (item) pushBackgroundSet(item);
+});
+
+ipcMain.on('delete-media-item', async (_event, payload) => {
+  const id = typeof payload === 'string' ? payload : payload?.id;
+  await deleteMediaItem(id);
 });
 
 ipcMain.on('background-clear', () => {
@@ -1027,6 +1167,7 @@ function parseSendSlidePayload(payload) {
         slideIndex: payload.slideIndex,
         songTitle: payload.songTitle,
         source: payload.source,
+        mediaLayerVisible: payload.mediaLayerVisible,
       },
     };
   }
