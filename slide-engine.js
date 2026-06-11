@@ -119,11 +119,36 @@ function uid() {
   return `ly_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
+const TEXT_ROLES = ['body', 'reference'];
+
 const THEME_STYLE_KEYS = [
   'fontFamily', 'fontSize', 'color', 'textAlign', 'verticalAlign',
   'fontWeight', 'lineHeight', 'fontStyle', 'textDecoration', 'letterSpacing', 'opacity',
   'strokeWidth', 'strokeColor', 'shadowX', 'shadowY', 'shadowBlur', 'shadowColor',
+  'boxFillEnabled', 'boxFillColor', 'boxFillOpacity', 'boxRadius',
 ];
+
+function normalizeTextRole(role) {
+  return TEXT_ROLES.includes(role) ? role : '';
+}
+
+function colorWithAlpha(color, alpha) {
+  const a = clampNum(Number(alpha ?? 1), 0, 1);
+  const raw = String(color || '#000000').trim();
+  if (raw.startsWith('rgba')) return raw;
+  if (raw.startsWith('rgb(')) {
+    const nums = raw.match(/[\d.]+/g);
+    if (nums?.length >= 3) return `rgba(${nums[0]},${nums[1]},${nums[2]},${a})`;
+  }
+  const hex = raw.replace('#', '');
+  if (hex.length >= 6) {
+    const r = parseInt(hex.slice(0, 2), 16);
+    const g = parseInt(hex.slice(2, 4), 16);
+    const b = parseInt(hex.slice(4, 6), 16);
+    if ([r, g, b].every((n) => Number.isFinite(n))) return `rgba(${r},${g},${b},${a})`;
+  }
+  return `rgba(0,0,0,${a})`;
+}
 
 function defaultTextStyle() {
   return {
@@ -146,6 +171,10 @@ function defaultTextStyle() {
     shadowBlur: 14,
     shadowColor: 'rgba(0,0,0,0.85)',
     shadowEnabled: true,
+    boxFillEnabled: false,
+    boxFillColor: '#000000',
+    boxFillOpacity: 0.45,
+    boxRadius: 0,
   };
 }
 
@@ -164,6 +193,10 @@ function normalizeThemeStyle(style) {
   out.lineHeight = num(s.lineHeight, base.lineHeight);
   out.letterSpacing = num(s.letterSpacing, base.letterSpacing);
   out.opacity = clampNum(Number(s.opacity ?? base.opacity), 0, 1);
+  out.boxFillOpacity = clampNum(Number(s.boxFillOpacity ?? base.boxFillOpacity), 0, 1);
+  out.boxRadius = clampNum(Number(s.boxRadius ?? base.boxRadius), 0, 48);
+  if (s.boxFillEnabled !== undefined) out.boxFillEnabled = Boolean(s.boxFillEnabled);
+  if (s.boxFillColor !== undefined) out.boxFillColor = String(s.boxFillColor);
   if (s.strokeEnabled !== undefined) out.strokeEnabled = Boolean(s.strokeEnabled);
   else out.strokeEnabled = out.strokeWidth > 0;
   if (s.shadowEnabled !== undefined) out.shadowEnabled = Boolean(s.shadowEnabled);
@@ -203,20 +236,38 @@ function normalizeThemeTextLayer(raw) {
     y: num(tl.y, base.y),
     w: num(tl.w, base.w),
     h: num(tl.h, base.h),
+    role: normalizeTextRole(tl.role),
     style: normalizeThemeStyle(styleSrc),
   };
 }
 
+function normalizeThemeExtraTextLayers(layers) {
+  if (!Array.isArray(layers)) return [];
+  return layers.map(normalizeThemeTextLayer).filter(Boolean);
+}
+
 function normalizeTheme(theme) {
-  const out = { textLayer: defaultThemeTextLayer(), shapeLayers: [] };
+  const out = {
+    textLayer: { ...defaultThemeTextLayer(), role: 'body' },
+    referenceTextLayer: null,
+    shapeLayers: [],
+    extraTextLayers: [],
+  };
   if (!theme || typeof theme !== 'object') return out;
 
   if (theme.textLayer) {
-    out.textLayer = normalizeThemeTextLayer(theme.textLayer);
+    out.textLayer = { ...normalizeThemeTextLayer(theme.textLayer), role: 'body' };
   } else if (theme.style) {
-    out.textLayer = { ...defaultThemeTextLayer(), style: normalizeThemeStyle(theme.style) };
+    out.textLayer = { ...defaultThemeTextLayer(), style: normalizeThemeStyle(theme.style), role: 'body' };
   } else if (theme.fontFamily !== undefined || theme.fontSize !== undefined) {
-    out.textLayer = normalizeThemeTextLayer(theme);
+    out.textLayer = { ...normalizeThemeTextLayer(theme), role: 'body' };
+  }
+
+  if (theme.referenceTextLayer) {
+    out.referenceTextLayer = { ...normalizeThemeTextLayer(theme.referenceTextLayer), role: 'reference' };
+  } else if (Array.isArray(theme.extraTextLayers)) {
+    const refTpl = theme.extraTextLayers.find((l) => l?.role === 'reference');
+    if (refTpl) out.referenceTextLayer = { ...normalizeThemeTextLayer(refTpl), role: 'reference' };
   }
 
   if (theme.background !== undefined) {
@@ -224,6 +275,11 @@ function normalizeTheme(theme) {
   }
   if (theme.shapeLayers !== undefined) {
     out.shapeLayers = normalizeThemeShapeLayers(theme.shapeLayers);
+  }
+  if (theme.extraTextLayers !== undefined) {
+    out.extraTextLayers = normalizeThemeExtraTextLayers(
+      theme.extraTextLayers.filter((l) => l?.role !== 'reference'),
+    );
   }
 
   return out;
@@ -289,15 +345,28 @@ function createShapeLayerFromTemplate(tpl) {
 /** 슬라이드에서 마스터 테마 스냅샷 추출 (텍스트·도형 레이어 + 배경). */
 function extractThemeFromSlide(slide) {
   const normalized = normalizeSlide(slide);
+  const textLayers = normalized.layers.filter((l) => l.type === 'text');
+  const bodyLayer = textLayers.find((l) => l.textRole === 'body') || textLayers[0] || getPrimaryTextLayer(normalized);
+  const refLayer = textLayers.find((l) => l.textRole === 'reference')
+    || textLayers.find((l) => l !== bodyLayer);
+  const extras = textLayers.filter((l) => l !== bodyLayer && l !== refLayer);
   const shapeLayers = normalized.layers
     .filter((l) => l.type === 'rect')
     .map(extractThemeShapeLayer)
     .filter(Boolean);
-  return {
-    textLayer: extractThemeFromTextLayer(getPrimaryTextLayer(normalized)),
+  const out = {
+    textLayer: { ...extractThemeFromTextLayer(bodyLayer), role: 'body' },
+    extraTextLayers: extras.map((l) => ({
+      ...extractThemeFromTextLayer(l),
+      role: normalizeTextRole(l.textRole),
+    })),
     background: normalizeBackground(normalized.background),
     shapeLayers,
   };
+  if (refLayer && refLayer !== bodyLayer) {
+    out.referenceTextLayer = { ...extractThemeFromTextLayer(refLayer), role: 'reference' };
+  }
+  return out;
 }
 
 /** 가사(content)는 유지, 테마 스타일 전체를 강제 덮어쓰기 (deep replace). */
@@ -397,6 +466,62 @@ function applyThemeToSongEntry(entry, theme) {
   if (!Array.isArray(song.slides)) song.slides = [];
   song.slides = song.slides.map((slide) => applyThemeToSlide(slide, theme));
   return song;
+}
+
+/** 성경 슬라이드 — 본문/출처 배치 유지, 테마 배경·도형·글꼴 적용 */
+function applyBibleThemeToSlide(slide, theme) {
+  if (!theme) return normalizeSlide(slide);
+  const normalized = normalizeSlide(JSON.parse(JSON.stringify(slide)));
+  const themeNorm = normalizeTheme(theme);
+  const tplStyle = themeNorm.textLayer?.style;
+  const themeShapes = normalizeThemeShapeLayers(themeNorm.shapeLayers || []);
+  const textLayers = normalized.layers.filter((l) => l.type === 'text');
+  const body = textLayers.find((l) => l.textRole === 'body') || textLayers[0];
+  const ref = textLayers.find((l) => l.textRole === 'reference') || textLayers[1];
+  const bodyTpl = themeNorm.textLayer;
+
+  if (body && bodyTpl) {
+    const content = body.content;
+    applyThemeTextLayerToTextLayer(body, bodyTpl);
+    body.content = content;
+    body.textRole = 'body';
+  } else if (body && tplStyle) {
+    const box = { x: body.x, y: body.y, w: body.w, h: body.h, content: body.content };
+    body.style = normalizeThemeStyle({
+      ...tplStyle,
+      textAlign: 'center',
+      verticalAlign: 'middle',
+    });
+    Object.assign(body, box);
+  }
+  const refTpl = themeNorm.referenceTextLayer || themeNorm.extraTextLayers?.find((l) => l.role === 'reference');
+  if (ref && refTpl) {
+    const content = ref.content;
+    applyThemeTextLayerToTextLayer(ref, refTpl);
+    ref.content = content;
+    ref.textRole = 'reference';
+  } else if (ref && tplStyle) {
+    const box = { x: ref.x, y: ref.y, w: ref.w, h: ref.h, content: ref.content };
+    ref.style = normalizeThemeStyle({
+      ...tplStyle,
+      fontSize: Math.max(1.8, (tplStyle.fontSize || 4.2) * 0.52),
+      textAlign: 'right',
+      verticalAlign: 'bottom',
+      fontWeight: '600',
+    });
+    Object.assign(ref, box);
+  }
+
+  const textOnly = normalized.layers.filter((l) => l.type !== 'rect');
+  const layers = [
+    ...themeShapes.map((s) => normalizeLayer(createShapeLayerFromTemplate(s))),
+    ...textOnly,
+  ];
+  normalized.layers = layers;
+  if (themeNorm.background !== undefined) {
+    normalized.background = JSON.parse(JSON.stringify(themeNorm.background));
+  }
+  return normalizeSlide(normalized);
 }
 
 const SHAPE_KINDS = ['rect', 'ellipse', 'star'];
@@ -550,7 +675,7 @@ function getGroupTagStyle(group) {
 
 function createTextLayer(content, opts = {}) {
   const text = opts.preserveEmpty ? (content ?? '') : (content || '새 텍스트');
-  return {
+  const layer = {
     id: uid(),
     type: 'text',
     x: opts.x ?? 5,
@@ -560,6 +685,9 @@ function createTextLayer(content, opts = {}) {
     content: text,
     style: { ...defaultTextStyle(), ...(opts.style || {}) },
   };
+  const role = normalizeTextRole(opts.textRole);
+  if (role) layer.textRole = role;
+  return layer;
 }
 
 function createShapeLayer(shape = 'rect', opts = {}) {
@@ -588,6 +716,38 @@ function createEllipseLayer(opts = {}) {
 
 function createStarLayer(opts = {}) {
   return createShapeLayer('star', opts);
+}
+
+/** 성경 슬라이드 — 중앙 본문 / 우측 하단 장절 출처 고정 배치 */
+function createBibleSlide(bodyText, reference, opts = {}) {
+  const bodyStyle = {
+    fontSize: opts.bodyFontSize ?? 4.2,
+    textAlign: 'center',
+    verticalAlign: 'middle',
+    color: '#ffffff',
+    fontWeight: '700',
+    lineHeight: 1.35,
+    strokeWidth: 2,
+    shadowBlur: 14,
+    shadowY: 4,
+  };
+  const refStyle = {
+    fontSize: opts.refFontSize ?? 2.2,
+    textAlign: 'right',
+    verticalAlign: 'bottom',
+    color: 'rgba(255,255,255,0.88)',
+    fontWeight: '600',
+    lineHeight: 1.2,
+  };
+  return {
+    id: uid(),
+    group: normalizeGroup(opts.group || 'bible'),
+    background: { type: 'color', color: '#000000' },
+    layers: [
+      createTextLayer(bodyText, { x: 5, y: 12, w: 90, h: 72, style: bodyStyle, textRole: 'body' }),
+      createTextLayer(reference, { x: 58, y: 86, w: 37, h: 10, style: refStyle, preserveEmpty: true, textRole: 'reference' }),
+    ],
+  };
 }
 
 function createSlideFromText(text, opts = {}) {
@@ -678,6 +838,19 @@ const MACRO_LAYOUT_HIDDEN_PATTERNS = [
   ['intro'],
   ['outro', 'ending'],
 ];
+
+function isBibleSlide(slide) {
+  const normalized = normalizeSlide(slide);
+  if (normalizeGroup(normalized.group) === 'bible') return true;
+  return (normalized.layers || []).some(
+    (l) => l.type === 'text' && (l.textRole === 'body' || l.textRole === 'reference'),
+  );
+}
+
+function isBibleSongEntry(entry) {
+  const song = migrateSongEntry(entry);
+  return Array.isArray(song.slides) && song.slides.some(isBibleSlide);
+}
 
 function isBlankSlide(slide) {
   if (!slide?.layers?.length) return true;
@@ -777,6 +950,8 @@ function normalizeLayer(layer) {
       content: layer.content ?? '',
       style: normalizeThemeStyle(layer.style || {}),
     };
+    const role = normalizeTextRole(layer.textRole);
+    if (role) out.textRole = role;
     if (layer.layoutHidden) out.layoutHidden = true;
     return out;
   }
@@ -934,6 +1109,11 @@ function renderLayer(layer, scale = 1, fontUnit = 'cqh', refHeight = 1080, layer
 
   if (layer.type === 'text') {
     const st = layer.style || defaultTextStyle();
+    if (st.boxFillEnabled) {
+      wrap.style.backgroundColor = colorWithAlpha(st.boxFillColor, st.boxFillOpacity ?? 0.45);
+      wrap.style.borderRadius = `${st.boxRadius || 0}%`;
+      wrap.style.overflow = 'hidden';
+    }
     const inner = document.createElement('div');
     inner.className = 'slide-layer-text';
     inner.textContent = layer.content || '';
@@ -1030,6 +1210,7 @@ function renderSlide(slide, container, options = {}) {
     el.style.zIndex = String(index + 1);
     if (interactive) {
       el.classList.add('interactive-layer');
+      el.dataset.layerType = layer.type;
       const isSelected = layer.id === selectedLayerId;
       if (isSelected) el.classList.add('selected');
       const hasSelection = selectedLayerId != null && selectedLayerId !== '';
@@ -1263,7 +1444,10 @@ module.exports = {
   normalizeThemeStyle,
   defaultThemeTextLayer,
   normalizeThemeTextLayer,
+  normalizeThemeExtraTextLayers,
   normalizeTheme,
+  normalizeTextRole,
+  TEXT_ROLES,
   extractThemeFromTextLayer,
   extractThemeFromSlide,
   extractThemeShapeLayer,
@@ -1275,6 +1459,9 @@ module.exports = {
   applyThemeTextLayerToTextLayer,
   applyThemeToSlide,
   applyThemeToSongEntry,
+  applyBibleThemeToSlide,
+  isBibleSlide,
+  isBibleSongEntry,
   isBlankSlide,
   isMacroLayoutHiddenSlide,
   normalizeGroup,
@@ -1285,6 +1472,7 @@ module.exports = {
   listGroupHotkeys,
   createTextLayer,
   createRectLayer,
+  createBibleSlide,
   createSlideFromText,
   getPrimaryText,
   getPrimaryTextContent,

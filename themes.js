@@ -37,12 +37,39 @@ function createDraftSlideFromTheme(theme, lang = 'ko') {
     w: tpl.w,
     h: tpl.h,
     style: JSON.parse(JSON.stringify(tpl.style)),
+    textRole: 'body',
   });
   const layers = [];
-  SlideEngine.normalizeThemeShapeLayers(theme?.shapeLayers || []).forEach((tpl) => {
-    layers.push(SlideEngine.createShapeLayerFromTemplate(tpl));
+  SlideEngine.normalizeThemeShapeLayers(theme?.shapeLayers || []).forEach((tplShape) => {
+    layers.push(SlideEngine.createShapeLayerFromTemplate(tplShape));
   });
   layers.push(layer);
+  const refTpl = theme?.referenceTextLayer
+    || theme?.extraTextLayers?.find((l) => l?.role === 'reference');
+  if (refTpl) {
+    const normRef = SlideEngine.normalizeThemeTextLayer(refTpl);
+    layers.push(SlideEngine.createTextLayer('롬 12:1', {
+      x: normRef.x,
+      y: normRef.y,
+      w: normRef.w,
+      h: normRef.h,
+      style: JSON.parse(JSON.stringify(normRef.style)),
+      preserveEmpty: true,
+      textRole: 'reference',
+    }));
+  }
+  SlideEngine.normalizeThemeExtraTextLayers(theme?.extraTextLayers || []).forEach((tplExtra) => {
+    if (tplExtra.role === 'reference') return;
+    layers.push(SlideEngine.createTextLayer('', {
+      x: tplExtra.x,
+      y: tplExtra.y,
+      w: tplExtra.w,
+      h: tplExtra.h,
+      style: JSON.parse(JSON.stringify(tplExtra.style)),
+      preserveEmpty: true,
+      textRole: SlideEngine.normalizeTextRole(tplExtra.role) || undefined,
+    }));
+  });
   const slide = SlideEngine.normalizeSlide({
     background: theme?.background !== undefined
       ? SlideEngine.normalizeBackground(theme.background)
@@ -68,7 +95,9 @@ function normalizeThemePayload(raw) {
   const out = {
     textLayer: norm.textLayer,
     shapeLayers: norm.shapeLayers || [],
+    extraTextLayers: norm.extraTextLayers || [],
   };
+  if (norm.referenceTextLayer) out.referenceTextLayer = norm.referenceTextLayer;
   if (norm.background !== undefined) out.background = norm.background;
   return out;
 }
@@ -84,11 +113,14 @@ function buildThemeUpsertPayload({ id, name, slide, textLayer, background, shape
       textLayer: SlideEngine.normalizeThemeTextLayer(textLayer || null),
       background: background !== undefined ? SlideEngine.normalizeBackground(background) : undefined,
       shapeLayers: SlideEngine.normalizeThemeShapeLayers(shapeLayers || []),
+      extraTextLayers: [],
     };
   }
   const out = { id, name: trimmed, textLayer: snap.textLayer };
   if (snap.background !== undefined) out.background = snap.background;
   if (slide || shapeLayers !== undefined) out.shapeLayers = snap.shapeLayers || [];
+  if (slide) out.extraTextLayers = snap.extraTextLayers || [];
+  if (slide && snap.referenceTextLayer) out.referenceTextLayer = snap.referenceTextLayer;
   return out;
 }
 

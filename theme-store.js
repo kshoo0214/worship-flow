@@ -29,6 +29,15 @@ function normalizeThemeRecord(raw) {
   if (Array.isArray(raw.shapeLayers)) {
     record.shapeLayers = SlideEngine.normalizeThemeShapeLayers(raw.shapeLayers);
   }
+  if (Array.isArray(raw.extraTextLayers) && raw.extraTextLayers.length) {
+    record.extraTextLayers = SlideEngine.normalizeThemeExtraTextLayers(raw.extraTextLayers);
+  }
+  if (raw.referenceTextLayer) {
+    record.referenceTextLayer = {
+      ...SlideEngine.normalizeThemeTextLayer(raw.referenceTextLayer),
+      role: 'reference',
+    };
+  }
   return record;
 }
 
@@ -76,7 +85,7 @@ function getTheme(idOrName) {
   return listThemes().find((t) => t.id === key || t.name === key) || null;
 }
 
-function upsertTheme({ id, name, style, textLayer, background, shapeLayers }) {
+function upsertTheme({ id, name, style, textLayer, background, shapeLayers, extraTextLayers, referenceTextLayer }) {
   const trimmed = String(name || '').trim();
   if (!trimmed) return null;
   const data = loadThemesFile();
@@ -97,6 +106,21 @@ function upsertTheme({ id, name, style, textLayer, background, shapeLayers }) {
   }
   if (shapeLayers !== undefined) {
     record.shapeLayers = SlideEngine.normalizeThemeShapeLayers(shapeLayers || []);
+  }
+  if (extraTextLayers !== undefined) {
+    const extras = SlideEngine.normalizeThemeExtraTextLayers(extraTextLayers || []);
+    if (extras.length) record.extraTextLayers = extras;
+    else delete record.extraTextLayers;
+  }
+  if (referenceTextLayer !== undefined) {
+    if (referenceTextLayer) {
+      record.referenceTextLayer = {
+        ...SlideEngine.normalizeThemeTextLayer(referenceTextLayer),
+        role: 'reference',
+      };
+    } else {
+      delete record.referenceTextLayer;
+    }
   }
   if (idx >= 0) data.themes[idx] = record;
   else data.themes.push(record);
