@@ -24,8 +24,11 @@
   "playlistAdvanceToNextSong": true,
   "showEditorGrid": true,
   "editorCanvasZoom": 100,
-  "slidesFilmstripZoom": 100,
+  "slidesFilmstripZoom": 120,
+  "biblePreviewZoom": 160,
   "logoMediaId": "",
+  "bibleThemeId": "theme_1781096183673",
+  "bibleShowVerseNumbers": true,
   "shortcuts": {
     "liveNext": "Space,ArrowRight",
     "livePrev": "ArrowLeft",
@@ -86,11 +89,12 @@
   "panelSizes": {
     "sidebar": 204,
     "operator": 180,
-    "media": 110,
+    "media": 136,
     "playlistTree": 132,
     "editRail": 128,
     "inspector": 218,
-    "reflowSlides": 380
+    "reflowSlides": 380,
+    "bibleSearch": 280
   },
   "slidesCanvasZoom": 155,
   "autoLoadLastPlaylist": true,

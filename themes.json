@@ -5,10 +5,11 @@
       "id": "theme_1780195787301",
       "name": "김상후",
       "textLayer": {
-        "x": 10,
-        "y": 49.131776045981596,
+        "x": 5,
+        "y": 66.13538396048821,
         "w": 90,
         "h": 32,
+        "role": "",
         "style": {
           "fontFamily": "'Apple SD Gothic Neo', sans-serif",
           "fontSize": 5.6,
@@ -28,10 +29,14 @@
           "shadowY": -2,
           "shadowBlur": 14,
           "shadowColor": "rgba(0,0,0,0.85)",
-          "shadowEnabled": true
+          "shadowEnabled": true,
+          "boxFillEnabled": false,
+          "boxFillColor": "#000000",
+          "boxFillOpacity": 0.45,
+          "boxRadius": 0
         }
       },
-      "updatedAt": "2026-06-10T06:22:45.502Z",
+      "updatedAt": "2026-06-10T09:52:04.188Z",
       "background": {
         "type": "color",
         "color": "#000000",
@@ -39,8 +44,8 @@
       },
       "shapeLayers": [
         {
-          "x": 0,
-          "y": 10.399940531467998,
+          "x": 22.631546925283487,
+          "y": 37.68434254955778,
           "w": 40,
           "h": 20,
           "content": "",
@@ -83,11 +88,12 @@
       "name": "새 테마",
       "textLayer": {
         "x": 5,
-        "y": 75.51287774725274,
+        "y": 34,
         "w": 90,
-        "h": 24.487122252747252,
+        "h": 62.10905276900415,
+        "role": "",
         "style": {
-          "fontFamily": "'Malgun Gothic', sans-serif",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Apple SD Gothic Neo\", \"Malgun Gothic\", sans-serif",
           "fontSize": 5.2,
           "color": "#ffffff",
           "textAlign": "center",
@@ -100,15 +106,62 @@
           "opacity": 1,
           "strokeWidth": 2,
           "strokeColor": "#000000",
-          "strokeEnabled": false,
+          "strokeEnabled": true,
           "shadowX": 0,
           "shadowY": 4,
           "shadowBlur": 14,
           "shadowColor": "rgba(0,0,0,0.85)",
-          "shadowEnabled": false
+          "shadowEnabled": true,
+          "boxFillEnabled": false,
+          "boxFillColor": "#000000",
+          "boxFillOpacity": 0.45,
+          "boxRadius": 0
         }
       },
-      "updatedAt": "2026-06-08T16:30:04.224Z",
+      "updatedAt": "2026-06-10T12:28:43.310Z",
+      "background": {
+        "type": "color",
+        "color": "#000000",
+        "opacity": 1
+      },
+      "shapeLayers": []
+    },
+    {
+      "id": "theme_1781096183673",
+      "name": "성경테스트",
+      "textLayer": {
+        "x": 5,
+        "y": 29.371541825119298,
+        "w": 90,
+        "h": 64.66995643511197,
+        "role": "body",
+        "style": {
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Apple SD Gothic Neo\", \"Malgun Gothic\", sans-serif",
+          "fontSize": 5.2,
+          "color": "#ffffff",
+          "textAlign": "center",
+          "verticalAlign": "middle",
+          "fontWeight": "700",
+          "lineHeight": 1,
+          "fontStyle": "normal",
+          "textDecoration": "none",
+          "letterSpacing": 1,
+          "opacity": 1,
+          "strokeWidth": 2,
+          "strokeColor": "#000000",
+          "strokeEnabled": true,
+          "shadowX": 0,
+          "shadowY": 4,
+          "shadowBlur": 14,
+          "shadowColor": "rgba(0,0,0,0.85)",
+          "shadowEnabled": true,
+          "boxFillEnabled": false,
+          "boxFillColor": "#000000",
+          "boxFillOpacity": 0.45,
+          "boxRadius": 0
+        }
+      },
+      "updatedAt": "2026-06-10T13:32:28.383Z",
       "background": {
         "type": "color",
         "color": "#000000",
@@ -116,27 +169,27 @@
       },
       "shapeLayers": [
         {
-          "x": 3.3347925646551673,
-          "y": 75.38719093406593,
-          "w": 93.33041487068967,
-          "h": 24.612809065934066,
+          "x": 0,
+          "y": 0,
+          "w": 100,
+          "h": 100,
           "content": "",
           "style": {
             "shape": "rect",
             "fillType": "solid",
-            "fill": "#a8c8ff",
+            "fill": "#2c4268",
             "fillGradientEnd": "#3d6ec9",
             "gradientAngle": 135,
             "stroke": "#5b8def",
             "strokeWidth": 2,
             "strokeEnabled": true,
-            "opacity": 0.55,
-            "borderRadius": 20,
+            "opacity": 1,
+            "borderRadius": 40,
             "shadowX": 0,
             "shadowY": 4,
             "shadowBlur": 12,
             "shadowColor": "rgba(0,0,0,0.45)",
-            "shadowEnabled": false
+            "shadowEnabled": true
           },
           "labelStyle": {
             "color": "#ffffff",
@@ -153,7 +206,39 @@
             "shadowEnabled": true
           }
         }
-      ]
+      ],
+      "referenceTextLayer": {
+        "x": 5,
+        "y": 8.8799133709167,
+        "w": 90,
+        "h": 20,
+        "role": "reference",
+        "style": {
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Apple SD Gothic Neo\", \"Malgun Gothic\", sans-serif",
+          "fontSize": 5.2,
+          "color": "#ffffff",
+          "textAlign": "center",
+          "verticalAlign": "middle",
+          "fontWeight": "700",
+          "lineHeight": 1,
+          "fontStyle": "normal",
+          "textDecoration": "none",
+          "letterSpacing": 1,
+          "opacity": 1,
+          "strokeWidth": 2,
+          "strokeColor": "#000000",
+          "strokeEnabled": true,
+          "shadowX": 0,
+          "shadowY": 4,
+          "shadowBlur": 14,
+          "shadowColor": "rgba(0,0,0,0.85)",
+          "shadowEnabled": true,
+          "boxFillEnabled": false,
+          "boxFillColor": "#000000",
+          "boxFillOpacity": 0.45,
+          "boxRadius": 0
+        }
+      }
     },
     {
       "id": "theme_1780933415620",
@@ -163,6 +248,7 @@
         "y": 67.93372252747253,
         "w": 40,
         "h": 31,
+        "role": "",
         "style": {
           "fontFamily": "'Apple SD Gothic Neo', sans-serif",
           "fontSize": 5.6,
@@ -182,7 +268,11 @@
           "shadowY": -2,
           "shadowBlur": 14,
           "shadowColor": "rgba(255,0,0,0.85)",
-          "shadowEnabled": false
+          "shadowEnabled": false,
+          "boxFillEnabled": false,
+          "boxFillColor": "#000000",
+          "boxFillOpacity": 0.45,
+          "boxRadius": 0
         }
       },
       "updatedAt": "2026-06-08T15:43:35.620Z",
@@ -240,6 +330,7 @@
         "y": 6.642857142857139,
         "w": 90,
         "h": 32,
+        "role": "",
         "style": {
           "fontFamily": "Georgia, serif",
           "fontSize": 5.2,
@@ -259,7 +350,11 @@
           "shadowY": 4,
           "shadowBlur": 14,
           "shadowColor": "rgba(0,0,0,0.85)",
-          "shadowEnabled": true
+          "shadowEnabled": true,
+          "boxFillEnabled": false,
+          "boxFillColor": "#000000",
+          "boxFillOpacity": 0.45,
+          "boxRadius": 0
         }
       },
       "updatedAt": "2026-06-07T18:01:05.746Z",
