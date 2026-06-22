@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Macro Editor</title>
+  <style>
+    :root {
+      --bg: #0d0d11; --surface: #16161b; --surface-2: #1e1e24;
+      --border: rgba(255,255,255,0.08); --text: #ececf1; --muted: #9494a0;
+      --accent: #4d8ef7; --danger: #fca5a5; --success: #3dd68c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
+      background: var(--bg); color: var(--text); font-size: 13px;
+      height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+    }
+    header {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 10px 14px; border-bottom: 1px solid var(--border); background: var(--surface);
+    }
+    header h1 { margin: 0; font-size: 14px; font-weight: 700; }
+    button {
+      border: none; border-radius: 8px; padding: 8px 12px; font-size: 11px; font-weight: 700; cursor: pointer;
+    }
+    button.primary { background: var(--accent); color: #fff; }
+    button.secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+    button.danger { background: transparent; color: var(--danger); border: 1px solid var(--border); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    .layout { flex: 1; display: grid; grid-template-columns: 220px 1fr; min-height: 0; }
+    .list-panel { border-right: 1px solid var(--border); background: var(--surface); display: flex; flex-direction: column; min-height: 0; }
+    .list-toolbar { padding: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .list-toolbar button:first-child { grid-column: 1 / -1; }
+    #macroList { flex: 1; overflow-y: auto; padding: 6px 8px 12px; }
+    .macro-item {
+      padding: 9px 10px; border-radius: 7px; cursor: pointer; margin-bottom: 4px;
+      border: 1px solid var(--border); background: var(--surface-2);
+    }
+    .macro-item:hover { background: #25252d; }
+    .macro-item.active { background: rgba(77,142,247,0.16); border-color: rgba(77,142,247,0.45); box-shadow: inset 3px 0 0 var(--accent); }
+    .macro-item .name { font-size: 11px; font-weight: 700; }
+    .macro-item .sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+    .editor-panel { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+    .editor-head { padding: 12px 14px; border-bottom: 1px solid var(--border); background: var(--surface-2); }
+    .editor-head input {
+      width: 100%; padding: 9px 10px; border-radius: 6px; border: 1px solid var(--border);
+      background: var(--bg); color: var(--text); font-size: 13px; font-weight: 700;
+    }
+    .actions-panel { flex: 1; overflow-y: auto; padding: 12px 14px 20px; }
+    .actions-toolbar { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+    .action-row {
+      display: grid; grid-template-columns: 28px 1fr auto auto; gap: 8px; align-items: center;
+      padding: 8px 10px; margin-bottom: 6px; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--surface);
+    }
+    .action-row .idx { font-size: 10px; color: var(--muted); text-align: center; font-weight: 700; }
+    .action-row select, .action-row input {
+      padding: 7px 8px; border-radius: 6px; border: 1px solid var(--border);
+      background: var(--bg); color: var(--text); font-size: 11px; min-width: 0;
+    }
+    .action-row .action-extra { grid-column: 2 / -1; display: flex; gap: 8px; }
+    .empty-hint { padding: 40px 20px; text-align: center; color: var(--muted); line-height: 1.5; }
+    .save-hint { font-size: 10px; color: var(--muted); padding: 0 14px 10px; min-height: 14px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1 id="editorTitle">매크로 편집</h1>
+    <button type="button" class="secondary" id="btnClose">닫기</button>
+  </header>
+  <div class="layout">
+    <aside class="list-panel">
+      <div class="list-toolbar">
+        <button type="button" class="primary" id="btnNew">+ 매크로</button>
+        <button type="button" class="danger" id="btnDel">삭제</button>
+      </div>
+      <div id="macroList"></div>
+    </aside>
+    <main class="editor-panel">
+      <div class="empty-hint" id="editorEmpty">매크로를 선택하거나 새로 만드세요.</div>
+      <div id="editorForm" hidden>
+        <div class="editor-head">
+          <input type="text" id="inpName" autocomplete="off" placeholder="매크로 이름">
+        </div>
+        <div class="actions-panel">
+          <div class="actions-toolbar">
+            <button type="button" class="secondary" id="btnAddAction">+ 동작 추가</button>
+            <button type="button" class="primary" id="btnSave">저장</button>
+          </div>
+          <div id="actionList"></div>
+        </div>
+        <div class="save-hint" id="saveHint"></div>
+      </div>
+    </main>
+  </div>
+  <script>
+    const { ipcRenderer } = require('electron');
+    const MacrosStore = require('./macros-store');
+    const I18N = require('./i18n');
+
+    const ACTION_LABELS = {
+      clearText: t('macroActionClearText'),
+      clearMedia: t('macroActionClearMedia'),
+      clearDesign: t('macroActionClearDesign'),
+      clearProps: t('macroActionClearProps'),
+      clearAudio: t('macroActionClearAudio'),
+      clearAnnouncements: t('macroActionClearAnnounce'),
+      clearAll: t('macroActionClearAll'),
+      blackout: t('macroActionBlackoutOn'),
+      unblackout: t('macroActionBlackoutOff'),
+      prop: t('macroActionShowProp'),
+      logo: t('macroActionToggleLogo'),
+      hideText: t('macroActionHideText'),
+      showText: t('macroActionShowText'),
+      restoreMedia: t('macroActionRestoreMedia'),
+      restoreDesign: t('macroActionRestoreDesign'),
+      restoreAll: t('macroActionRestoreAll'),
+      delay: t('macroActionDelay'),
+      nextSlide: t('macroActionNextSlide'),
+      prevSlide: t('macroActionPrevSlide'),
+      firstSlide: t('macroActionFirstSlide'),
+      lastSlide: t('macroActionLastSlide'),
+      goLive: t('macroActionGoLive'),
+      theme: t('macroActionTheme'),
+      announce: t('macroActionAnnounce'),
+      openStage: t('macroActionOpenStage'),
+      closeStage: t('macroActionCloseStage'),
+    };
+
+    let macros = [];
+    let props = [];
+    let themes = [];
+    let selectedId = '';
+    let draftActions = [];
+    let saveHintTimer = null;
+
+    function t(key) { return I18N.t(key); }
+
+    function selectedMacro() {
+      return macros.find((m) => m.id === selectedId) || null;
+    }
+
+    function renderList() {
+      const list = document.getElementById('macroList');
+      if (!list) return;
+      list.innerHTML = macros.map((m) => `
+        <div class="macro-item${m.id === selectedId ? ' active' : ''}" data-id="${m.id}">
+          <div class="name">${m.name}</div>
+          <div class="sub">${(m.actions || []).length} ${t('macroActionCount')}</div>
+        </div>
+      `).join('') || `<div class="empty-hint">${t('macroEditorEmpty')}</div>`;
+      list.querySelectorAll('.macro-item[data-id]').forEach((el) => {
+        el.addEventListener('click', () => selectMacro(el.dataset.id));
+      });
+    }
+
+    function actionExtraFields(action, idx) {
+      if (action.type === 'prop') {
+        const opts = props.map((p) => `<option value="${p.id}"${p.id === action.propId ? ' selected' : ''}>${p.name}</option>`).join('');
+        return `<div class="action-extra"><select data-field="propId" data-idx="${idx}"><option value="">—</option>${opts}</select></div>`;
+      }
+      if (action.type === 'theme') {
+        const field = 'themeId';
+        const val = action[field] || '';
+        const opts = themes.map((th) => `<option value="${th.id}"${th.id === val ? ' selected' : ''}>${th.name}</option>`).join('');
+        return `<div class="action-extra"><select data-field="${field}" data-idx="${idx}"><option value="">${t('appearanceDefault')}</option>${opts}</select></div>`;
+      }
+      if (action.type === 'delay') {
+        return `<div class="action-extra"><label>${t('macroActionDelayMs')}</label><input type="number" min="0" max="120000" step="100" data-field="ms" data-idx="${idx}" value="${Number(action.ms) || 500}"></div>`;
+      }
+      if (action.type === 'announce') {
+        return `<div class="action-extra"><input type="text" data-field="text" data-idx="${idx}" value="${String(action.text || '').replace(/"/g, '&quot;')}" placeholder="${t('macroActionAnnounceText')}"></div>`;
+      }
+      return '';
+    }
+
+    function renderActions() {
+      const root = document.getElementById('actionList');
+      if (!root) return;
+      root.innerHTML = draftActions.map((action, idx) => {
+        const types = Object.keys(ACTION_LABELS).map((type) =>
+          `<option value="${type}"${action.type === type ? ' selected' : ''}>${ACTION_LABELS[type]}</option>`,
+        ).join('');
+        return `
+          <div class="action-row" data-idx="${idx}">
+            <span class="idx">${idx + 1}</span>
+            <select data-field="type" data-idx="${idx}">${types}</select>
+            <button type="button" class="secondary" data-move="up" data-idx="${idx}" title="${t('macroMoveUp')}">▲</button>
+            <button type="button" class="danger" data-move="del" data-idx="${idx}" title="${t('macroRemoveAction')}">✕</button>
+            ${actionExtraFields(action, idx)}
+          </div>`;
+      }).join('');
+
+      root.querySelectorAll('[data-field="type"]').forEach((sel) => {
+        sel.addEventListener('change', (e) => {
+          const i = Number(e.target.dataset.idx);
+          draftActions[i] = { type: e.target.value };
+          renderActions();
+        });
+      });
+      root.querySelectorAll('[data-field="propId"], [data-field="themeId"]').forEach((sel) => {
+        sel.addEventListener('change', (e) => {
+          const i = Number(e.target.dataset.idx);
+          const field = e.target.dataset.field;
+          draftActions[i] = { ...draftActions[i], [field]: e.target.value };
+        });
+      });
+      root.querySelectorAll('[data-field="ms"], [data-field="text"]').forEach((inp) => {
+        inp.addEventListener('input', (e) => {
+          const i = Number(e.target.dataset.idx);
+          const field = e.target.dataset.field;
+          const val = field === 'ms' ? Number(e.target.value) : e.target.value;
+          draftActions[i] = { ...draftActions[i], [field]: val };
+        });
+      });
+      root.querySelectorAll('[data-move]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const i = Number(btn.dataset.idx);
+          if (btn.dataset.move === 'del') {
+            draftActions.splice(i, 1);
+          } else if (btn.dataset.move === 'up' && i > 0) {
+            [draftActions[i - 1], draftActions[i]] = [draftActions[i], draftActions[i - 1]];
+          }
+          renderActions();
+        });
+      });
+    }
+
+    function selectMacro(id) {
+      selectedId = id;
+      const macro = selectedMacro();
+      const empty = document.getElementById('editorEmpty');
+      const form = document.getElementById('editorForm');
+      if (!macro) {
+        if (empty) empty.hidden = false;
+        if (form) form.hidden = true;
+        renderList();
+        return;
+      }
+      if (empty) empty.hidden = true;
+      if (form) form.hidden = false;
+      document.getElementById('inpName').value = macro.name || '';
+      draftActions = (macro.actions || []).map((a) => ({ ...a }));
+      renderActions();
+      renderList();
+    }
+
+    function showSaveHint(msg) {
+      const el = document.getElementById('saveHint');
+      if (!el) return;
+      el.textContent = msg || '';
+      if (saveHintTimer) clearTimeout(saveHintTimer);
+      if (msg) saveHintTimer = setTimeout(() => { el.textContent = ''; }, 1800);
+    }
+
+    function saveCurrent() {
+      const name = String(document.getElementById('inpName')?.value || '').trim();
+      if (!name || !selectedId) {
+        showSaveHint(t('macroEditorInvalid'));
+        return;
+      }
+      const macro = {
+        id: selectedId,
+        name,
+        actions: draftActions.filter((a) => a && a.type),
+      };
+      ipcRenderer.send('macros:save', { macro });
+      showSaveHint(t('macroEditorSaved'));
+    }
+
+    function createMacro() {
+      const id = MacrosStore.macroId();
+      const macro = { id, name: `${t('macroDefaultName')} ${macros.length + 1}`, actions: [{ type: 'clearText' }] };
+      macros = [...macros, macro];
+      selectMacro(id);
+      ipcRenderer.send('macros:save', { macro });
+    }
+
+    function deleteMacro() {
+      if (!selectedId) return;
+      if (!confirm(t('macroEditorDeleteConfirm'))) return;
+      ipcRenderer.send('macros:delete', { id: selectedId, kind: 'macro' });
+      selectedId = '';
+      draftActions = [];
+      document.getElementById('editorForm').hidden = true;
+      document.getElementById('editorEmpty').hidden = false;
+    }
+
+    document.getElementById('btnClose')?.addEventListener('click', () => window.close());
+    document.getElementById('btnNew')?.addEventListener('click', createMacro);
+    document.getElementById('btnDel')?.addEventListener('click', deleteMacro);
+    document.getElementById('btnAddAction')?.addEventListener('click', () => {
+      draftActions.push({ type: 'clearText' });
+      renderActions();
+    });
+    document.getElementById('btnSave')?.addEventListener('click', saveCurrent);
+
+    ipcRenderer.on('macros:sync', (_e, data) => {
+      macros = Array.isArray(data?.macros) ? data.macros : [];
+      props = Array.isArray(data?.props) ? data.props : [];
+      if (selectedId && !macros.some((m) => m.id === selectedId)) {
+        selectedId = macros[0]?.id || '';
+      }
+      renderList();
+      if (selectedId) selectMacro(selectedId);
+    });
+
+    ipcRenderer.on('themes:sync', (_e, list) => {
+      themes = Array.isArray(list) ? list : [];
+      if (selectedId) renderActions();
+    });
+
+    function applyMacroEditorI18n() {
+      document.getElementById('editorTitle').textContent = t('macroEditorTitle');
+      document.getElementById('btnClose').textContent = t('settingsClose');
+      document.getElementById('btnNew').textContent = `+ ${t('macroDefaultName')}`;
+      document.getElementById('btnDel').textContent = t('themeDelete');
+      document.getElementById('editorEmpty').textContent = t('macroEditorEmptyPick');
+      document.getElementById('inpName').placeholder = t('macroNamePh');
+      document.getElementById('btnAddAction').textContent = t('macroAddAction');
+      document.getElementById('btnSave').textContent = t('btnSave');
+    }
+
+    applyMacroEditorI18n();
+    ipcRenderer.send('request-macros');
+    ipcRenderer.send('request-themes');
+  </script>
+</body>
+</html>

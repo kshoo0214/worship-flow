@@ -24,22 +24,38 @@ function normalizeSongTitles(list) {
   return out;
 }
 
+function normalizeLookOverrides(raw) {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const out = {};
+  for (const [k, v] of Object.entries(raw)) {
+    const title = String(k || '').trim();
+    const lookId = String(v || '').trim();
+    if (title && lookId) out[title] = lookId;
+  }
+  return Object.keys(out).length ? out : undefined;
+}
+
 function normalizeItem(raw) {
   if (!raw || typeof raw !== 'object') return null;
-  const type = raw.type === TYPE_FOLDER ? TYPE_FOLDER : TYPE_PLAYLIST;
+  if (raw.type === 'template') return null;
+  let type = TYPE_PLAYLIST;
+  if (raw.type === TYPE_FOLDER) type = TYPE_FOLDER;
   const id = String(raw.id || '').trim() || (type === TYPE_FOLDER ? folderId() : playlistId());
   const name = String(raw.name || '').trim() || (type === TYPE_FOLDER ? 'Folder' : 'Playlist');
   const parentId = raw.parentId == null || raw.parentId === '' ? null : String(raw.parentId).trim();
   if (type === TYPE_FOLDER) {
     return { id, type: TYPE_FOLDER, name, parentId };
   }
-  return {
+  const item = {
     id,
     type: TYPE_PLAYLIST,
     name,
     parentId,
     songs: normalizeSongTitles(raw.songs),
   };
+  const lookOverrides = normalizeLookOverrides(raw.lookOverrides);
+  if (lookOverrides) item.lookOverrides = lookOverrides;
+  return item;
 }
 
 function isFolder(item) {
@@ -150,6 +166,7 @@ module.exports = {
   normalizePlaylists,
   isFolder,
   isPlaylist,
+  normalizeLookOverrides,
   getPlaylistItems,
   findItem,
   getChildren,

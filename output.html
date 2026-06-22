@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>자막 송출</title>
+  <title>Worship FLOW</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
@@ -30,6 +30,7 @@
       transform-origin: top left;
       overflow: hidden;
       background: #000;
+      container-type: size;
     }
 
     #bgStack {
@@ -62,6 +63,11 @@
       transition: opacity var(--fade-layer, 650ms) ease-out;
     }
     #slideStack.layer-cleared { opacity: 0; }
+    body.text-cleared .slide-layer:has(.slide-layer-text) {
+      opacity: 0 !important;
+      visibility: hidden;
+      transition: opacity var(--fade-lyrics, 550ms) ease-out, visibility var(--fade-lyrics, 550ms) ease-out;
+    }
     .slide-pane {
       position: absolute; inset: 0;
       width: 100%;
@@ -89,6 +95,43 @@
       max-width: 92%; max-height: 92%; object-fit: contain;
       filter: drop-shadow(0 4px 24px rgba(0,0,0,0.55));
     }
+    #propLayer {
+      position: absolute; inset: 0; z-index: 90;
+      display: flex; flex-direction: column;
+      pointer-events: none; opacity: 0; visibility: hidden;
+      transition: opacity var(--fade-layer, 650ms) ease-out, visibility var(--fade-layer, 650ms) ease-out;
+      background: transparent;
+    }
+    #propLayer.is-visible { opacity: 1; visibility: visible; }
+    #propLayer[data-position="top"] { justify-content: flex-start; }
+    #propLayer[data-position="center"] { justify-content: center; }
+    #propLayer[data-position="bottom"] { justify-content: flex-end; }
+    #propText {
+      max-width: 92%; margin: 32px 48px;
+      padding: 24px 40px;
+      font-weight: 800;
+      text-align: center; white-space: pre-wrap; word-break: keep-all;
+      border-radius: 12px;
+      text-shadow: 0 2px 16px rgba(0,0,0,0.45);
+    }
+    #propText.is-boxed {
+      position: absolute; margin: 0; max-width: none;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #announceLayer {
+      position: absolute; left: 0; right: 0; bottom: 0; z-index: 95;
+      padding: 20px 48px 32px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.88));
+      pointer-events: none; opacity: 0; visibility: hidden;
+      transition: opacity var(--fade-lyrics, 550ms) ease-out, visibility var(--fade-lyrics, 550ms) ease-out;
+    }
+    #announceLayer.is-visible { opacity: 1; visibility: visible; }
+    #announceText {
+      font-size: clamp(22px, 2.5vw, 36px); font-weight: 700;
+      text-align: center; color: #fde68a; white-space: pre-wrap;
+    }
+    body.design-cleared .slide-layer-shape,
+    body.design-cleared .slide-layer-shape-label { opacity: 0 !important; }
     body.is-blackout #slideStack { opacity: 0; transition-duration: calc(var(--fade-layer, 650ms) * 0.5); }
     body.is-blackout #bgStack {
       opacity: 0 !important;
@@ -98,6 +141,29 @@
     body.is-blackout #lyricsLayer {
       opacity: 0 !important;
       visibility: hidden;
+    }
+    body.is-blackout #propLayer,
+    body.is-blackout #announceLayer,
+    body.is-blackout #logoLayer {
+      opacity: 0 !important;
+      visibility: hidden !important;
+    }
+
+    body.is-relay #output-root,
+    body.is-relay #stage,
+    body.is-relay #bgStack,
+    body.is-relay #logoLayer {
+      background: transparent !important;
+    }
+    body.is-relay #bgStack,
+    body.is-relay #logoLayer {
+      opacity: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none;
+    }
+    /* macOS titled relay window — keep capture-friendly chrome visible in OBS list */
+    body.is-relay.is-macos-relay #output-root {
+      border: 1px solid rgba(255, 255, 255, 0.08);
     }
 
     #lyricsLayer {
@@ -152,6 +218,8 @@
         </div>
         <div id="fgLayer" aria-hidden="true"></div>
         <div id="logoLayer" aria-hidden="true"><img alt="" /><video class="logo-video" muted playsinline loop></video></div>
+        <div id="propLayer" aria-hidden="true"><div id="propText"></div></div>
+        <div id="announceLayer" aria-hidden="true"><div id="announceText"></div></div>
         <div id="lyricsLayer" class="hidden" aria-hidden="true">
           <div id="lyricsText"></div>
         </div>
@@ -165,9 +233,17 @@
     const { pathToFileURL } = require('url');
     const SlideEngine = require('./slide-engine');
     const AppSettings = require('./app-settings');
+    const AppPaths = require('./app-paths');
     const { ipcRenderer } = require('electron');
 
-    const MEDIA_ASSETS_DIR = path.join(__dirname, 'media', 'assets');
+    const urlRole = new URLSearchParams(window.location.search).get('role');
+    let displayRole = urlRole === 'relay' ? 'relay' : 'program';
+    const APP_DISPLAY_TITLE = displayRole === 'relay' ? 'Worship FLOW — Relay' : 'Worship FLOW — Program';
+    document.title = APP_DISPLAY_TITLE;
+    let lastBaseSlide = null;
+    let lastContent = null;
+
+    const MEDIA_ASSETS_DIR = AppPaths.getMediaAssetsDir();
 
     const stage = document.getElementById('stage');
     const bgStack = document.getElementById('bgStack');
@@ -179,6 +255,10 @@
     const fgLayer = document.getElementById('fgLayer');
     const logoLayer = document.getElementById('logoLayer');
     const logoImg = logoLayer?.querySelector('img');
+    const propLayer = document.getElementById('propLayer');
+    const propText = document.getElementById('propText');
+    const announceLayer = document.getElementById('announceLayer');
+    const announceText = document.getElementById('announceText');
     const lyricsLayer = document.getElementById('lyricsLayer');
     const bodyEl = document.body;
 
@@ -197,6 +277,7 @@
     let lastSlideState = null;
     let appSettings = AppSettings.loadSettings();
     let slideCleared = false;
+    let slideTextCleared = false;
     let mediaCleared = false;
 
     function resolveMediaFileUrl(filename) {
@@ -218,6 +299,10 @@
     let outputBlackoutActive = false;
 
     function getStageSize() {
+      if (displayRole === 'relay') {
+        const relay = AppSettings.getRelayResolution(appSettings);
+        return { width: relay.width, height: relay.height };
+      }
       return SlideEngine.getStageDimensions(appSettings);
     }
 
@@ -241,14 +326,24 @@
       const vp = document.getElementById('viewport');
       if (!vp || !vp.clientWidth || !vp.clientHeight) return;
       const { width, height } = getStageSize();
-      const scale = SlideEngine.computeViewportFitScale(
-        vp.clientWidth,
-        vp.clientHeight,
-        width,
-        height,
-        { autoFit: appSettings.outputAutoFit !== false, userScalePct: appSettings.outputDisplayScale },
-      );
-      stage.style.transform = `scale(${scale})`;
+      const autoFit = appSettings.outputAutoFit !== false;
+      const userScale = (Number(appSettings.outputDisplayScale) || 100) / 100;
+      let fitScale = 1;
+      if (autoFit && width > 0 && height > 0) {
+        const sx = vp.clientWidth / width;
+        const sy = vp.clientHeight / height;
+        fitScale = displayRole === 'program' ? Math.max(sx, sy) : Math.min(sx, sy);
+      }
+      const scale = Math.round(fitScale * userScale * 1e6) / 1e6;
+      const scaledW = width * scale;
+      const scaledH = height * scale;
+      if (displayRole === 'program' && autoFit) {
+        const offsetX = Math.floor((vp.clientWidth - scaledW) / 2);
+        const offsetY = Math.floor((vp.clientHeight - scaledH) / 2);
+        stage.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+      } else {
+        stage.style.transform = `scale(${scale})`;
+      }
       stage.style.transformOrigin = 'top left';
     }
 
@@ -281,6 +376,10 @@
     }
 
     applyAppSettings(appSettings);
+    if (displayRole === 'relay') {
+      bodyEl.classList.add('is-relay');
+      if (process.platform === 'darwin') bodyEl.classList.add('is-macos-relay');
+    }
     ipcRenderer.on('settings:sync', (_e, s) => applyAppSettings(s));
     ipcRenderer.send('settings:get');
     window.addEventListener('resize', () => fitStageToViewport());
@@ -437,12 +536,15 @@
     /** 단일 활성 패널에 직접 렌더 (A/B 토글로 인한 누락 방지) */
     function crossfadeSlide(slide) {
       if (!slide) {
-        clearTextLayer();
+        clearTextLayer({ wipe: true });
         return;
       }
       const key = slideFingerprint(slide);
       slideStack.classList.remove('layer-cleared');
       slideCleared = false;
+      slideTextCleared = false;
+      bodyEl.classList.remove('text-cleared');
+      setDesignCleared(!SlideEngine.hasDesignLayers(slide));
       clearTimeout(slideClearTimer);
 
       if (!activeSlidePane) activeSlidePane = slidePaneA;
@@ -467,26 +569,35 @@
       });
     }
 
-    function clearTextLayer() {
-      slideCleared = true;
-      slideStack.classList.add('layer-cleared');
+    function clearTextLayer(opts = {}) {
+      const wipe = opts.wipe === true;
+      slideTextCleared = true;
+      bodyEl.classList.add('text-cleared');
+      if (wipe) {
+        slideCleared = true;
+        slideStack.classList.add('layer-cleared');
+        clearTimeout(slideClearTimer);
+        const fadeMs = Math.max(appSettings.lyricsFadeMs, appSettings.layerFadeMs);
+        slideClearTimer = setTimeout(() => {
+          if (!slideCleared) return;
+          slidePanes.forEach((p) => { p.innerHTML = ''; p.classList.remove('is-visible'); });
+          slideStack.classList.remove('layer-cleared');
+          activeSlideKey = '';
+          lastShownSlideKey = '';
+          activeSlidePane = slidePaneA;
+          slidePaneA.classList.add('is-visible');
+        }, fadeMs);
+        return;
+      }
       clearTimeout(slideClearTimer);
-      const fadeMs = Math.max(appSettings.lyricsFadeMs, appSettings.layerFadeMs);
-      slideClearTimer = setTimeout(() => {
-        if (!slideCleared) return;
-        slidePanes.forEach((p) => { p.innerHTML = ''; p.classList.remove('is-visible'); });
-        slideStack.classList.remove('layer-cleared');
-        activeSlideKey = '';
-        lastShownSlideKey = '';
-        activeSlidePane = slidePaneA;
-        slidePaneA.classList.add('is-visible');
-      }, fadeMs);
     }
 
     function restoreTextLayerIfNeeded() {
       slideCleared = false;
+      slideTextCleared = false;
       clearTimeout(slideClearTimer);
       slideStack.classList.remove('layer-cleared');
+      bodyEl.classList.remove('text-cleared');
       slideStack.style.opacity = '';
       if (!slidePanes.some((p) => p.classList.contains('is-visible'))) {
         activeSlidePane.classList.add('is-visible');
@@ -522,52 +633,196 @@
     }
 
     function clearAllLayers() {
-      clearTextLayer();
+      clearTextLayer({ wipe: true });
       clearMediaLayer();
+      clearPropLayer();
+      clearAnnounceLayer();
+      setDesignCleared(true);
+      setAudioMuted(true);
+    }
+
+    function setDesignCleared(cleared) {
+      bodyEl.classList.toggle('design-cleared', Boolean(cleared));
+    }
+
+    function setAudioMuted(muted) {
+      bodyEl.classList.toggle('audio-cleared', Boolean(muted));
+      const vol = muted ? 0 : (appSettings.masterVolume ?? 100) / 100;
+      panes.forEach((pane) => {
+        const video = pane?.querySelector('.bg-video');
+        if (video) video.volume = vol;
+      });
+      const logoVid = logoLayer?.querySelector('.logo-video');
+      if (logoVid) logoVid.volume = vol;
+    }
+
+    function hexToRgba(hex, alpha) {
+      const h = String(hex || '#000000').replace('#', '');
+      const full = h.length === 3 ? h.split('').map((c) => c + c).join('') : h;
+      const n = parseInt(full.slice(0, 6), 16);
+      if (!Number.isFinite(n)) return `rgba(0,0,0,${alpha})`;
+      const r = (n >> 16) & 255;
+      const g = (n >> 8) & 255;
+      const b = n & 255;
+      return `rgba(${r},${g},${b},${alpha})`;
+    }
+
+    function defaultPropBox(position) {
+      if (position === 'top') return { boxX: 10, boxY: 8, boxW: 80, boxH: 18 };
+      if (position === 'center') return { boxX: 15, boxY: 38, boxW: 70, boxH: 24 };
+      return { boxX: 10, boxY: 72, boxW: 80, boxH: 18 };
+    }
+
+    function showPropLayer(data) {
+      if (outputBlackoutActive) return;
+      if (!propLayer || !propText) return;
+      const position = ['top', 'center', 'bottom'].includes(data?.position) ? data.position : 'bottom';
+      propLayer.dataset.position = position;
+      propText.textContent = String(data?.text || '');
+      const fs = Number(data?.fontSize) || 5;
+      propText.style.fontSize = `clamp(${Math.round(fs * 5)}px, ${fs * 1.4}cqh, ${Math.round(fs * 10)}px)`;
+      propText.style.color = data?.color || '#ffffff';
+      propText.style.fontWeight = String(data?.fontWeight || 800);
+      propText.style.textAlign = data?.textAlign || 'center';
+      propText.style.padding = `${Number(data?.padding ?? 16)}px`;
+      propText.style.borderRadius = `${Number(data?.borderRadius ?? 10)}px`;
+      propText.style.background = hexToRgba(data?.bgColor || '#000000', Number(data?.bgOpacity ?? 0.55));
+      const defaults = defaultPropBox(position);
+      const hasBox = ['boxX', 'boxY', 'boxW', 'boxH'].some((k) => Number.isFinite(Number(data?.[k])));
+      if (hasBox) {
+        propLayer.style.display = 'block';
+        propText.classList.add('is-boxed');
+        propText.style.left = `${Number.isFinite(Number(data.boxX)) ? Number(data.boxX) : defaults.boxX}%`;
+        propText.style.top = `${Number.isFinite(Number(data.boxY)) ? Number(data.boxY) : defaults.boxY}%`;
+        propText.style.width = `${Number.isFinite(Number(data.boxW)) ? Number(data.boxW) : defaults.boxW}%`;
+        propText.style.height = `${Number.isFinite(Number(data.boxH)) ? Number(data.boxH) : defaults.boxH}%`;
+        propText.style.display = 'flex';
+        propText.style.alignItems = 'center';
+        propText.style.justifyContent = data?.textAlign === 'left' ? 'flex-start' : (data?.textAlign === 'right' ? 'flex-end' : 'center');
+      } else {
+        propLayer.style.display = '';
+        propText.classList.remove('is-boxed');
+        propText.style.left = '';
+        propText.style.top = '';
+        propText.style.width = '';
+        propText.style.height = '';
+      }
+      propLayer.classList.add('is-visible');
+    }
+
+    function clearPropLayer() {
+      if (!propLayer) return;
+      propLayer.classList.remove('is-visible');
+      if (propText) {
+        propText.textContent = '';
+        propText.style.fontSize = '';
+        propText.style.color = '';
+        propText.style.background = '';
+        propText.classList.remove('is-boxed');
+        propText.style.left = '';
+        propText.style.top = '';
+        propText.style.width = '';
+        propText.style.height = '';
+      }
+    }
+
+    function showAnnounceLayer(text) {
+      if (outputBlackoutActive) return;
+      if (!announceLayer || !announceText) return;
+      announceText.textContent = String(text || '');
+      announceLayer.classList.add('is-visible');
+    }
+
+    function clearAnnounceLayer() {
+      if (!announceLayer) return;
+      announceLayer.classList.remove('is-visible');
+      if (announceText) announceText.textContent = '';
+    }
+
+    function resolveCurrentSlide() {
+      if (!lastBaseSlide) return null;
+      if (!lastContent) return SlideEngine.prepareSlideForBroadcast(lastBaseSlide);
+      return SlideEngine.prepareSlideForBroadcast(
+        SlideEngine.mergeContentIntoSlide(lastBaseSlide, lastContent),
+      );
+    }
+
+    function renderCurrentSlide(opts = {}) {
+      if (outputBlackoutActive) return;
+      const slide = resolveCurrentSlide();
+      if (!slide || !SlideEngine.hasSlideRenderableContent(slide)) {
+        if (opts.force || lastBaseSlide) clearTextLayer({ wipe: true });
+        return;
+      }
+      restoreTextLayerIfNeeded();
+      crossfadeSlide(slide);
+      activeSlideKey = slideFingerprint(slide);
+      lastShownSlideKey = activeSlideKey;
+      lastSlideState = { slide, text: SlideEngine.getPrimaryText(slide) };
+    }
+
+    function ingestSlidePayload(data) {
+      if (data?.content && data?.baseSlide) {
+        lastContent = data.content;
+        lastBaseSlide = SlideEngine.normalizeSlide(JSON.parse(JSON.stringify(data.baseSlide)));
+        return;
+      }
+      const raw = data?.baseSlide || data?.slide || null;
+      if (!raw) {
+        lastBaseSlide = null;
+        lastContent = null;
+        return;
+      }
+      const extracted = SlideEngine.extractSlideContent(raw);
+      lastContent = extracted.payload;
+      lastBaseSlide = extracted.baseSlide;
     }
 
     function showSlide(data) {
-      const raw = data?.slide || null;
-      const slide = raw ? SlideEngine.prepareSlideForBroadcast(raw) : null;
-      const text = data?.text ?? (slide ? SlideEngine.getPrimaryText(slide) : '');
+      ingestSlidePayload(data);
       const seq = data?.seq || 0;
-      const slideKey = slide ? slideFingerprint(slide) : '';
 
       if (seq && seq < lastSlideSeq) {
-        sendSlideAck(data, slide, { stale: true });
+        sendSlideAck(data, lastBaseSlide, { stale: true });
         return;
       }
 
-      if (!slide || !SlideEngine.hasSlideRenderableContent(slide)) {
+      if (!lastBaseSlide || !lastContent) {
         if (seq) lastSlideSeq = seq;
         lastShownSlideKey = '';
         lastSlideState = null;
         if (!outputBlackoutActive) {
           bodyEl.classList.remove('is-blackout');
-          clearTextLayer();
+          clearTextLayer({ wipe: true });
         }
-        sendSlideAck(data, slide, { empty: true });
+        sendSlideAck(data, null, { empty: true });
         return;
       }
 
-      if (seq && seq === lastSlideSeq && slideKey && slideKey === lastShownSlideKey) {
+      const slide = resolveCurrentSlide();
+      const slideKey = slide ? slideFingerprint(slide) : '';
+
+      if (!data?.layerRestore && seq && seq === lastSlideSeq && slideKey && slideKey === lastShownSlideKey) {
         sendSlideAck(data, slide, { duplicate: true });
         return;
       }
 
       if (seq) lastSlideSeq = seq;
-      lastShownSlideKey = slideKey;
-      lastSlideState = { slide, text };
 
       if (outputBlackoutActive) {
         sendSlideAck(data, slide, { queued: true });
         return;
       }
 
+      if (data?.layerRestore) {
+        bodyEl.classList.remove('is-blackout');
+        renderCurrentSlide({ force: true });
+        sendSlideAck(data, slide, { layerRestore: true });
+        return;
+      }
+
       bodyEl.classList.remove('is-blackout');
-      restoreTextLayerIfNeeded();
-      if (!mediaCleared && activeBgKey) restoreMediaLayer();
-      crossfadeSlide(slide);
+      renderCurrentSlide({ force: true });
       sendSlideAck(data, slide);
     }
 
@@ -594,14 +849,49 @@
       if (!acceptMacroSeq(data?.seq || 0)) return;
       clearMediaLayer();
     });
+    ipcRenderer.on('output:restore-media', (_e, data) => {
+      if (!acceptMacroSeq(data?.seq || 0)) return;
+      restoreMediaLayer();
+    });
     ipcRenderer.on('output:clear-all', (_e, data) => {
       if (!acceptMacroSeq(data?.seq || 0)) return;
       clearAllLayers();
     });
+    ipcRenderer.on('output:clear-design', (_e, data) => {
+      if (!acceptMacroSeq(data?.seq || 0)) return;
+      setDesignCleared(true);
+    });
+    ipcRenderer.on('output:restore-design', (_e, data) => {
+      if (!acceptMacroSeq(data?.seq || 0)) return;
+      setDesignCleared(false);
+      if (lastSlideState?.slide) crossfadeSlide(lastSlideState.slide);
+    });
+    ipcRenderer.on('output:clear-props', (_e, data) => {
+      if (!acceptMacroSeq(data?.seq || 0)) return;
+      clearPropLayer();
+    });
+    ipcRenderer.on('output:clear-audio', (_e, data) => {
+      if (!acceptMacroSeq(data?.seq || 0)) return;
+      setAudioMuted(true);
+    });
+    ipcRenderer.on('output:clear-announcements', (_e, data) => {
+      if (!acceptMacroSeq(data?.seq || 0)) return;
+      clearAnnounceLayer();
+    });
+    ipcRenderer.on('output:prop-show', (_e, data) => {
+      showPropLayer(data);
+    });
+    ipcRenderer.on('output:prop-clear', () => clearPropLayer());
+    ipcRenderer.on('output:announce-show', (_e, data) => {
+      showAnnounceLayer(data?.text);
+    });
+    ipcRenderer.on('output:announce-clear', () => clearAnnounceLayer());
+    ipcRenderer.on('output:audio-restore', () => setAudioMuted(false));
 
     ipcRenderer.on('subtitle:slide', (_e, data) => showSlide(data));
 
     ipcRenderer.on('output:logo', (_e, data) => {
+      if (outputBlackoutActive) return;
       if (!logoLayer) return;
       const logoVid = logoLayer.querySelector('.logo-video');
       const show = Boolean(data?.visible) && data?.media?.src;
@@ -658,7 +948,7 @@
       outputBlackoutActive = false;
       bodyEl.classList.remove('is-blackout');
       applyMasterVolume();
-      restoreTextLayerIfNeeded();
+      renderCurrentSlide({ force: true });
     });
 
     ipcRenderer.on('subtitle:clear', (_e, data) => {
@@ -666,9 +956,13 @@
       if (seq && seq < lastSlideSeq) return;
       if (seq) lastSlideSeq = seq;
       if (!outputBlackoutActive) bodyEl.classList.remove('is-blackout');
-      clearTextLayer();
+      clearTextLayer({ wipe: true });
       lastSlideState = null;
     });
+
+    if (displayRole === 'relay') {
+      document.addEventListener('contextmenu', (e) => e.preventDefault());
+    }
   </script>
 </body>
 </html>

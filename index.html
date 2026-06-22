@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>Subtitle Broadcast — Control</title>
+  <title>Worship FLOW — Control</title>
   <style>
     :root {
       /* ProPresenter-style palette */
@@ -59,6 +59,35 @@
       overflow: hidden;
     }
     .library-search-popup.is-hidden { display: none; }
+    .quick-search-modal {
+      position: fixed; inset: 0; z-index: 12000;
+      display: flex; align-items: flex-start; justify-content: center;
+      padding: 12vh 24px 24px; background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(4px);
+    }
+    .quick-search-modal.is-hidden { display: none; }
+    .quick-search-panel {
+      width: min(560px, 100%); background: var(--surface);
+      border: 1px solid var(--border-strong); border-radius: 14px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.55); overflow: hidden;
+    }
+    .quick-search-panel input {
+      width: 100%; padding: 16px 18px; font-size: 18px; font-weight: 600;
+      border: none; border-bottom: 1px solid var(--border);
+      background: var(--surface-2); color: var(--text);
+    }
+    .quick-search-results { max-height: 50vh; overflow: auto; }
+    .quick-search-results button {
+      display: block; width: 100%; text-align: left; padding: 12px 18px;
+      border: none; border-bottom: 1px solid var(--border);
+      background: transparent; color: var(--text); font-size: 14px;
+    }
+    .quick-search-results button:hover, .quick-search-results button.is-active {
+      background: rgba(59,130,246,0.15);
+    }
+    .quick-search-results .qs-meta { font-size: 11px; color: var(--muted); margin-left: 8px; }
+    .app-body.media-panel-hidden .media-panel,
+    .app-body.media-panel-hidden .resize-handle-h[data-panel="media"] { display: none !important; }
     .library-search-results {
       overflow-y: auto; padding: 6px; max-height: min(400px, 52vh);
       scrollbar-width: thin;
@@ -409,8 +438,25 @@
       position: relative;
       box-shadow: 0 16px 56px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06);
       border: 2px solid #4a4a58; background: #000; flex-shrink: 0;
-      aspect-ratio: 16 / 9;
+      aspect-ratio: var(--editor-aspect-ratio, 16 / 9);
     }
+    .canvas-guide-overlay {
+      position: absolute; inset: 0; z-index: 2; pointer-events: none;
+    }
+    .canvas-guide-overlay > div { position: absolute; display: none; }
+    .canvas-guide-overlay.is-crosshair-on .guide-crosshair-v,
+    .canvas-guide-overlay.is-crosshair-on .guide-crosshair-h { display: block; }
+    .canvas-guide-overlay.is-safe-on .guide-safe-area { display: block; }
+    .canvas-guide-overlay.is-title-on .guide-title-safe { display: block; }
+    .guide-crosshair-v { top: 0; bottom: 0; left: 50%; width: 1px; margin-left: -0.5px; background: rgba(255,255,255,0.22); }
+    .guide-crosshair-h { left: 0; right: 0; top: 50%; height: 1px; margin-top: -0.5px; background: rgba(255,255,255,0.22); }
+    .guide-safe-area { inset: 5%; border: 1px dashed rgba(250,204,21,0.45); border-radius: 2px; }
+    .guide-title-safe { inset: 10%; border: 1px dashed rgba(77,142,247,0.5); border-radius: 2px; }
+    .settings-section-title {
+      margin: 0 0 10px; font-size: 11px; font-weight: 800; color: var(--text);
+      text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .settings-subsection { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
     .canvas-resize-handle {
       position: absolute; right: -2px; bottom: -2px; width: 14px; height: 14px;
       cursor: nwse-resize; z-index: 5;
@@ -660,7 +706,6 @@
     .app-body.mode-theme .media-panel,
     .app-body.mode-reflow .operator-panel,
     .app-body.mode-reflow .media-panel,
-    .app-body.mode-bible .operator-panel,
     .app-body.mode-bible .media-panel { display: none !important; }
     .app-body.mode-edit .resize-handle[data-panel="operator"],
     .app-body.mode-edit .resize-handle[data-panel="media"],
@@ -668,7 +713,6 @@
     .app-body.mode-theme .resize-handle[data-panel="media"],
     .app-body.mode-reflow .resize-handle[data-panel="operator"],
     .app-body.mode-reflow .resize-handle[data-panel="media"],
-    .app-body.mode-bible .resize-handle[data-panel="operator"],
     .app-body.mode-bible .resize-handle[data-panel="media"] { display: none; }
     .app-body.mode-theme .pp-edit-rail-foot { display: none; }
     .app-body.mode-theme #btnEditorUndo,
@@ -714,10 +758,13 @@
       box-sizing: border-box;
       grid-template-columns: repeat(var(--slide-cols, 3), minmax(0, 1fr));
       align-content: start;
+      align-items: start;
     }
     .slide-card {
       width: 100%;
       min-width: 0;
+      height: auto;
+      align-self: start;
       display: flex; flex-direction: column;
       background: var(--surface); border: 1px solid var(--border-strong); border-radius: 8px;
       cursor: pointer; overflow: hidden;
@@ -727,7 +774,8 @@
     .slide-card .thumb-inner:not(.is-thumb-ready) { opacity: 0; transition: opacity 0.1s var(--ease); }
     .slide-card-media {
       width: 100%;
-      aspect-ratio: var(--stage-aspect-ratio, 16 / 9);
+      aspect-ratio: var(--slide-thumb-aspect-ratio, 16 / 9);
+      height: auto;
       position: relative;
       background: #0a0a0c;
       flex-shrink: 0;
@@ -765,9 +813,43 @@
       color: var(--text);
       background: linear-gradient(180deg, var(--surface) 0%, rgba(22,22,28,0.97) 100%);
       border-bottom: 1px solid var(--border);
+      border-left: 4px solid var(--section-accent, transparent);
       cursor: pointer;
       user-select: none;
+      display: flex; align-items: center; gap: 8px;
     }
+    .slide-song-header .section-color-btn {
+      width: 18px; height: 18px; border-radius: 4px; border: 1px solid var(--border);
+      flex-shrink: 0; cursor: pointer; padding: 0;
+    }
+    .macro-bar-compact {
+      display: flex; gap: 4px;
+      padding: 4px 6px; background: rgba(0,0,0,0.28);
+      border: 1px solid var(--border-strong); border-radius: 8px;
+      flex-shrink: 0;
+    }
+    .macro-icon-btn {
+      min-width: 0; width: auto; height: auto; min-height: 30px; flex: 1;
+      padding: 4px 6px; flex-direction: row; gap: 4px;
+      border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);
+      background: var(--surface-2);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+    .macro-icon-btn .macro-glyph {
+      font-size: 14px; font-weight: 800; line-height: 1;
+      width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 5px; background: rgba(255,255,255,0.06);
+    }
+    .macro-icon-btn .macro-label { display: none; }
+    .macro-icon-btn:hover { border-color: rgba(255,255,255,0.22); background: var(--surface-3); }
+    .macro-icon-btn.on { border-color: rgba(61,214,140,0.45); background: rgba(61,214,140,0.12); }
+    .macro-icon-btn.on .macro-label { color: #86efac; }
+    .macro-icon-btn.macro-text.on .macro-glyph { background: rgba(59,130,246,0.28); color: #bfdbfe; }
+    .macro-icon-btn.macro-media.on .macro-glyph { background: rgba(249,115,22,0.28); color: #fed7aa; }
+    .macro-icon-btn.macro-announce.on .macro-glyph { background: rgba(250,204,21,0.22); color: #fde68a; }
+    .macro-icon-btn.macro-edit .macro-glyph { background: rgba(168,85,247,0.22); color: #e9d5ff; }
+    .macro-icon-btn .macro-state { display: none; }
+    .live-tools-compact { padding: 4px 6px 6px; }
     .slide-song-header:hover { color: #c8d8f8; }
     .slide-card .thumb-stage .slide-layer { pointer-events: none; }
     .slide-card .slide-index {
@@ -798,6 +880,214 @@
     .macro-bar button.macro-text.on { background: rgba(59,130,246,0.22); color: #93c5fd; }
     .macro-bar button.macro-media.on { background: rgba(249,115,22,0.2); color: #fdba74; }
     .macro-bar button.macro-logo.on { background: rgba(168,85,247,0.18); color: #d8b4fe; }
+    .macro-bar.macro-bar-clear {
+      grid-template-columns: repeat(4, 1fr);
+      margin-top: 6px;
+    }
+    .macro-bar.macro-bar-clear button.macro-design.on { background: rgba(236,72,153,0.16); color: #f9a8d4; }
+    .macro-bar.macro-bar-clear button.macro-props.on { background: rgba(14,165,233,0.16); color: #7dd3fc; }
+    .macro-bar.macro-bar-clear button.macro-audio.on { background: rgba(234,179,8,0.14); color: #fde047; }
+    .macro-bar.macro-bar-clear button.macro-announce.on { background: rgba(132,204,22,0.14); color: #bef264; }
+    .live-tools-bar {
+      display: flex; flex-direction: column; gap: 6px; flex-shrink: 0;
+    }
+    .live-tools-row { display: flex; gap: 6px; align-items: center; }
+    .live-tools-row select {
+      flex: 1; min-width: 0; padding: 7px 8px; font-size: 11px;
+      border-radius: 6px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text);
+    }
+    .live-tools-row button {
+      padding: 7px 10px; font-size: 11px; font-weight: 700; border-radius: 6px;
+      background: var(--surface-2); color: var(--text); border: 1px solid var(--border);
+    }
+    .live-tools-row button.is-active { background: rgba(61,214,140,0.14); color: var(--success); border-color: rgba(61,214,140,0.35); }
+    .pp-live-panels {
+      flex: 1; min-height: 180px; display: flex; flex-direction: column;
+      border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+      background: rgba(0,0,0,0.15);
+    }
+    .pp-panel-tabs { display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .pp-tab {
+      flex: 1; padding: 8px 4px; font-size: 10px; font-weight: 800;
+      border: none; border-radius: 0; background: transparent; color: var(--muted);
+      cursor: pointer; letter-spacing: 0.02em;
+    }
+    .pp-tab.is-active {
+      background: var(--surface-2); color: var(--text);
+      box-shadow: inset 0 -2px 0 var(--accent);
+    }
+    .pp-panel {
+      flex: 1; min-height: 0; display: none; flex-direction: column;
+    }
+    .pp-panel.is-active { display: flex; }
+    .pp-panel-head {
+      display: flex; align-items: center; justify-content: space-between; gap: 6px;
+      padding: 6px 8px; flex-shrink: 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .pp-panel-title { font-size: 10px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .pp-panel-actions {
+      display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end;
+    }
+    .pp-panel-actions button {
+      padding: 4px 7px; font-size: 9px; font-weight: 700; border-radius: 5px;
+      background: var(--surface-2); color: var(--text); border: 1px solid var(--border);
+      white-space: nowrap; max-width: 100%;
+    }
+    .pp-panel-actions .pp-btn-icon { min-width: 26px; padding-inline: 6px; }
+    .pp-panel-hint {
+      margin: 0; padding: 6px 10px 4px; font-size: 10px; line-height: 1.45;
+      color: var(--muted); border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .appearance-preview-wrap {
+      flex-shrink: 0; padding: 6px 8px 4px;
+    }
+    .appearance-preview-canvas {
+      width: 100%; aspect-ratio: var(--stage-aspect-ratio, 16 / 9); border-radius: 6px;
+      background: #000; border: 1px solid var(--border); overflow: hidden;
+      position: relative;
+    }
+    .appearance-layers {
+      flex-shrink: 0; padding: 6px 8px 4px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .appearance-screen-label {
+      font-size: 9px; font-weight: 800; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;
+    }
+    .appearance-layer-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 4px;
+    }
+    .appearance-layer-toggle {
+      display: flex; align-items: center; gap: 5px;
+      padding: 5px 7px; border-radius: 6px;
+      border: 1px solid var(--border); background: var(--surface-2);
+      font-size: 10px; font-weight: 700; color: var(--text); cursor: pointer;
+      user-select: none;
+    }
+    .appearance-layer-toggle input { accent-color: var(--accent); margin: 0; }
+    .appearance-layer-toggle.is-off { opacity: 0.55; color: var(--muted); }
+    .appearance-theme-section {
+      font-size: 9px; font-weight: 800; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.08em;
+      padding: 6px 10px 2px;
+    }
+    .pp-panel-macros-run {
+      display: flex; gap: 6px; padding: 8px; flex-shrink: 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .pp-panel-macros-run select {
+      flex: 1; min-width: 0; padding: 7px 8px; font-size: 11px;
+      border-radius: 6px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text);
+    }
+    .pp-panel-macros-run button {
+      padding: 7px 10px; font-size: 11px; font-weight: 700; border-radius: 6px;
+      background: var(--surface-2); color: var(--text); border: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    .pp-macros-actions {
+      display: flex; gap: 6px; padding: 6px 8px; flex-shrink: 0;
+    }
+    .pp-macros-actions button {
+      flex: 1; padding: 7px 8px; font-size: 10px; font-weight: 700;
+      border-radius: 6px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text);
+    }
+    .slide-quick-edit-wrap {
+      position: absolute; inset: 0; z-index: 5;
+      display: flex; flex-direction: column; background: rgba(0,0,0,0.82);
+      padding: 6px;
+    }
+    .slide-quick-edit-wrap textarea {
+      flex: 1; min-height: 0; resize: none;
+      border: 1px solid rgba(77,142,247,0.45); border-radius: 6px;
+      background: rgba(22,22,28,0.95); color: #eef0f4;
+      font-size: 11px; line-height: 1.45; padding: 6px 8px;
+      font-family: inherit;
+    }
+    .slide-quick-edit-actions {
+      display: flex; gap: 4px; margin-top: 4px; flex-shrink: 0;
+    }
+    .slide-quick-edit-actions button {
+      flex: 1; padding: 4px 6px; font-size: 10px; font-weight: 700;
+      border-radius: 5px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text);
+    }
+    .head-nav-btn.is-active-toggle {
+      background: rgba(77,142,247,0.2); color: #93c5fd; border-color: rgba(77,142,247,0.45);
+    }
+    .slide-card.is-quick-editing { z-index: 4; }
+    .pp-library-list {
+      flex: 1; min-height: 0; overflow-y: auto; padding: 6px;
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .pp-library-item {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 28px;
+      align-items: stretch;
+      border-radius: 7px; border: 1px solid var(--border);
+      background: var(--surface-2); overflow: hidden;
+      min-height: 44px;
+    }
+    .pp-library-item.is-active {
+      border-color: rgba(61,214,140,0.55);
+      background: rgba(61,214,140,0.1);
+      box-shadow: inset 3px 0 0 var(--success);
+    }
+    .pp-library-item--prop {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+    .pp-library-item--prop .pp-library-side {
+      width: auto; min-width: 28px; justify-content: flex-end; gap: 0;
+    }
+    .pp-library-item.is-live {
+      border-color: rgba(249,115,22,0.55);
+      background: rgba(249,115,22,0.1);
+      box-shadow: inset 3px 0 0 #f97316;
+    }
+    .pp-library-trigger {
+      grid-column: 1;
+      min-width: 0; text-align: left; padding: 8px 10px;
+      border: none; border-radius: 0; background: transparent; color: var(--text);
+      cursor: pointer;
+    }
+    .pp-library-trigger:hover { background: rgba(255,255,255,0.04); }
+    .pp-library-name { display: block; font-size: 11px; font-weight: 700; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .pp-library-meta { display: block; font-size: 9px; color: var(--muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .pp-library-side {
+      grid-column: 2; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; width: 28px; min-width: 28px;
+    }
+    .pp-library-badge {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+      background: var(--success); box-shadow: 0 0 0 2px rgba(61,214,140,0.25);
+    }
+    .pp-library-item.is-live .pp-library-badge {
+      background: #f97316; box-shadow: 0 0 0 2px rgba(249,115,22,0.25);
+    }
+    .pp-library-edit {
+      width: 28px; height: 100%; min-height: 44px; border: none; border-left: 1px solid var(--border);
+      background: transparent; color: var(--muted); cursor: pointer; font-size: 12px;
+      display: flex; align-items: center; justify-content: center; padding: 0;
+    }
+    .pp-library-edit:hover { background: var(--surface-3); color: var(--text); }
+    .pp-library-empty {
+      padding: 16px 10px; text-align: center; font-size: 11px; color: var(--muted); line-height: 1.5;
+    }
+    .pp-stage-controls { padding: 8px; display: flex; flex-direction: column; gap: 8px; flex: 1; min-height: 0; overflow-y: auto; }
+    .pp-stage-row { display: flex; gap: 6px; align-items: center; }
+    .pp-stage-row button { flex: 1; padding: 10px 8px; font-size: 11px; font-weight: 700; border-radius: 7px; }
+    .pp-stage-row button.is-active { background: rgba(61,214,140,0.14); color: var(--success); border-color: rgba(61,214,140,0.35); }
+    .pp-stage-setting { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11px; }
+    .pp-stage-setting input[type="range"] { flex: 1; min-width: 0; }
+    .pp-stage-preview {
+      border-radius: 7px; border: 1px solid var(--border); background: rgba(0,0,0,0.25);
+      padding: 8px; display: flex; flex-direction: column; gap: 6px;
+    }
+    .pp-stage-preview-block { font-size: 10px; line-height: 1.45; }
+    .pp-stage-preview-label { font-weight: 800; color: var(--muted); text-transform: uppercase; font-size: 9px; letter-spacing: 0.06em; }
+    .pp-stage-preview-text { color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .macros-run-row { display: flex; gap: 4px; }
+    .macros-run-row select { flex: 1; min-width: 0; }
+    .macros-run-row button { flex-shrink: 0; }
     .blackout-master-btn {
       flex-shrink: 0; width: 100%; min-height: 64px; padding: 14px 12px;
       font-size: 16px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
@@ -879,8 +1169,8 @@
       grid-area: operator;
       width: auto; min-width: 0;
       background: var(--surface); border-left: 1px solid var(--border);
-      padding: 10px; flex-shrink: 0; min-height: 0; overflow: hidden;
-      display: flex; flex-direction: column; gap: 10px;
+      padding: 8px; flex-shrink: 0; min-height: 0; overflow: hidden;
+      display: flex; flex-direction: column; gap: 6px;
     }
     .operator-preview-label {
       font-size: 11px; font-weight: 700; color: var(--text);
@@ -910,10 +1200,10 @@
     .layer-toggle.wide { grid-column: 1 / -1; }
     .control-block label { display: block; font-size: 10px; font-weight: 700; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; }
     #preview {
-      flex: 0 1 auto;
+      flex: 0 0 auto;
       width: 100%;
       aspect-ratio: var(--stage-aspect-ratio, 16 / 9);
-      max-height: 100%;
+      max-height: min(22vh, 180px);
       min-height: 0;
       align-self: center;
       background: #0a0a0c;
@@ -1241,15 +1531,23 @@
       cursor: default;
     }
     .interactive-layer {
-      cursor: pointer;
       transition: outline-color 0.12s var(--ease), box-shadow 0.12s var(--ease);
+    }
+    .interactive-layer[data-layer-type="text"] {
+      cursor: text;
+    }
+    .interactive-layer:not([data-layer-type="text"]) {
+      cursor: pointer;
     }
     .interactive-layer.selected {
       outline: 2px solid var(--accent); outline-offset: -1px;
       box-shadow: 0 0 0 1px rgba(77, 141, 255, 0.35);
+    }
+    .interactive-layer.selected:not([data-layer-type="text"]) {
       cursor: grab;
     }
     .interactive-layer.selected[data-layer-type="text"] {
+      cursor: text;
       outline: none;
       box-shadow: inset 0 0 0 2px rgba(77,142,247,0.95), 0 0 0 1px rgba(77,142,247,0.35);
     }
@@ -1337,10 +1635,11 @@
     .layer-list-item .layer-mini-btns button { padding: 2px 5px; font-size: 9px; min-width: 0; }
     .inspector-row.inline-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; }
     .inspector-row.inline-4 input { padding: 6px; font-size: 11px; }
-    .text-inline-editor {
+    .text-inline-editor, .inline-text-editor {
       position: absolute; inset: 0; z-index: 30; padding: 4%;
       background: rgba(0,0,0,0.55); border: 2px solid var(--accent); border-radius: 4px;
       color: #fff; font: inherit; resize: none; outline: none; box-sizing: border-box;
+      cursor: text; caret-color: #fff;
     }
     .shortcuts-grid {
       display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px;
@@ -1489,6 +1788,92 @@
       font-size: 8px; font-weight: 600; color: var(--muted);
       font-variant-numeric: tabular-nums; pointer-events: none;
     }
+    .display-mapper .dm-empty,
+    .display-mapper .hint.dm-empty {
+      display: block; padding: 20px; text-align: center; color: var(--muted); font-size: 11px;
+    }
+    .screen-layout-section { margin-bottom: 16px; }
+    .screen-role-toolbar {
+      display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 12px;
+    }
+    .screen-role-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 12px; border-radius: 8px;
+      border: 1px solid var(--border-strong);
+      background: var(--surface-2); color: var(--text);
+      font-size: 11px; font-weight: 700; cursor: pointer;
+      transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease), background 0.15s var(--ease);
+    }
+    .screen-role-btn:hover { background: var(--surface-3); }
+    .screen-role-btn.is-active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(77,142,247,0.35);
+      background: rgba(77,142,247,0.12);
+    }
+    .screen-role-btn[data-role="program"]::before,
+    .screen-role-btn[data-role="stage"]::before,
+    .screen-role-btn[data-role="relay"]::before {
+      content: ''; width: 8px; height: 8px; border-radius: 999px; flex-shrink: 0;
+    }
+    .screen-role-btn[data-role="program"]::before { background: #4ade80; }
+    .screen-role-btn[data-role="stage"]::before { background: #60a5fa; }
+    .screen-role-btn[data-role="relay"]::before { background: #c084fc; }
+    .screen-role-btn[data-role="clear"]::before {
+      content: '×'; width: auto; height: auto; border-radius: 0; color: var(--muted); font-size: 12px;
+    }
+    .screen-layout-mapper {
+      position: relative; margin: 0 0 10px;
+      background: radial-gradient(ellipse at center, #1a1a22 0%, #0d0d11 100%);
+      border: 1px solid var(--border-strong); border-radius: 12px;
+      min-height: 140px; overflow: hidden;
+    }
+    .screen-layout-block {
+      position: absolute; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 4px;
+      padding: 8px 6px; border-radius: 8px;
+      border: 2px solid rgba(255,255,255,0.16);
+      background: linear-gradient(180deg, rgba(34,34,42,0.95) 0%, rgba(18,18,24,0.98) 100%);
+      color: var(--text); cursor: pointer; text-align: center;
+      transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease), transform 0.15s var(--ease);
+      min-width: 72px; min-height: 52px;
+    }
+    .screen-layout-block:hover {
+      border-color: rgba(77,142,247,0.65);
+      transform: translateY(-1px);
+    }
+    .screen-layout-block.is-primary { border-style: dashed; }
+    .screen-layout-block.is-role-target {
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.18), inset 0 0 0 1px rgba(255,255,255,0.08);
+    }
+    .screen-layout-block.has-program { border-color: rgba(74,222,128,0.55); }
+    .screen-layout-block.has-stage { border-color: rgba(96,165,250,0.55); }
+    .screen-layout-block.has-relay { border-color: rgba(192,132,252,0.55); }
+    .screen-layout-block.has-program.has-stage,
+    .screen-layout-block.has-program.has-relay,
+    .screen-layout-block.has-stage.has-relay {
+      border-color: rgba(255,255,255,0.28);
+    }
+    .screen-role-badges {
+      display: flex; flex-wrap: wrap; gap: 3px; justify-content: center;
+      max-width: 100%; pointer-events: none;
+    }
+    .screen-role-badge {
+      display: inline-block; padding: 1px 5px; border-radius: 4px;
+      font-size: 8px; font-weight: 800; letter-spacing: 0.03em;
+      line-height: 1.3; white-space: nowrap;
+    }
+    .screen-role-badge--program { background: rgba(74,222,128,0.18); color: #86efac; }
+    .screen-role-badge--stage { background: rgba(96,165,250,0.18); color: #93c5fd; }
+    .screen-role-badge--relay { background: rgba(192,132,252,0.18); color: #d8b4fe; }
+    .screen-role-badge.is-auto { opacity: 0.72; border: 1px dashed rgba(255,255,255,0.18); }
+    .screen-role-legend {
+      display: flex; flex-wrap: wrap; gap: 10px 14px;
+      font-size: 10px; color: var(--muted); margin-bottom: 8px;
+    }
+    .screen-role-legend span { display: inline-flex; align-items: center; gap: 5px; }
+    .screen-role-legend i {
+      display: inline-block; width: 8px; height: 8px; border-radius: 999px;
+    }
     .output-res-inline {
       display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px;
       margin-bottom: 8px;
@@ -1542,7 +1927,7 @@
   <div class="brand">
     <div class="brand-icon">SB</div>
     <div>
-      <h1><span data-i18n="appTitle">Subtitle Broadcast</span> <span id="broadcastStatus" class="status-pill"><span class="dot"></span><span data-i18n="statusIdle">대기</span></span></h1>
+      <h1><span data-i18n="appTitle">Worship FLOW</span> <span id="broadcastStatus" class="status-pill"><span class="dot"></span><span data-i18n="statusIdle">대기</span></span></h1>
     </div>
   </div>
   <div class="nav-tools">
@@ -1601,6 +1986,7 @@
         <span id="slidesFilmstripZoomVal" class="zoom-val">100%</span>
         <span class="stage-ratio-tag">16:9</span>
         <button type="button" id="btnFilmstripZoomFit" class="ghost head-nav-btn" data-i18n="editorCanvasFit">맞춤</button>
+        <button type="button" id="btnQuickEditMode" class="ghost head-nav-btn" data-i18n="quickEditMode" title="Quick edit">✎</button>
       </div>
       <div class="workspace-head-actions" id="workspaceHeadActions">
         <button type="button" id="btnGoLive" class="btn-go-live" data-i18n="btnGoLive" disabled>송출 시작</button>
@@ -1638,6 +2024,9 @@
           </div>
           <span class="toolbar-sep"></span>
           <button type="button" id="btnToggleGrid" class="ghost btn-toggle-grid" data-i18n="toggleGrid">그리드</button>
+          <button type="button" id="btnToggleGuideCrosshair" class="ghost btn-toggle-guide" data-i18n="guideCrosshairShort" title="십자">＋</button>
+          <button type="button" id="btnToggleGuideSafe" class="ghost btn-toggle-guide" data-i18n="guideSafeShort" title="안전">▢</button>
+          <button type="button" id="btnToggleGuideTitle" class="ghost btn-toggle-guide" data-i18n="guideTitleShort" title="10%">10</button>
           <span class="toolbar-sep"></span>
           <button type="button" id="btnEditorUndo" class="ghost" data-i18n="btnUndo" disabled>실행 취소</button>
           <button type="button" id="btnEditorRedo" class="ghost" data-i18n="btnRedo" disabled>다시 실행</button>
@@ -1657,6 +2046,12 @@
             <div class="pp-canvas-viewport">
               <div class="pp-edit-canvas-wrap" id="editCanvasWrap">
                 <div id="editCanvasGrid" class="canvas-grid-overlay" aria-hidden="true"></div>
+                <div id="editCanvasGuides" class="canvas-guide-overlay" aria-hidden="true">
+                  <div class="guide-crosshair-v"></div>
+                  <div class="guide-crosshair-h"></div>
+                  <div class="guide-safe-area"></div>
+                  <div class="guide-title-safe"></div>
+                </div>
                 <div id="editSnapGuides" class="canvas-snap-guides" aria-hidden="true">
                   <div class="snap-line snap-v" id="snapGuideV"></div>
                   <div class="snap-line snap-h" id="snapGuideH"></div>
@@ -1671,7 +2066,7 @@
               <input type="range" id="editorCanvasZoom" min="40" max="200" step="5" value="100">
               <button type="button" id="btnEditorZoomUp" class="ghost" aria-label="Zoom in">+</button>
               <span id="editorCanvasZoomVal" class="zoom-val">100%</span>
-              <span class="stage-ratio-tag">16:9</span>
+              <span class="stage-ratio-tag" id="editorAspectTag">1920×1080</span>
               <button type="button" id="btnEditorZoomFit" class="ghost" data-i18n="editorCanvasFit">맞춤</button>
             </div>
           </div>
@@ -1727,8 +2122,13 @@
             <div>
               <label for="bibleTranslation" data-i18n="bibleTranslation">역본</label>
               <select id="bibleTranslation" aria-label="Translation">
-                <option value="ko" data-i18n="bibleTranslationKo">개역개정 (ko)</option>
+                <option value="old" data-i18n="bibleTranslationOld">개역한글</option>
+                <option value="revised" data-i18n="bibleTranslationRevised">개역개정</option>
               </select>
+            </div>
+            <div>
+              <label>&nbsp;</label>
+              <button type="button" id="btnBibleRepair" class="secondary" data-i18n="bibleRepairData">성경 순서 복구</button>
             </div>
             <div>
               <label for="bibleQueryInput" data-i18n="bibleSearchLabel">성경 검색</label>
@@ -1792,10 +2192,66 @@
         <div id="previewStage"></div>
       </div>
     </div>
-    <div class="macro-bar" role="toolbar" aria-label="Live macros">
-      <button type="button" id="macroClearText" class="macro-text on" title="F1"><span data-i18n="macroLyrics">가사</span><span class="macro-state"></span></button>
-      <button type="button" id="macroClearMedia" class="macro-media on" title="F2"><span data-i18n="macroBg">배경</span><span class="macro-state"></span></button>
-      <button type="button" id="macroLogo" class="macro-logo off" title="F6"><span data-i18n="logo">로고</span><span class="macro-state"></span></button>
+    <div class="macro-bar macro-bar-compact" role="toolbar" aria-label="Live macros">
+      <button type="button" id="macroClearText" class="macro-text on macro-icon-btn" title="F2 · 가사"><span class="macro-glyph">T</span><span class="macro-label" data-i18n="clearText">가사</span></button>
+      <button type="button" id="macroClearMedia" class="macro-media on macro-icon-btn" title="F3 · 배경"><span class="macro-glyph">▣</span><span class="macro-label" data-i18n="clearMedia">배경</span></button>
+      <button type="button" id="macroClearAnnounce" class="macro-announce on macro-icon-btn" title="F7 · 공지"><span class="macro-glyph">!</span><span class="macro-label" data-i18n="clearAnnounce">공지</span></button>
+    </div>
+    <div class="pp-live-panels" id="ppLivePanels">
+      <div class="pp-panel-tabs" role="tablist" aria-label="Live panels">
+        <button type="button" class="pp-tab is-active" data-pp-panel="props" data-i18n="ppTabProps">Props</button>
+        <button type="button" class="pp-tab" data-pp-panel="stage" data-i18n="ppTabStage">Stage</button>
+        <button type="button" class="pp-tab" data-pp-panel="macros" data-i18n="ppTabMacros">매크로</button>
+      </div>
+      <div id="ppPanelProps" class="pp-panel is-active" role="tabpanel">
+        <div class="pp-panel-head">
+          <span class="pp-panel-title" data-i18n="propsLibrary">Props</span>
+          <div class="pp-panel-actions">
+            <button type="button" id="btnOpenPropsEditor" data-i18n="propsEditorOpen">편집</button>
+            <button type="button" id="btnPropClearAll" data-i18n="propClearAll">끄기</button>
+            <button type="button" id="btnPropAdd" class="pp-btn-icon" title="Add prop">+</button>
+          </div>
+        </div>
+        <div id="propsLibraryList" class="pp-library-list" role="list"></div>
+      </div>
+      <div id="ppPanelStage" class="pp-panel" role="tabpanel" hidden>
+        <div class="pp-panel-head">
+          <span class="pp-panel-title" data-i18n="stagePanelTitle">Stage Display</span>
+        </div>
+        <div class="pp-stage-controls">
+          <div class="pp-stage-row">
+            <button type="button" id="btnStageDisplay" data-i18n="stageOpen">스테이지 열기</button>
+            <button type="button" id="btnOpenStageEditor" data-i18n="stageEditorOpen">Stage 편집기</button>
+            <button type="button" id="btnRelayDisplay" data-i18n="relayOpen">릴레이 열기</button>
+          </div>
+          <div class="pp-stage-preview">
+            <div class="pp-stage-preview-block">
+              <div class="pp-stage-preview-label" data-i18n="stagePreviewNow">현재</div>
+              <div class="pp-stage-preview-text" id="stagePreviewNow">—</div>
+            </div>
+            <div class="pp-stage-preview-block">
+              <div class="pp-stage-preview-label" data-i18n="stagePreviewNext">다음</div>
+              <div class="pp-stage-preview-text" id="stagePreviewNext">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="ppPanelMacros" class="pp-panel" role="tabpanel" hidden>
+        <div class="pp-panel-head">
+          <span class="pp-panel-title" data-i18n="macroPanelTitle">매크로</span>
+        </div>
+        <div class="pp-panel-macros-run">
+          <select id="macroRunSelect" aria-label="Macro"><option value="" data-i18n="macroPick">매크로…</option></select>
+          <button type="button" id="btnRunMacro" data-i18n="macroRun">실행</button>
+        </div>
+        <div class="pp-macros-actions">
+          <button type="button" id="btnEditMacros" data-i18n="macroEdit">매크로 편집</button>
+        </div>
+        <div class="appearance-layers">
+          <div class="appearance-screen-label" data-i18n="appearanceLayerExtras">추가 레이어</div>
+          <div class="appearance-layer-grid" id="macroLayerGrid" role="group" aria-label="Extra layers"></div>
+        </div>
+      </div>
     </div>
     <button type="button" id="macroBlackout" class="blackout-master-btn off" data-i18n="blackout">암전</button>
   </aside>
@@ -1816,6 +2272,14 @@
 
 <div id="librarySearchPopup" class="library-search-popup is-hidden" role="listbox" aria-label="Song search results">
   <div id="librarySearchResults" class="library-search-results"></div>
+</div>
+
+<div id="quickSearchModal" class="quick-search-modal is-hidden" role="dialog" aria-modal="true" aria-labelledby="quickSearchTitle">
+  <div class="quick-search-panel">
+    <h2 id="quickSearchTitle" class="sr-only" data-i18n="quickSearchTitle">쾌속 검색</h2>
+    <input type="search" id="quickSearchInput" data-i18n-placeholder="quickSearchPh" placeholder="곡 제목 · 성경 구절…" autocomplete="off" spellcheck="false" data-hotkey-block="true">
+    <div id="quickSearchResults" class="quick-search-results" role="listbox"></div>
+  </div>
 </div>
 
 <div id="settingsModal" class="modal-overlay">
@@ -1857,12 +2321,26 @@
         </section>
       </div>
       <div id="settingsTabDisplays" class="settings-tab-panel" role="tabpanel" hidden>
-        <section class="settings-section settings-displays">
-          <p class="hint" data-i18n="displayMapperHint">송출할 모니터 블록을 클릭하세요. 녹색 테두리 = 송출 대상.</p>
-          <div id="displayMapper" class="display-mapper" role="group" aria-label="Display layout"></div>
+        <section class="settings-section screen-layout-section">
+          <h3 class="settings-section-title" data-i18n="screenLayoutTitle">화면 구성</h3>
+          <p class="hint" data-i18n="screenLayoutHint">역할을 선택한 뒤 모니터를 클릭해 Program · Stage · Relay 출력을 배치하세요.</p>
+          <div class="screen-role-toolbar" role="toolbar" aria-label="Screen roles">
+            <button type="button" class="screen-role-btn is-active" data-role="program" data-i18n="screenRoleProgram">Program</button>
+            <button type="button" class="screen-role-btn" data-role="stage" data-i18n="screenRoleStage">Stage</button>
+            <button type="button" class="screen-role-btn" data-role="relay" data-i18n="screenRoleRelay">Relay</button>
+            <button type="button" class="screen-role-btn" data-role="clear" data-i18n="screenRoleClear">역할 해제</button>
+          </div>
+          <div id="screenLayoutMapper" class="screen-layout-mapper" role="group" aria-label="Screen layout"></div>
+          <div class="screen-role-legend">
+            <span><i style="background:#4ade80"></i><span data-i18n="screenRoleProgram">Program</span></span>
+            <span><i style="background:#60a5fa"></i><span data-i18n="screenRoleStage">Stage</span></span>
+            <span><i style="background:#c084fc"></i><span data-i18n="screenRoleRelay">Relay</span></span>
+            <span data-i18n="screenRoleAutoHint">· A = 자동 배치</span>
+          </div>
         </section>
-        <section class="settings-section">
-          <div class="output-res-inline">
+        <section class="settings-section settings-displays">
+          <h3 class="settings-section-title" data-i18n="displayProgramTitle">송출 화면 (Program)</h3>
+          <div class="output-res-inline settings-subsection">
             <div class="output-res-preset-wrap">
               <label for="outputResolutionPreset" data-i18n="outputResPreset">해상도 프리셋</label>
               <select id="outputResolutionPreset"></select>
@@ -1872,14 +2350,62 @@
               <input type="number" id="outputWidth" min="320" max="7680" step="1" value="1920" aria-label="Width">
               <span class="output-res-x">×</span>
               <label for="outputHeight" data-i18n="outputHeightShort">H</label>
-              <input type="number" id="outputHeight" min="180" max="4320" step="1" value="1080" aria-label="Height" readonly title="16:9 고정">
-              <span class="stage-ratio-tag">16:9</span>
+              <input type="number" id="outputHeight" min="180" max="4320" step="1" value="1080" aria-label="Height">
             </div>
           </div>
-          <p class="hint" data-i18n="outputResolutionHint">논리 송출 해상도. 프리셋 선택 또는 직접 입력 시 실시간 반영.</p>
+          <label class="settings-check"><input type="checkbox" id="outputLockAspect"> <span data-i18n="outputLockAspect">16:9 비율 고정</span></label>
+          <p class="hint" data-i18n="outputResolutionHint">논리 송출 해상도. 사용자 지정 시 「16:9 비율 고정」을 끄세요.</p>
           <label class="settings-check"><input type="checkbox" id="outputAutoFit" checked> <span data-i18n="outputAutoFit">송출 창 크기에 자동 맞춤</span></label>
           <button type="button" id="btnFitOutputWindowSettings" class="secondary" style="width:100%;margin-top:8px;" data-i18n="outputFitWindow">송출 창을 화면에 맞춤</button>
           <label class="settings-check" style="margin-top:10px;"><input type="checkbox" id="autoOpenOutput"> <span data-i18n="autoOpenOutput">시작 시 송출 창 열기</span></label>
+        </section>
+        <section class="settings-section">
+          <h3 class="settings-section-title" data-i18n="displayStageTitle">스테이지 화면</h3>
+          <div class="output-res-inline settings-subsection">
+            <div class="output-res-preset-wrap">
+              <label for="stageResolutionPreset" data-i18n="outputResPreset">해상도 프리셋</label>
+              <select id="stageResolutionPreset"></select>
+            </div>
+            <div class="output-res-inputs">
+              <label for="stageWidth" data-i18n="outputWidthShort">W</label>
+              <input type="number" id="stageWidth" min="320" max="7680" step="1" value="1920" aria-label="Stage width">
+              <span class="output-res-x">×</span>
+              <label for="stageHeight" data-i18n="outputHeightShort">H</label>
+              <input type="number" id="stageHeight" min="180" max="4320" step="1" value="1080" aria-label="Stage height">
+            </div>
+          </div>
+          <label class="settings-check"><input type="checkbox" id="stageLockAspect"> <span data-i18n="stageLockAspect">16:9 비율 고정</span></label>
+          <p class="hint" data-i18n="stageResolutionHint">스테이지 논리 해상도. 송출 화면과 독립적으로 설정할 수 있습니다.</p>
+          <label class="settings-check"><input type="checkbox" id="autoOpenStage"> <span data-i18n="autoOpenStage">시작 시 스테이지 창 열기</span></label>
+        </section>
+        <section class="settings-section">
+          <h3 class="settings-section-title" data-i18n="displayRelayTitle">릴레이 화면 (Relay)</h3>
+          <p class="hint" data-i18n="displayRelayHint">방송·스트리밍용 투명 오버레이. OBS 등에 캡처해 카메라 영상 위에 합성합니다.</p>
+          <div class="output-res-inline settings-subsection">
+            <div class="output-res-preset-wrap">
+              <label for="relayResolutionPreset" data-i18n="outputResPreset">해상도 프리셋</label>
+              <select id="relayResolutionPreset"></select>
+            </div>
+            <div class="output-res-inputs">
+              <label for="relayWidth" data-i18n="outputWidthShort">W</label>
+              <input type="number" id="relayWidth" min="320" max="7680" step="1" value="1920" aria-label="Relay width">
+              <span class="output-res-x">×</span>
+              <label for="relayHeight" data-i18n="outputHeightShort">H</label>
+              <input type="number" id="relayHeight" min="180" max="4320" step="1" value="1080" aria-label="Relay height">
+            </div>
+          </div>
+          <label class="settings-check"><input type="checkbox" id="relayLockAspect"> <span data-i18n="relayLockAspect">16:9 비율 고정</span></label>
+          <p class="hint" data-i18n="relayResolutionHint">릴레이 논리 해상도. 배경은 투명하고 Program과 동일한 슬라이드가 송출됩니다.</p>
+          <button type="button" id="btnFitRelayWindowSettings" class="secondary" style="width:100%;margin-top:8px;" data-i18n="relayFitWindow">릴레이 창을 화면에 맞춤</button>
+          <label class="settings-check" style="margin-top:10px;"><input type="checkbox" id="autoOpenRelay"> <span data-i18n="autoOpenRelay">시작 시 릴레이 창 열기</span></label>
+        </section>
+        <section class="settings-section">
+          <h3 class="settings-section-title" data-i18n="displayControllerTitle">컨트롤러 (오퍼레이터)</h3>
+          <p class="hint" data-i18n="displayControllerHint">컨트롤러 창은 자유롭게 크기 조절됩니다. 편집기 안내선은 슬라이드·스테이지 편집 캔버스에 표시됩니다.</p>
+          <label class="settings-check"><input type="checkbox" id="showGuideCrosshair" checked> <span data-i18n="guideCrosshair">십자 안내선</span></label>
+          <label class="settings-check"><input type="checkbox" id="showGuideSafeArea" checked> <span data-i18n="guideSafeArea">안전 영역 (5%)</span></label>
+          <label class="settings-check"><input type="checkbox" id="showGuideTitleSafe" checked> <span data-i18n="guideTitleSafe">타이틀 세이프 (10%)</span></label>
+          <label class="settings-check"><input type="checkbox" id="showEditorGrid" checked> <span data-i18n="toggleGrid">편집 그리드</span></label>
         </section>
       </div>
       <div id="settingsTabLive" class="settings-tab-panel" role="tabpanel" hidden>
@@ -1937,6 +2463,31 @@
   </div>
   </div>
 
+<div id="bibleDownloadModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="bibleDownloadTitle">
+  <div class="song-form-modal">
+    <h2 id="bibleDownloadTitle" data-i18n="bibleDownloadTitle">성경 데이터</h2>
+    <p id="bibleDownloadMessage" class="hint" data-i18n="bibleDownloadPrompt">현대 예배용 [개역개정] 성경 데이터 최적화가 필요합니다. 저작권 가이드라인 준수를 위해 최초 1회 온라인 자동 다운로드를 진행합니다. (약 3초 소요)</p>
+    <p id="bibleDownloadError" class="hint" style="color:#f87171" hidden></p>
+    <div class="song-form-actions">
+      <button type="button" id="btnBibleDownloadOpenFolder" class="secondary" hidden data-i18n="bibleDownloadOpenFolder">성경 폴더 열기</button>
+      <button type="button" id="btnBibleDownloadConfirm" class="primary" data-i18n="btnConfirm">확인</button>
+    </div>
+  </div>
+</div>
+
+<div id="appUpdateModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="appUpdateTitle">
+  <div class="song-form-modal">
+    <h2 id="appUpdateTitle" data-i18n="appUpdateTitle">업데이트</h2>
+    <p id="appUpdateMessage" class="hint"></p>
+    <p id="appUpdateProgress" class="hint" hidden></p>
+    <div class="song-form-actions">
+      <button type="button" id="btnAppUpdateLater" class="secondary" data-i18n="appUpdateLater">나중에</button>
+      <button type="button" id="btnAppUpdateDownload" class="primary" data-i18n="appUpdateDownload">다운로드</button>
+      <button type="button" id="btnAppUpdateInstall" class="primary" hidden data-i18n="appUpdateInstall">지금 재시작</button>
+    </div>
+  </div>
+</div>
+
 <div id="newSongModal" class="modal-overlay">
   <div class="song-form-modal" role="dialog" aria-labelledby="newSongModalTitle">
     <h2 id="newSongModalTitle" data-i18n="newSongTitle">새 곡 등록</h2>
@@ -1960,15 +2511,17 @@ const SE = require('./slide-engine');
 const BE = require('./bible-engine');
 const I18N = require('./i18n');
 const AppSettings = require('./app-settings');
+const AppPaths = require('./app-paths');
 const SC = require('./shortcuts');
 const PlaylistStore = require('./playlists');
 const { EditorHistory } = require('./editor-history');
 const Themes = require('./themes');
+const DisplayMapperUI = require('./display-mapper-ui');
 
 let appSettings = AppSettings.loadSettings();
 I18N.setLanguage(appSettings.language);
 
-const MEDIA_ASSETS_DIR = path.join(__dirname, 'media', 'assets');
+const MEDIA_ASSETS_DIR = AppPaths.getMediaAssetsDir();
 
 function resolveMediaFileUrl(filename) {
   if (!filename) return null;
@@ -2018,15 +2571,29 @@ let pendingLocalLibrarySave = false;
 let inspectorPointerDepth = 0;
 let filmstripThumbTimer = null;
 let editorStripThumbTimer = null;
-let layerVisibility = { lyrics: true, media: true, design: true };
+let layerVisibility = { lyrics: true, media: true, design: true, props: true, audio: true, announcements: true };
+let macrosCatalog = { macros: [], props: [] };
+let activePropId = '';
+const SECTION_COLOR_PALETTE = ['#4d8ef7', '#3dd68c', '#f97316', '#a78bfa', '#e85d5d', '#eab308', '#06b6d4', '#ec4899'];
+const SLIDE_THUMB_RATIO = 16 / 9;
+let propOverlayActive = false;
+let stageDisplayVisible = false;
+let relayDisplayVisible = false;
+let lastStagePreview = { now: '', next: '' };
+let quickSearchOpen = false;
+let quickSearchActiveIndex = 0;
+let mediaPanelVisible = appSettings.mediaPanelVisible !== false;
 let appWorkspaceMode = 'slides';
 let bibleData = {};
+let bibleMeta = { revisedAvailable: false, needsDownload: true, activeVersion: 'old' };
 let bibleParsedRef = null;
 let bibleSearchVerses = [];
 let bibleSelectedVerseKeys = new Set();
 let bibleSelectionAnchorIndex = -1;
 let filmstripSelectedKeys = new Set();
 let filmstripSelectionAnchor = null;
+let quickEditMode = false;
+let quickEditOverlay = null;
 let editorSelectedIndices = new Set();
 let editorSelectionAnchor = -1;
 let bibleThumbResizeObs = null;
@@ -2184,9 +2751,24 @@ function readSettingsForm() {
     masterVolume: Number(document.getElementById('masterVolume').value),
     outputWidth: Number(document.getElementById('outputWidth').value),
     outputHeight: Number(document.getElementById('outputHeight').value),
+    outputLockAspect: document.getElementById('outputLockAspect')?.checked === true,
     outputDisplayId: appSettings.outputDisplayId || '',
     outputAutoFit: document.getElementById('outputAutoFit').checked,
     autoOpenOutputOnStart: document.getElementById('autoOpenOutput').checked,
+    stageWidth: Number(document.getElementById('stageWidth')?.value || appSettings.stageWidth),
+    stageHeight: Number(document.getElementById('stageHeight')?.value || appSettings.stageHeight),
+    stageLockAspect: document.getElementById('stageLockAspect')?.checked === true,
+    stageDisplayId: appSettings.stageDisplayId || '',
+    autoOpenStageOnStart: document.getElementById('autoOpenStage')?.checked === true,
+    relayWidth: Number(document.getElementById('relayWidth')?.value || appSettings.relayWidth),
+    relayHeight: Number(document.getElementById('relayHeight')?.value || appSettings.relayHeight),
+    relayLockAspect: document.getElementById('relayLockAspect')?.checked === true,
+    relayDisplayId: appSettings.relayDisplayId || '',
+    autoOpenRelayOnStart: document.getElementById('autoOpenRelay')?.checked === true,
+    showGuideCrosshair: document.getElementById('showGuideCrosshair')?.checked !== false,
+    showGuideSafeArea: document.getElementById('showGuideSafeArea')?.checked !== false,
+    showGuideTitleSafe: document.getElementById('showGuideTitleSafe')?.checked !== false,
+    showEditorGrid: document.getElementById('showEditorGrid')?.checked !== false,
     lyricsFadeMs: Number(document.getElementById('lyricsFadeMs').value),
     backgroundFadeMs: Number(document.getElementById('bgFadeMs').value),
     layerFadeMs: Number(document.getElementById('layerFadeMs').value),
@@ -2221,14 +2803,71 @@ function populateLogoMediaSelect(selectedId) {
 }
 
 let displaysCache = null;
+let activeScreenAssignRole = 'program';
+let displayMapperTimer = null;
+
+function getScreenLayoutLabels() {
+  return {
+    empty: I18N.t('displayMapperEmpty'),
+    program: I18N.t('screenRoleProgram'),
+    stage: I18N.t('screenRoleStage'),
+    relay: I18N.t('screenRoleRelay'),
+  };
+}
+
+function assignScreenRole(displayId, role) {
+  const id = String(displayId || '').trim();
+  if (!id) return;
+  const patch = {};
+
+  if (role === 'clear') {
+    if (String(appSettings.outputDisplayId || '').trim() === id) {
+      appSettings.outputDisplayId = '';
+      patch.outputDisplayId = '';
+    }
+    if (String(appSettings.stageDisplayId || '').trim() === id) {
+      appSettings.stageDisplayId = '';
+      patch.stageDisplayId = '';
+    }
+    if (String(appSettings.relayDisplayId || '').trim() === id) {
+      appSettings.relayDisplayId = '';
+      patch.relayDisplayId = '';
+    }
+    if (Object.keys(patch).length) ipcRenderer.send('settings:save', patch);
+    renderDisplayMapper();
+    return;
+  }
+
+  if (role === 'program') {
+    const cur = String(appSettings.outputDisplayId || '').trim();
+    appSettings.outputDisplayId = cur === id ? '' : id;
+    patch.outputDisplayId = appSettings.outputDisplayId;
+  } else if (role === 'stage') {
+    const cur = String(appSettings.stageDisplayId || '').trim();
+    appSettings.stageDisplayId = cur === id ? '' : id;
+    patch.stageDisplayId = appSettings.stageDisplayId;
+  } else if (role === 'relay') {
+    const cur = String(appSettings.relayDisplayId || '').trim();
+    appSettings.relayDisplayId = cur === id ? '' : id;
+    patch.relayDisplayId = appSettings.relayDisplayId;
+  } else {
+    return;
+  }
+
+  ipcRenderer.send('settings:save', patch);
+  renderDisplayMapper();
+}
+
+function setActiveScreenAssignRole(role) {
+  activeScreenAssignRole = String(role || 'program').trim() || 'program';
+  document.querySelectorAll('.screen-role-btn').forEach((btn) => {
+    btn.classList.toggle('is-active', btn.dataset.role === activeScreenAssignRole);
+  });
+  renderDisplayMapper();
+}
 
 function getAutoOutputDisplayId(displays) {
-  if (!displays?.length) return '';
-  if (displays.length >= 2) {
-    const secondary = displays.find((d) => !d.isPrimary) || displays[1];
-    return String(secondary.id);
-  }
-  return String(displays[0].id);
+  return DisplayMapperUI.getAutoOutputDisplayId(displays);
 }
 
 function populateOutputResolutionPresetSelect() {
@@ -2243,6 +2882,66 @@ function populateOutputResolutionPresetSelect() {
   ].join('');
 }
 
+function populateStageResolutionPresetSelect() {
+  const sel = document.getElementById('stageResolutionPreset');
+  if (!sel) return;
+  const customLabel = I18N.t('outputResolutionCustom');
+  sel.innerHTML = [
+    ...AppSettings.OUTPUT_QUICK_PRESETS.map(
+      (p) => `<option value="${p.id}">${p.label}</option>`,
+    ),
+    `<option value="custom">${customLabel}</option>`,
+  ].join('');
+}
+
+function populateRelayResolutionPresetSelect() {
+  const sel = document.getElementById('relayResolutionPreset');
+  if (!sel) return;
+  const customLabel = I18N.t('outputResolutionCustom');
+  sel.innerHTML = [
+    ...AppSettings.OUTPUT_QUICK_PRESETS.map(
+      (p) => `<option value="${p.id}">${p.label}</option>`,
+    ),
+    `<option value="custom">${customLabel}</option>`,
+  ].join('');
+}
+
+function syncStageResolutionPresetUI(s) {
+  populateStageResolutionPresetSelect();
+  const settings = s || appSettings;
+  const stage = AppSettings.getStageResolution(settings);
+  const preset = document.getElementById('stageResolutionPreset');
+  const widthInp = document.getElementById('stageWidth');
+  const heightInp = document.getElementById('stageHeight');
+  const lockInp = document.getElementById('stageLockAspect');
+  if (widthInp && document.activeElement !== widthInp) widthInp.value = String(stage.width);
+  if (heightInp && document.activeElement !== heightInp) heightInp.value = String(stage.height);
+  if (lockInp && document.activeElement !== lockInp) lockInp.checked = settings.stageLockAspect === true;
+  const resFocused = document.activeElement === widthInp
+    || document.activeElement === heightInp
+    || document.activeElement === preset
+    || document.activeElement === lockInp;
+  if (preset && !resFocused) preset.value = AppSettings.findResolutionPresetId(stage.width, stage.height);
+}
+
+function syncRelayResolutionPresetUI(s) {
+  populateRelayResolutionPresetSelect();
+  const settings = s || appSettings;
+  const relay = AppSettings.getRelayResolution(settings);
+  const preset = document.getElementById('relayResolutionPreset');
+  const widthInp = document.getElementById('relayWidth');
+  const heightInp = document.getElementById('relayHeight');
+  const lockInp = document.getElementById('relayLockAspect');
+  if (widthInp && document.activeElement !== widthInp) widthInp.value = String(relay.width);
+  if (heightInp && document.activeElement !== heightInp) heightInp.value = String(relay.height);
+  if (lockInp && document.activeElement !== lockInp) lockInp.checked = settings.relayLockAspect === true;
+  const resFocused = document.activeElement === widthInp
+    || document.activeElement === heightInp
+    || document.activeElement === preset
+    || document.activeElement === lockInp;
+  if (preset && !resFocused) preset.value = AppSettings.findResolutionPresetId(relay.width, relay.height);
+}
+
 function syncOutputResolutionPresetUI(s) {
   populateOutputResolutionPresetSelect();
   const settings = s || appSettings;
@@ -2251,9 +2950,15 @@ function syncOutputResolutionPresetUI(s) {
   const preset = document.getElementById('outputResolutionPreset');
   const widthInp = document.getElementById('outputWidth');
   const heightInp = document.getElementById('outputHeight');
-  if (widthInp) widthInp.value = String(w);
-  if (heightInp) heightInp.value = String(h);
-  if (preset) preset.value = AppSettings.findResolutionPresetId(w, h);
+  const lockInp = document.getElementById('outputLockAspect');
+  if (widthInp && document.activeElement !== widthInp) widthInp.value = String(w);
+  if (heightInp && document.activeElement !== heightInp) heightInp.value = String(h);
+  if (lockInp && document.activeElement !== lockInp) lockInp.checked = settings.outputLockAspect === true;
+  const resFocused = document.activeElement === widthInp
+    || document.activeElement === heightInp
+    || document.activeElement === preset
+    || document.activeElement === lockInp;
+  if (preset && !resFocused) preset.value = AppSettings.findResolutionPresetId(w, h);
 }
 
 async function refreshDisplayMapper() {
@@ -2266,73 +2971,119 @@ async function refreshDisplayMapper() {
 }
 
 function renderDisplayMapper() {
-  const root = document.getElementById('displayMapper');
-  if (!root || !displaysCache?.displays?.length) {
-    if (root) root.innerHTML = `<span class="hint" style="display:block;padding:20px;text-align:center;">${I18N.t('displayMapperEmpty')}</span>`;
+  clearTimeout(displayMapperTimer);
+  displayMapperTimer = setTimeout(() => renderDisplayMapperNow(), 60);
+}
+
+function renderDisplayMapperNow() {
+  const layoutRoot = document.getElementById('screenLayoutMapper');
+  if (!displaysCache?.displays?.length) {
+    if (layoutRoot) {
+      layoutRoot.innerHTML = `<span class="hint dm-empty">${I18N.t('displayMapperEmpty')}</span>`;
+      layoutRoot.style.height = '140px';
+    }
     return;
   }
-
-  const { displays, virtualBounds } = displaysCache;
-  const savedId = String(appSettings.outputDisplayId || '').trim();
-  const autoId = getAutoOutputDisplayId(displays);
-  const effectiveId = savedId || autoId;
-
-  const pad = 16;
-  const innerW = Math.max(virtualBounds.width, 1);
-  const innerH = Math.max(virtualBounds.height, 1);
-  const maxW = 400;
-  const maxH = 180;
-  const scale = Math.min((maxW - pad * 2) / innerW, (maxH - pad * 2) / innerH);
-
-  root.style.height = `${Math.round(innerH * scale + pad * 2)}px`;
-  root.innerHTML = '';
-
-  displays.forEach((d) => {
-    const block = document.createElement('button');
-    block.type = 'button';
-    block.className = 'display-mapper-block';
-    if (d.isPrimary) block.classList.add('is-primary');
-    const isTarget = String(d.id) === effectiveId;
-    if (isTarget) block.classList.add('is-selected');
-    if (!savedId && isTarget) block.classList.add('is-auto');
-
-    const left = pad + (d.bounds.x - virtualBounds.x) * scale;
-    const top = pad + (d.bounds.y - virtualBounds.y) * scale;
-    const w = Math.max(d.bounds.width * scale, 52);
-    const h = Math.max(d.bounds.height * scale, 40);
-
-    block.style.left = `${left}px`;
-    block.style.top = `${top}px`;
-    block.style.width = `${w}px`;
-    block.style.height = `${h}px`;
-
-    const primaryTag = d.isPrimary ? ` ${I18N.t('displayPrimaryTag')}` : '';
-    block.innerHTML = `<span class="dm-label">${I18N.t('displayMonitorN', { n: d.index + 1 })}${primaryTag}</span><span class="dm-size">${d.bounds.width}×${d.bounds.height}</span>`;
-    block.title = `${d.label || ''} (${d.bounds.width}×${d.bounds.height})`;
-    block.addEventListener('click', () => selectOutputDisplay(d.id));
-    root.appendChild(block);
+  DisplayMapperUI.renderScreenLayoutMapper(layoutRoot, displaysCache, {
+    settings: appSettings,
+    activeRole: activeScreenAssignRole,
+    labels: getScreenLayoutLabels(),
+    onAssign: (displayId, role) => assignScreenRole(displayId, role || activeScreenAssignRole),
+  });
+  document.querySelectorAll('.screen-role-btn').forEach((btn) => {
+    btn.classList.toggle('is-active', btn.dataset.role === activeScreenAssignRole);
   });
 }
 
-function selectOutputDisplay(id) {
-  appSettings.outputDisplayId = String(id);
-  ipcRenderer.send('settings:save', { outputDisplayId: appSettings.outputDisplayId });
-  renderDisplayMapper();
-}
-
 function applyOutputResolutionLive(width, height) {
-  const res = AppSettings.normalizeOutputResolution(width, height);
+  const lockInp = document.getElementById('outputLockAspect');
+  let lock = lockInp?.checked ?? appSettings.outputLockAspect === true;
+  const w = Number(width);
+  const h = Number(height);
+  if (lock && Number.isFinite(w) && Number.isFinite(h)) {
+    const expectedH = Math.round(w * 9 / 16);
+    if (Math.abs(h - expectedH) > 2) {
+      lock = false;
+      if (lockInp) lockInp.checked = false;
+    }
+  }
+  const res = AppSettings.normalizeResolution(w, h, lock);
   appSettings.outputWidth = res.width;
   appSettings.outputHeight = res.height;
+  appSettings.outputLockAspect = lock;
   applyStageAspectToUI();
   if (appWorkspaceMode === 'slide-edit') layoutSlideEditCanvas();
   if (slideGrid.classList.contains('has-slides')) layoutSlideGrid();
   syncOutputResolutionPresetUI(appSettings);
-  ipcRenderer.send('settings:save', { outputWidth: res.width, outputHeight: res.height });
+  ipcRenderer.send('settings:save', {
+    outputWidth: res.width,
+    outputHeight: res.height,
+    outputLockAspect: lock,
+  });
+}
+
+function applyStageResolutionLive(width, height) {
+  const lockInp = document.getElementById('stageLockAspect');
+  let lock = lockInp?.checked ?? appSettings.stageLockAspect === true;
+  const w = Number(width);
+  const h = Number(height);
+  if (lock && Number.isFinite(w) && Number.isFinite(h)) {
+    const expectedH = Math.round(w * 9 / 16);
+    if (Math.abs(h - expectedH) > 2) {
+      lock = false;
+      if (lockInp) lockInp.checked = false;
+    }
+  }
+  const res = AppSettings.normalizeResolution(w, h, lock);
+  appSettings.stageWidth = res.width;
+  appSettings.stageHeight = res.height;
+  appSettings.stageLockAspect = lock;
+  syncStageResolutionPresetUI(appSettings);
+  ipcRenderer.send('settings:save', {
+    stageWidth: res.width,
+    stageHeight: res.height,
+    stageLockAspect: lock,
+  });
+}
+
+function applyRelayResolutionLive(width, height) {
+  const lockInp = document.getElementById('relayLockAspect');
+  let lock = lockInp?.checked ?? appSettings.relayLockAspect === true;
+  const w = Number(width);
+  const h = Number(height);
+  if (lock && Number.isFinite(w) && Number.isFinite(h)) {
+    const expectedH = Math.round(w * 9 / 16);
+    if (Math.abs(h - expectedH) > 2) {
+      lock = false;
+      if (lockInp) lockInp.checked = false;
+    }
+  }
+  const res = AppSettings.normalizeResolution(w, h, lock);
+  appSettings.relayWidth = res.width;
+  appSettings.relayHeight = res.height;
+  appSettings.relayLockAspect = lock;
+  syncRelayResolutionPresetUI(appSettings);
+  ipcRenderer.send('settings:save', {
+    relayWidth: res.width,
+    relayHeight: res.height,
+    relayLockAspect: lock,
+  });
 }
 
 function applyStageAspectToUI() {
-  document.documentElement.style.setProperty('--stage-aspect-ratio', '16 / 9');
+  const out = AppSettings.getOutputResolution(appSettings);
+  document.documentElement.style.setProperty('--stage-aspect-ratio', `${out.width} / ${out.height}`);
+  document.documentElement.style.setProperty('--editor-aspect-ratio', `${out.width} / ${out.height}`);
+  document.documentElement.style.setProperty('--slide-thumb-aspect-ratio', `${out.width} / ${out.height}`);
+  const tag = document.getElementById('editorAspectTag');
+  if (tag) tag.textContent = `${out.width}×${out.height}`;
+  const ratioTag = document.querySelector('.stage-ratio-tag');
+  if (ratioTag) ratioTag.textContent = `${out.width}×${out.height}`;
+}
+
+function getSlideThumbMetrics() {
+  const dims = SE.getStageDimensions(appSettings);
+  return { width: dims.width, height: dims.height, ratio: dims.width / dims.height };
 }
 
 function writeSettingsForm(s) {
@@ -2345,8 +3096,22 @@ function writeSettingsForm(s) {
     if (mvv) mvv.textContent = `${mv.value}%`;
   }
   syncOutputResolutionPresetUI(s);
+  syncStageResolutionPresetUI(s);
+  syncRelayResolutionPresetUI(s);
   document.getElementById('outputAutoFit').checked = s.outputAutoFit !== false;
   document.getElementById('autoOpenOutput').checked = s.autoOpenOutputOnStart !== false;
+  const autoStage = document.getElementById('autoOpenStage');
+  if (autoStage) autoStage.checked = s.autoOpenStageOnStart === true;
+  const autoRelay = document.getElementById('autoOpenRelay');
+  if (autoRelay) autoRelay.checked = s.autoOpenRelayOnStart === true;
+  const guideCross = document.getElementById('showGuideCrosshair');
+  const guideSafe = document.getElementById('showGuideSafeArea');
+  const guideTitle = document.getElementById('showGuideTitleSafe');
+  const editorGrid = document.getElementById('showEditorGrid');
+  if (guideCross) guideCross.checked = s.showGuideCrosshair !== false;
+  if (guideSafe) guideSafe.checked = s.showGuideSafeArea !== false;
+  if (guideTitle) guideTitle.checked = s.showGuideTitleSafe !== false;
+  if (editorGrid) editorGrid.checked = s.showEditorGrid !== false;
   document.getElementById('lyricsFadeMs').value = s.lyricsFadeMs;
   document.getElementById('bgFadeMs').value = s.backgroundFadeMs;
   document.getElementById('layerFadeMs').value = s.layerFadeMs;
@@ -2571,25 +3336,276 @@ const applyOutputResolutionDebounced = debounce((w, h) => {
   applyOutputResolutionLive(w, h);
 }, 180);
 
+const applyStageResolutionDebounced = debounce((w, h) => {
+  applyStageResolutionLive(w, h);
+}, 180);
+
+const applyRelayResolutionDebounced = debounce((w, h) => {
+  applyRelayResolutionLive(w, h);
+}, 180);
+
 document.getElementById('outputResolutionPreset')?.addEventListener('change', (e) => {
   const id = e.target.value;
-  if (id === 'custom') return;
+  if (id === 'custom') {
+    const lockInp = document.getElementById('outputLockAspect');
+    if (lockInp) lockInp.checked = false;
+    appSettings.outputLockAspect = false;
+    ipcRenderer.send('settings:save', { outputLockAspect: false });
+    const widthInp = document.getElementById('outputWidth');
+    widthInp?.focus();
+    widthInp?.select();
+    return;
+  }
   const preset = AppSettings.OUTPUT_QUICK_PRESETS.find((p) => p.id === id);
   if (preset) applyOutputResolutionLive(preset.width, preset.height);
 });
 function onOutputResolutionInput() {
   const w = Number(document.getElementById('outputWidth')?.value);
-  const res = AppSettings.normalizeOutputResolution(w, Math.round(w * 9 / 16));
+  const h = Number(document.getElementById('outputHeight')?.value);
+  let lock = document.getElementById('outputLockAspect')?.checked === true;
+  if (!Number.isFinite(w) || w < 320) return;
+  if (lock && Number.isFinite(h) && Math.abs(h - Math.round(w * 9 / 16)) > 2) {
+    lock = false;
+    const lockInp = document.getElementById('outputLockAspect');
+    if (lockInp) lockInp.checked = false;
+  }
+  const res = AppSettings.normalizeResolution(
+    w,
+    Number.isFinite(h) ? h : appSettings.outputHeight,
+    lock,
+  );
   const heightInp = document.getElementById('outputHeight');
-  if (heightInp) heightInp.value = String(res.height);
+  const widthInp = document.getElementById('outputWidth');
+  if (lock) {
+    if (heightInp && document.activeElement !== heightInp) heightInp.value = String(res.height);
+  } else if (document.activeElement === widthInp && heightInp) {
+    heightInp.value = String(Number.isFinite(h) ? h : appSettings.outputHeight);
+    res.height = Number(heightInp.value);
+  }
   const preset = document.getElementById('outputResolutionPreset');
-  if (preset) preset.value = AppSettings.findResolutionPresetId(res.width, res.height);
+  if (preset) preset.value = 'custom';
   applyOutputResolutionDebounced(res.width, res.height);
 }
+function onOutputHeightInput() {
+  const h = Number(document.getElementById('outputHeight')?.value);
+  const w = Number(document.getElementById('outputWidth')?.value);
+  let lock = document.getElementById('outputLockAspect')?.checked === true;
+  if (!Number.isFinite(h) || h < 180) return;
+  if (lock && Number.isFinite(w) && Math.abs(h - Math.round(w * 9 / 16)) > 2) {
+    lock = false;
+    const lockInp = document.getElementById('outputLockAspect');
+    if (lockInp) lockInp.checked = false;
+  }
+  const res = AppSettings.normalizeResolution(
+    Number.isFinite(w) ? w : appSettings.outputWidth,
+    h,
+    lock,
+  );
+  const widthInp = document.getElementById('outputWidth');
+  const heightInp = document.getElementById('outputHeight');
+  if (lock) {
+    if (widthInp && document.activeElement !== widthInp) widthInp.value = String(res.width);
+  } else if (document.activeElement === heightInp && widthInp) {
+    widthInp.value = String(Number.isFinite(w) ? w : appSettings.outputWidth);
+    res.width = Number(widthInp.value);
+  }
+  const preset = document.getElementById('outputResolutionPreset');
+  if (preset) preset.value = 'custom';
+  applyOutputResolutionDebounced(res.width, res.height);
+}
+function onStageResolutionInput() {
+  const w = Number(document.getElementById('stageWidth')?.value);
+  const h = Number(document.getElementById('stageHeight')?.value);
+  let lock = document.getElementById('stageLockAspect')?.checked === true;
+  if (!Number.isFinite(w) || w < 320) return;
+  if (lock && Number.isFinite(h) && Math.abs(h - Math.round(w * 9 / 16)) > 2) {
+    lock = false;
+    document.getElementById('stageLockAspect').checked = false;
+  }
+  const res = AppSettings.normalizeResolution(
+    w,
+    Number.isFinite(h) ? h : appSettings.stageHeight,
+    lock,
+  );
+  const heightInp = document.getElementById('stageHeight');
+  const widthInp = document.getElementById('stageWidth');
+  if (lock) {
+    if (heightInp && document.activeElement !== heightInp) heightInp.value = String(res.height);
+  } else if (document.activeElement === widthInp && heightInp) {
+    heightInp.value = String(Number.isFinite(h) ? h : appSettings.stageHeight);
+    res.height = Number(heightInp.value);
+  }
+  const preset = document.getElementById('stageResolutionPreset');
+  if (preset) preset.value = 'custom';
+  applyStageResolutionDebounced(res.width, res.height);
+}
+function onStageHeightInput() {
+  const h = Number(document.getElementById('stageHeight')?.value);
+  const w = Number(document.getElementById('stageWidth')?.value);
+  let lock = document.getElementById('stageLockAspect')?.checked === true;
+  if (!Number.isFinite(h) || h < 180) return;
+  if (lock && Number.isFinite(w) && Math.abs(h - Math.round(w * 9 / 16)) > 2) {
+    lock = false;
+    document.getElementById('stageLockAspect').checked = false;
+  }
+  const res = AppSettings.normalizeResolution(
+    Number.isFinite(w) ? w : appSettings.stageWidth,
+    h,
+    lock,
+  );
+  const widthInp = document.getElementById('stageWidth');
+  const heightInp = document.getElementById('stageHeight');
+  if (lock) {
+    if (widthInp && document.activeElement !== widthInp) widthInp.value = String(res.width);
+  } else if (document.activeElement === heightInp && widthInp) {
+    widthInp.value = String(Number.isFinite(w) ? w : appSettings.stageWidth);
+    res.width = Number(widthInp.value);
+  }
+  const preset = document.getElementById('stageResolutionPreset');
+  if (preset) preset.value = 'custom';
+  applyStageResolutionDebounced(res.width, res.height);
+}
+function onRelayResolutionInput() {
+  const w = Number(document.getElementById('relayWidth')?.value);
+  const h = Number(document.getElementById('relayHeight')?.value);
+  let lock = document.getElementById('relayLockAspect')?.checked === true;
+  if (!Number.isFinite(w) || w < 320) return;
+  if (lock && Number.isFinite(h) && Math.abs(h - Math.round(w * 9 / 16)) > 2) {
+    lock = false;
+    document.getElementById('relayLockAspect').checked = false;
+  }
+  const res = AppSettings.normalizeResolution(
+    w,
+    Number.isFinite(h) ? h : appSettings.relayHeight,
+    lock,
+  );
+  const heightInp = document.getElementById('relayHeight');
+  const widthInp = document.getElementById('relayWidth');
+  if (lock) {
+    if (heightInp && document.activeElement !== heightInp) heightInp.value = String(res.height);
+  } else if (document.activeElement === widthInp && heightInp) {
+    heightInp.value = String(Number.isFinite(h) ? h : appSettings.relayHeight);
+    res.height = Number(heightInp.value);
+  }
+  const preset = document.getElementById('relayResolutionPreset');
+  if (preset) preset.value = 'custom';
+  applyRelayResolutionDebounced(res.width, res.height);
+}
+function onRelayHeightInput() {
+  const h = Number(document.getElementById('relayHeight')?.value);
+  const w = Number(document.getElementById('relayWidth')?.value);
+  let lock = document.getElementById('relayLockAspect')?.checked === true;
+  if (!Number.isFinite(h) || h < 180) return;
+  if (lock && Number.isFinite(w) && Math.abs(h - Math.round(w * 9 / 16)) > 2) {
+    lock = false;
+    document.getElementById('relayLockAspect').checked = false;
+  }
+  const res = AppSettings.normalizeResolution(
+    Number.isFinite(w) ? w : appSettings.relayWidth,
+    h,
+    lock,
+  );
+  const widthInp = document.getElementById('relayWidth');
+  const heightInp = document.getElementById('relayHeight');
+  if (lock) {
+    if (widthInp && document.activeElement !== widthInp) widthInp.value = String(res.width);
+  } else if (document.activeElement === heightInp && widthInp) {
+    widthInp.value = String(Number.isFinite(w) ? w : appSettings.relayWidth);
+    res.width = Number(widthInp.value);
+  }
+  const preset = document.getElementById('relayResolutionPreset');
+  if (preset) preset.value = 'custom';
+  applyRelayResolutionDebounced(res.width, res.height);
+}
+document.getElementById('outputHeight')?.removeAttribute('readonly');
+document.getElementById('outputHeight')?.addEventListener('input', onOutputHeightInput);
+document.getElementById('outputHeight')?.addEventListener('change', onOutputHeightInput);
+document.getElementById('outputHeight')?.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    onOutputHeightInput();
+    const w = Number(document.getElementById('outputWidth')?.value);
+    const h = Number(document.getElementById('outputHeight')?.value);
+    if (!Number.isFinite(w) || !Number.isFinite(h)) return;
+    applyOutputResolutionLive(w, h);
+  }
+});
 document.getElementById('outputWidth')?.addEventListener('input', onOutputResolutionInput);
 document.getElementById('outputWidth')?.addEventListener('change', onOutputResolutionInput);
+document.getElementById('outputWidth')?.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    onOutputResolutionInput();
+    const w = Number(document.getElementById('outputWidth')?.value);
+    const h = Number(document.getElementById('outputHeight')?.value);
+    if (!Number.isFinite(w) || !Number.isFinite(h)) return;
+    applyOutputResolutionLive(w, h);
+  }
+});
+document.getElementById('outputLockAspect')?.addEventListener('change', () => {
+  onOutputResolutionInput();
+});
+document.getElementById('stageResolutionPreset')?.addEventListener('change', (e) => {
+  const id = e.target.value;
+  if (id === 'custom') {
+    const lockInp = document.getElementById('stageLockAspect');
+    if (lockInp) lockInp.checked = false;
+    appSettings.stageLockAspect = false;
+    ipcRenderer.send('settings:save', { stageLockAspect: false });
+    document.getElementById('stageWidth')?.focus();
+    return;
+  }
+  const preset = AppSettings.OUTPUT_QUICK_PRESETS.find((p) => p.id === id);
+  if (preset) applyStageResolutionLive(preset.width, preset.height);
+});
+document.getElementById('stageWidth')?.addEventListener('input', onStageResolutionInput);
+document.getElementById('stageWidth')?.addEventListener('change', onStageResolutionInput);
+document.getElementById('stageHeight')?.addEventListener('input', onStageHeightInput);
+document.getElementById('stageHeight')?.addEventListener('change', onStageHeightInput);
+document.getElementById('stageLockAspect')?.addEventListener('change', () => {
+  onStageResolutionInput();
+});
+['showGuideCrosshair', 'showGuideSafeArea', 'showGuideTitleSafe', 'showEditorGrid'].forEach((key) => {
+  document.getElementById(key)?.addEventListener('change', (e) => {
+    appSettings[key] = e.target.checked;
+    updateEditorGridUI();
+    ipcRenderer.send('settings:save', { [key]: e.target.checked });
+  });
+});
+document.getElementById('autoOpenStage')?.addEventListener('change', (e) => {
+  ipcRenderer.send('settings:save', { autoOpenStageOnStart: e.target.checked });
+});
+document.getElementById('relayResolutionPreset')?.addEventListener('change', (e) => {
+  const id = e.target.value;
+  if (id === 'custom') {
+    const lockInp = document.getElementById('relayLockAspect');
+    if (lockInp) lockInp.checked = false;
+    appSettings.relayLockAspect = false;
+    ipcRenderer.send('settings:save', { relayLockAspect: false });
+    document.getElementById('relayWidth')?.focus();
+    return;
+  }
+  const preset = AppSettings.OUTPUT_QUICK_PRESETS.find((p) => p.id === id);
+  if (preset) applyRelayResolutionLive(preset.width, preset.height);
+});
+document.getElementById('relayWidth')?.addEventListener('input', onRelayResolutionInput);
+document.getElementById('relayWidth')?.addEventListener('change', onRelayResolutionInput);
+document.getElementById('relayHeight')?.addEventListener('input', onRelayHeightInput);
+document.getElementById('relayHeight')?.addEventListener('change', onRelayHeightInput);
+document.getElementById('relayLockAspect')?.addEventListener('change', () => {
+  onRelayResolutionInput();
+});
+document.getElementById('autoOpenRelay')?.addEventListener('change', (e) => {
+  ipcRenderer.send('settings:save', { autoOpenRelayOnStart: e.target.checked });
+});
+document.getElementById('btnFitRelayWindowSettings')?.addEventListener('click', () => {
+  ipcRenderer.send('relay:fit-window');
+});
+document.querySelectorAll('.screen-role-btn').forEach((btn) => {
+  btn.addEventListener('click', () => setActiveScreenAssignRole(btn.dataset.role));
+});
 document.getElementById('btnFitOutputWindowSettings')?.addEventListener('click', () => {
-  ipcRenderer.send('output:fit-window');
+  ipcRenderer.send('output:enter-fullscreen');
 });
 
 document.getElementById('btnSaveSettings').onclick = () => {
@@ -2610,6 +3626,8 @@ document.getElementById('btnResetShortcuts').onclick = () => {
 ipcRenderer.on('settings:sync', (_e, settings) => {
   appSettings = AppSettings.normalize(settings);
   I18N.setLanguage(appSettings.language);
+  mediaPanelVisible = appSettings.mediaPanelVisible !== false;
+  applyMediaPanelVisibility();
   applyPreviewFadeCss();
   applyPanelSizes();
   applyStageAspectToUI();
@@ -2617,6 +3635,7 @@ ipcRenderer.on('settings:sync', (_e, settings) => {
   renderBibleThemeSelect();
   syncBibleOptionsUI();
   updateEditorGridUI();
+  updateEditorGuidesUI();
   if (isModalOpen(settingsModal)) {
     writeSettingsForm(appSettings);
     renderDisplayMapper();
@@ -2696,6 +3715,7 @@ function captureEditorHistoryState() {
 
 function restoreEditorHistoryState(state) {
   if (!state) return;
+  closeActiveInlineTextEditor();
   skipEditorHistory = true;
   editorSongData = state.editorSongData;
   editorContext = state.editorContext;
@@ -2704,9 +3724,48 @@ function restoreEditorHistoryState(state) {
   reflowHighlightIndex = state.reflowHighlightIndex;
   reflowTextarea.value = state.reflowText;
   reflowHistorySlideCount = editorSongData.slides.length;
-  commitEditorChange(false);
+  syncEditorAfterHistoryRestore();
   skipEditorHistory = false;
   updateUndoRedoButtons();
+}
+
+function syncEditorAfterHistoryRestore() {
+  if (appWorkspaceMode === 'reflow') {
+    syncLyricsFromSlides();
+    renderReflowMiniPreview();
+    updateEditorMeta();
+    return;
+  }
+  if (appWorkspaceMode === 'theme-edit') {
+    renderEditorCanvas();
+    renderInspector();
+    updateThemeWorkspaceMeta();
+    return;
+  }
+  if (appWorkspaceMode === 'slide-edit') {
+    syncLyricsFromSlides();
+    pruneEditorSelectedIndices();
+    renderSlideStrip();
+    renderEditorCanvas();
+    updateEditorMeta();
+    updateWorkspaceHeadForMode();
+    syncEditorSlideToLiveAndBroadcast();
+    const layer = selectedLayerId ? getLayerById(selectedLayerId) : null;
+    if (!layer || !document.getElementById('inspLayerList')) {
+      renderInspector();
+      return;
+    }
+    syncLayerListUI(getCurrentSlide());
+    fillInspectorTransformInputs(layer);
+    bindLayerTransform(layer);
+    if (layer.type === 'text') bindTextInspector(layer);
+    else if (layer.type === 'rect') bindRectInspector(layer);
+    bindInspectorZOrder();
+    return;
+  }
+  renderEditorCanvas();
+  renderInspector();
+  updateEditorMeta();
 }
 
 function updateUndoRedoButtons() {
@@ -2870,22 +3929,31 @@ function previewEditorChange(opts = {}) {
   if (save) scheduleAutoSave();
 }
 
+function resolvePreviewSlide(slide) {
+  if (!slide) return slide;
+  return SE.normalizeSlide(JSON.parse(JSON.stringify(slide)));
+}
+
 function sendBroadcastFullState(slide, meta = {}) {
   if (meta.allowClear === false && !slide) return;
   const norm = SE.normalizeSlide(JSON.parse(JSON.stringify(slide)));
   const outSlide = slideForOutput(norm);
   if (!SE.hasSlideRenderableContent(outSlide)) {
-    if (!isBlackout && meta.allowClear !== false) ipcRenderer.send('send-slide', null);
+    if (meta.allowClear !== false) ipcRenderer.send('send-slide', null);
     return;
   }
-  ipcRenderer.send('send-slide', {
+  const stageMeta = buildStageBroadcastMeta(norm, meta);
+  const payload = {
     slide: outSlide,
     slideIndex: meta.slideIndex ?? activeSlideIndex,
     songTitle: meta.songTitle ?? currentSongTitle,
     source: meta.source ?? 'controller',
-    mediaLayerVisible: layerVisibility.media,
-  });
-  renderPreviewSlide(norm);
+    ...stageMeta,
+  };
+  payload.mediaLayerVisible = layerVisibility.media;
+  ipcRenderer.send('send-slide', payload);
+  renderPreviewSlide(resolvePreviewSlide(norm));
+  refreshStagePreviewFromSlides();
 }
 
 function broadcastActiveSlideIfLive() {
@@ -2983,6 +4051,27 @@ function updateEditorGridUI() {
   const on = appSettings.showEditorGrid !== false;
   if (grid) grid.classList.toggle('is-on', on);
   if (btn) btn.classList.toggle('is-on', on);
+  updateEditorGuidesUI();
+}
+
+function updateEditorGuidesUI() {
+  const guides = document.getElementById('editCanvasGuides');
+  if (!guides) return;
+  const cross = appSettings.showGuideCrosshair !== false;
+  const safe = appSettings.showGuideSafeArea !== false;
+  const title = appSettings.showGuideTitleSafe !== false;
+  guides.classList.toggle('is-crosshair-on', cross);
+  guides.classList.toggle('is-safe-on', safe);
+  guides.classList.toggle('is-title-on', title);
+  document.getElementById('btnToggleGuideCrosshair')?.classList.toggle('is-on', cross);
+  document.getElementById('btnToggleGuideSafe')?.classList.toggle('is-on', safe);
+  document.getElementById('btnToggleGuideTitle')?.classList.toggle('is-on', title);
+}
+
+function toggleEditorGuide(key) {
+  appSettings[key] = !appSettings[key];
+  updateEditorGuidesUI();
+  ipcRenderer.send('settings:save', { [key]: appSettings[key] });
 }
 
 function toggleEditorGrid() {
@@ -2999,7 +4088,10 @@ function layoutSlideEditCanvas() {
   const pad = 32;
   const vw = Math.max(240, viewport.clientWidth - pad);
   const vh = Math.max(160, viewport.clientHeight - pad);
-  const aspect = SE.STAGE_ASPECT_RATIO || (16 / 9);
+  const aspect = (() => {
+    const dims = SE.getStageDimensions(appSettings);
+    return dims.width / dims.height;
+  })();
   const zoom = (appSettings.editorCanvasZoom || 100) / 100;
   let baseW = vw * 0.96;
   let baseH = baseW / aspect;
@@ -3147,6 +4239,11 @@ function initSlidesFilmstripZoom() {
   });
   document.getElementById('btnFilmstripZoomFit')?.addEventListener('click', () => {
     setSlidesFilmstripZoom(100);
+  });
+  document.getElementById('btnQuickEditMode')?.addEventListener('click', () => {
+    quickEditMode = !quickEditMode;
+    document.getElementById('btnQuickEditMode')?.classList.toggle('is-active-toggle', quickEditMode);
+    if (!quickEditMode) closeQuickEditOverlay();
   });
   syncSlidesFilmstripZoomUI();
 }
@@ -3438,6 +4535,82 @@ function buildBibleSlidesForVerses(verses) {
 function syncBibleOptionsUI() {
   const verseChk = document.getElementById('bibleShowVerseNumbers');
   if (verseChk) verseChk.checked = !!appSettings.bibleShowVerseNumbers;
+  syncBibleTranslationSelect();
+}
+
+function syncBibleTranslationSelect() {
+  const sel = document.getElementById('bibleTranslation');
+  if (!sel) return;
+  const revisedOk = !!bibleMeta?.revisedAvailable;
+  const revisedOpt = sel.querySelector('option[value="revised"]');
+  if (revisedOpt) revisedOpt.disabled = !revisedOk;
+  const preferred = appSettings.bibleVersion === 'revised' && revisedOk ? 'revised' : 'old';
+  sel.value = preferred;
+}
+
+function openBibleDownloadModal() {
+  const modal = document.getElementById('bibleDownloadModal');
+  if (!modal || isModalOpen(modal)) return;
+  const errEl = document.getElementById('bibleDownloadError');
+  const folderBtn = document.getElementById('btnBibleDownloadOpenFolder');
+  const confirmBtn = document.getElementById('btnBibleDownloadConfirm');
+  if (errEl) {
+    errEl.hidden = true;
+    errEl.textContent = '';
+  }
+  if (folderBtn) folderBtn.hidden = true;
+  if (confirmBtn) {
+    confirmBtn.disabled = false;
+    confirmBtn.textContent = I18N.t('btnConfirm');
+  }
+  const msg = document.getElementById('bibleDownloadMessage');
+  if (msg) msg.textContent = I18N.t('bibleDownloadPrompt');
+  modal.classList.add('is-open');
+}
+
+function closeBibleDownloadModal() {
+  document.getElementById('bibleDownloadModal')?.classList.remove('is-open');
+}
+
+async function confirmBibleDownload() {
+  const confirmBtn = document.getElementById('btnBibleDownloadConfirm');
+  const errEl = document.getElementById('bibleDownloadError');
+  const folderBtn = document.getElementById('btnBibleDownloadOpenFolder');
+  const msg = document.getElementById('bibleDownloadMessage');
+  if (confirmBtn) {
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = I18N.t('bibleDownloadProgress');
+  }
+  if (msg) msg.textContent = I18N.t('bibleDownloadProgress');
+  try {
+    const result = await ipcRenderer.invoke('bible:download-revised');
+    if (result?.ok) {
+      closeBibleDownloadModal();
+      return;
+    }
+    if (errEl) {
+      errEl.hidden = false;
+      errEl.textContent = result?.error || I18N.t('bibleDownloadFailed');
+    }
+    if (msg) msg.textContent = I18N.t('bibleDownloadFailed');
+    if (folderBtn) folderBtn.hidden = false;
+  } catch (err) {
+    if (errEl) {
+      errEl.hidden = false;
+      errEl.textContent = err?.message || I18N.t('bibleDownloadFailed');
+    }
+    if (folderBtn) folderBtn.hidden = false;
+  }
+  if (confirmBtn) {
+    confirmBtn.disabled = false;
+    confirmBtn.textContent = I18N.t('btnConfirm');
+  }
+}
+
+function applyBibleMeta(meta) {
+  if (!meta || typeof meta !== 'object') return;
+  bibleMeta = meta;
+  syncBibleTranslationSelect();
 }
 
 function renderBibleThemeSelect() {
@@ -3668,7 +4841,99 @@ function pruneFilmstripSelectedKeys() {
   }
 }
 
+function closeQuickEditOverlay() {
+  if (quickEditOverlay?.parentElement) {
+    quickEditOverlay.parentElement.classList.remove('is-quick-editing');
+    quickEditOverlay.remove();
+  }
+  quickEditOverlay = null;
+}
+
+function saveQuickEditText(songTitle, slideIndex, newText) {
+  const entry = songLibrary[songTitle];
+  if (!entry) return;
+  const slides = (entry.slides || []).map((s) => SE.normalizeSlide(JSON.parse(JSON.stringify(s))));
+  const slide = slides[slideIndex];
+  if (!slide) return;
+  const layer = SE.getPrimaryTextLayer(slide);
+  const text = String(newText || '').trimEnd();
+  if (layer) layer.content = text;
+  else {
+    slide.layers = slide.layers || [];
+    slide.layers.unshift(SE.createTextLayer(text));
+  }
+  slides[slideIndex] = SE.normalizeSlide(slide);
+  const data = { version: 2, lyrics: SE.slidesToLyrics(slides), slides };
+  songLibrary[songTitle] = SE.migrateSongEntry(data);
+  ipcRenderer.send('save-song', { title: songTitle, originalTitle: songTitle, data });
+  if (songTitle === currentSongTitle) {
+    currentSlides = slides.map((s) => SE.normalizeSlide(JSON.parse(JSON.stringify(s))));
+    if (slideIndex === activeSlideIndex && !isBlackout) {
+      sendBroadcastFullState(currentSlides[slideIndex], { slideIndex, source: 'quick-edit' });
+    }
+    refreshStagePreviewFromSlides();
+  }
+  scheduleFilmstripThumbRefresh();
+}
+
+function openQuickEditOverlay(card, songTitle, slideIndex) {
+  closeQuickEditOverlay();
+  const slide = getSongSlides(songTitle)[slideIndex];
+  if (!slide) return;
+  const media = card.querySelector('.slide-card-media');
+  if (!media) return;
+  card.classList.add('is-quick-editing');
+  const wrap = document.createElement('div');
+  wrap.className = 'slide-quick-edit-wrap';
+  const ta = document.createElement('textarea');
+  ta.value = SE.getPrimaryText(slide) || '';
+  ta.spellcheck = false;
+  const actions = document.createElement('div');
+  actions.className = 'slide-quick-edit-actions';
+  const btnSave = document.createElement('button');
+  btnSave.type = 'button';
+  btnSave.textContent = I18N.t('btnSave');
+  const btnCancel = document.createElement('button');
+  btnCancel.type = 'button';
+  btnCancel.textContent = I18N.t('btnCancel');
+  const finish = (save) => {
+    if (save) saveQuickEditText(songTitle, slideIndex, ta.value);
+    closeQuickEditOverlay();
+  };
+  btnSave.onclick = () => finish(true);
+  btnCancel.onclick = () => finish(false);
+  ta.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Escape') { ev.preventDefault(); finish(false); }
+    if (ev.key === 'Enter' && (ev.metaKey || ev.ctrlKey)) { ev.preventDefault(); finish(true); }
+  });
+  actions.appendChild(btnSave);
+  actions.appendChild(btnCancel);
+  wrap.appendChild(ta);
+  wrap.appendChild(actions);
+  media.appendChild(wrap);
+  quickEditOverlay = wrap;
+  requestAnimationFrame(() => { ta.focus(); ta.select(); });
+}
+
 function handleFilmstripSlideClick(songTitle, slideIndex, ev) {
+  if (quickEditMode && !ev?.metaKey && !ev?.ctrlKey && !ev?.shiftKey) {
+    const card = findFilmstripCard(songTitle, slideIndex);
+    if (card) {
+      setFilmstripSlideSelection(songTitle, slideIndex);
+      selectPlaylistSlide(songTitle, slideIndex);
+      openQuickEditOverlay(card, songTitle, slideIndex);
+      return;
+    }
+  }
+  const key = filmstripSlideKey(songTitle, slideIndex);
+  if ((ev?.metaKey || ev?.ctrlKey) && !ev?.shiftKey) {
+    if (filmstripSelectedKeys.has(key)) filmstripSelectedKeys.delete(key);
+    else filmstripSelectedKeys.add(key);
+    filmstripSelectionAnchor = { songTitle, slideIndex };
+    syncFilmstripMultiSelectUI();
+    selectPlaylistSlide(songTitle, slideIndex, { preserveMultiSelect: true });
+    return;
+  }
   if (ev?.shiftKey && filmstripSelectionAnchor?.songTitle === songTitle) {
     selectFilmstripSlideRange(songTitle, filmstripSelectionAnchor.slideIndex, slideIndex);
     selectPlaylistSlide(songTitle, slideIndex, { preserveMultiSelect: true });
@@ -3717,6 +4982,15 @@ function pruneEditorSelectedIndices() {
 }
 
 function handleEditorSlidePick(index, ev) {
+  if ((ev?.metaKey || ev?.ctrlKey) && !ev?.shiftKey) {
+    if (editorSelectedIndices.has(index)) editorSelectedIndices.delete(index);
+    else editorSelectedIndices.add(index);
+    editorSelectionAnchor = index;
+    syncEditorStripMultiSelectUI();
+    if (appWorkspaceMode === 'reflow') scrollReflowToSlide(index);
+    else editorSelectSlide(index, { preserveMultiSelect: true });
+    return;
+  }
   if (ev?.shiftKey && editorSelectionAnchor >= 0) {
     selectEditorSlideIndexRange(editorSelectionAnchor, index);
     if (appWorkspaceMode === 'reflow') scrollReflowToSlide(index);
@@ -3735,7 +5009,7 @@ function broadcastBibleVerse(verse) {
   const slide = SE.normalizeSlide(JSON.parse(JSON.stringify(slides[0])));
   const songTitle = BE.buildSongTitleFromReference(bibleParsedRef, [verse]);
   if (isBlackout) {
-    stealthQueueSlide(slide, slideForOutput(slide));
+    stealthQueueSlide(slide);
     renderPreviewSlide(slide);
     return;
   }
@@ -3962,19 +5236,51 @@ function clearEditorSnapGuides() {
   updateEditorSnapGuides(null);
 }
 
-function openInlineTextEditor(layerEl, layer) {
+function closeActiveInlineTextEditor() {
+  const stage = getEditStageEl();
+  const ta = stage?.querySelector('.inline-text-editor, .text-inline-editor');
+  if (!ta) return;
+  ta.onblur = null;
+  ta.remove();
+}
+
+function placeCaretInTextarea(ta, clientX, clientY) {
+  ta.focus();
+  if (typeof ta.setSelectionRange !== 'function') return;
+  const rect = ta.getBoundingClientRect();
+  const style = window.getComputedStyle(ta);
+  const padL = Number.parseFloat(style.paddingLeft) || 0;
+  const padT = Number.parseFloat(style.paddingTop) || 0;
+  const lineHeight = Number.parseFloat(style.lineHeight) || 20;
+  const relX = Math.max(0, clientX - rect.left - padL);
+  const relY = Math.max(0, clientY - rect.top - padT);
+  const lines = ta.value.split('\n');
+  const lineIndex = Math.min(lines.length - 1, Math.max(0, Math.floor(relY / lineHeight)));
+  const line = lines[lineIndex] || '';
+  const innerWidth = Math.max(1, rect.width - padL - (Number.parseFloat(style.paddingRight) || 0));
+  const col = Math.round((relX / innerWidth) * line.length);
+  let index = 0;
+  for (let i = 0; i < lineIndex; i += 1) index += lines[i].length + 1;
+  index += clamp(col, 0, line.length);
+  ta.setSelectionRange(index, index);
+}
+
+function openInlineTextEditor(layerEl, layer, pointerEvent) {
   if (layer.type !== 'text' && layer.type !== 'rect') return;
-  const existing = layerEl.querySelector('.text-inline-editor');
-  if (existing) return;
+  closeActiveInlineTextEditor();
   const ta = document.createElement('textarea');
-  ta.className = 'text-inline-editor';
+  ta.className = 'inline-text-editor';
+  ta.setAttribute('spellcheck', 'false');
   ta.value = layer.content || '';
   if (layer.type === 'text') {
     const st = layer.style || {};
     ta.style.fontFamily = st.fontFamily;
     ta.style.fontWeight = st.fontWeight || '700';
+    ta.style.fontStyle = st.fontStyle || 'normal';
     ta.style.textAlign = st.textAlign || 'center';
     ta.style.color = st.color || '#fff';
+    ta.style.lineHeight = String(st.lineHeight || 1.2);
+    ta.style.letterSpacing = `${st.letterSpacing || 0}px`;
   } else {
     const ls = SE.normalizeShapeLabelStyle(layer.labelStyle);
     ta.style.fontWeight = ls.fontWeight || '700';
@@ -3983,7 +5289,15 @@ function openInlineTextEditor(layerEl, layer) {
     ta.style.background = 'rgba(0,0,0,0.35)';
   }
   layerEl.appendChild(ta);
-  ta.focus();
+  const focusEditor = () => {
+    if (pointerEvent) placeCaretInTextarea(ta, pointerEvent.clientX, pointerEvent.clientY);
+    else {
+      ta.focus();
+      const end = ta.value.length;
+      ta.setSelectionRange(end, end);
+    }
+  };
+  requestAnimationFrame(() => requestAnimationFrame(focusEditor));
   const commit = () => {
     layer.content = ta.value;
     if (layer.type === 'rect') {
@@ -4002,6 +5316,22 @@ function openInlineTextEditor(layerEl, layer) {
   };
   ta.onblur = commit;
   ta.onkeydown = (ev) => {
+    if ((ev.metaKey || ev.ctrlKey) && ev.key.toLowerCase() === 'z' && !ev.shiftKey) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      ta.onblur = null;
+      ta.remove();
+      editorUndoAction();
+      return;
+    }
+    if ((ev.metaKey || ev.ctrlKey) && ((ev.key.toLowerCase() === 'z' && ev.shiftKey) || (ev.ctrlKey && ev.key.toLowerCase() === 'y'))) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      ta.onblur = null;
+      ta.remove();
+      editorRedoAction();
+      return;
+    }
     if (ev.key === 'Escape') { ta.value = layer.content || ''; ta.blur(); }
     if ((ev.metaKey || ev.ctrlKey) && ev.key === 'Enter') { ev.preventDefault(); ta.blur(); }
     ev.stopPropagation();
@@ -4089,6 +5419,7 @@ function refreshShapeLayerOnCanvas(layer, fullLabel = false) {
   label.style.color = ls.color;
   label.style.fontSize = `${px}px`;
   label.style.textShadow = SE.buildTextShadow(ls, scale);
+  SE.applyTextStroke(label, ls, scale);
 }
 
 function measureThumbViewportSize(viewport) {
@@ -4430,14 +5761,14 @@ function attachLayerHandles(layerEl, layer) {
     layerEl.ondblclick = (e) => {
       e.stopPropagation();
       selectLayer(layer.id);
-      openInlineTextEditor(layerEl, layer);
+      openInlineTextEditor(layerEl, layer, e);
     };
   }
   if (layer.type === 'rect') {
     layerEl.ondblclick = (e) => {
       e.stopPropagation();
       selectLayer(layer.id);
-      openInlineTextEditor(layerEl, layer);
+      openInlineTextEditor(layerEl, layer, e);
     };
   }
 }
@@ -4511,12 +5842,12 @@ function onEditorCanvasDoubleClick(e) {
   if (hit.type === 'text') {
     requestAnimationFrame(() => {
       const layerEl = getEditStageEl().querySelector(`[data-layer-id="${hit.id}"]`);
-      if (layerEl) openInlineTextEditor(layerEl, hit);
+      if (layerEl) openInlineTextEditor(layerEl, hit, e);
     });
   } else if (hit.type === 'rect') {
     requestAnimationFrame(() => {
       const layerEl = getEditStageEl().querySelector(`[data-layer-id="${hit.id}"]`);
-      if (layerEl) openInlineTextEditor(layerEl, hit);
+      if (layerEl) openInlineTextEditor(layerEl, hit, e);
     });
   }
 }
@@ -4652,9 +5983,19 @@ function renderLayerList(slide) {
 function inspectorTransformHtml() {
   return `<div class="inspector-section">
     <div class="inspector-row"><label>${I18N.t('positionLabel')}</label>
-      <div class="inspector-pos-grid">
-        <span class="axis-label">X</span><input type="number" id="inspLayerX" min="0" max="100" step="0.5">
-        <span class="axis-label">Y</span><input type="number" id="inspLayerY" min="0" max="100" step="0.5">
+      <div class="inspector-size-row">
+        <div class="size-stepper">
+          <span class="axis-label">X</span>
+          <button type="button" id="inspLayerXDown" title="-1">−</button>
+          <input type="number" id="inspLayerX" min="0" max="100" step="0.5">
+          <button type="button" id="inspLayerXUp" title="+1">+</button>
+        </div>
+        <div class="size-stepper">
+          <span class="axis-label">Y</span>
+          <button type="button" id="inspLayerYDown" title="-1">−</button>
+          <input type="number" id="inspLayerY" min="0" max="100" step="0.5">
+          <button type="button" id="inspLayerYUp" title="+1">+</button>
+        </div>
       </div>
     </div>
     <div class="inspector-row"><label>${I18N.t('sizeLabel')}</label>
@@ -4687,34 +6028,49 @@ function bindLayerTransform(layer) {
   const set = (fn) => {
     fn();
     fillInspectorTransformInputs(layer);
+    syncLayerElementBounds(layer.id);
     previewEditorChange({
       syncLyrics: layer.type === 'text',
       history: false,
-      light: layer.type === 'rect',
+      light: false,
       broadcast: layer.type === 'text',
     });
   };
-  const bindNum = (id, key, min, max) => {
+  const bindNum = (id, key, min, max, step = 0.5) => {
     const el = document.getElementById(id);
     if (!el) return;
     el.oninput = () => set(() => { layer[key] = clamp(Number(el.value), min, max); });
+    el.onkeydown = (ev) => {
+      if (ev.key === 'ArrowUp') {
+        ev.preventDefault();
+        set(() => { layer[key] = clamp(Math.round((layer[key] + step) * 10) / 10, min, max); });
+      }
+      if (ev.key === 'ArrowDown') {
+        ev.preventDefault();
+        set(() => { layer[key] = clamp(Math.round((layer[key] - step) * 10) / 10, min, max); });
+      }
+    };
   };
-  bindNum('inspLayerX', 'x', 0, 100 - layer.w);
-  bindNum('inspLayerY', 'y', 0, 100 - layer.h);
-  bindNum('inspLayerW', 'w', 5, 100);
-  bindNum('inspLayerH', 'h', 4, 100);
-  const bindStep = (upId, downId, key, min, max) => {
-    document.getElementById(upId)?.addEventListener('click', () => set(() => {
-      layer[key] = clamp(Math.round(layer[key]) + 1, min, max);
+  bindNum('inspLayerX', 'x', 0, 100 - layer.w, 0.5);
+  bindNum('inspLayerY', 'y', 0, 100 - layer.h, 0.5);
+  bindNum('inspLayerW', 'w', 5, 100, 1);
+  bindNum('inspLayerH', 'h', 4, 100, 1);
+  const bindStep = (upId, downId, key, min, max, step = 1) => {
+    const up = document.getElementById(upId);
+    const down = document.getElementById(downId);
+    if (up) up.onclick = () => set(() => {
+      layer[key] = clamp(Math.round((layer[key] + step) * 10) / 10, min, max);
       if (key === 'w') layer.x = clamp(layer.x, 0, 100 - layer.w);
       if (key === 'h') layer.y = clamp(layer.y, 0, 100 - layer.h);
-    }));
-    document.getElementById(downId)?.addEventListener('click', () => set(() => {
-      layer[key] = clamp(Math.round(layer[key]) - 1, min, max);
+    });
+    if (down) down.onclick = () => set(() => {
+      layer[key] = clamp(Math.round((layer[key] - step) * 10) / 10, min, max);
       if (key === 'w') layer.x = clamp(layer.x, 0, 100 - layer.w);
       if (key === 'h') layer.y = clamp(layer.y, 0, 100 - layer.h);
-    }));
+    });
   };
+  bindStep('inspLayerXUp', 'inspLayerXDown', 'x', 0, 100 - layer.w, 0.5);
+  bindStep('inspLayerYUp', 'inspLayerYDown', 'y', 0, 100 - layer.h, 0.5);
   bindStep('inspLayerWUp', 'inspLayerWDown', 'w', 5, 100);
   bindStep('inspLayerHUp', 'inspLayerHDown', 'h', 4, 100);
 }
@@ -4773,6 +6129,8 @@ function renderInspector() {
         <option value="">${I18N.t('textRoleNone')}</option>
         <option value="body">${I18N.t('textRoleBody')}</option>
         <option value="reference">${I18N.t('textRoleReference')}</option>
+        <option value="timer">${I18N.t('textRoleTimer')}</option>
+        <option value="clock">${I18N.t('textRoleClock')}</option>
       </select></div>`;
     }
     html += `<div class="inspector-row"><label>${I18N.t('inspFont')}</label><select id="inspFontFamily">
@@ -4803,15 +6161,25 @@ function renderInspector() {
       <button type="button" data-align="left">L</button><button type="button" data-align="center">C</button><button type="button" data-align="right">R</button></div></div>`;
     html += `<div class="inspector-row"><label>${I18N.t('verticalAlign')}</label><div class="align-btns" id="inspVAlignBtns">
       <button type="button" data-valign="top">${I18N.t('alignTop')}</button><button type="button" data-valign="middle">${I18N.t('alignMiddle')}</button><button type="button" data-valign="bottom">${I18N.t('alignBottom')}</button></div></div>`;
+    html += `<h3 style="margin-top:12px">${I18N.t('textPaddingSection')}</h3>`;
+    html += `<div class="inspector-row"><label>${I18N.t('paddingUniform')}</label><input type="range" id="inspPadAll" min="0" max="20" step="0.5"></div>`;
+    html += `<div class="inspector-row inline-4" id="textPaddingGrid">
+      <div><label>${I18N.t('paddingTop')}</label><input type="number" id="inspPadTop" min="0" max="24" step="0.5"></div>
+      <div><label>${I18N.t('paddingRight')}</label><input type="number" id="inspPadRight" min="0" max="24" step="0.5"></div>
+      <div><label>${I18N.t('paddingBottom')}</label><input type="number" id="inspPadBottom" min="0" max="24" step="0.5"></div>
+      <div><label>${I18N.t('paddingLeft')}</label><input type="number" id="inspPadLeft" min="0" max="24" step="0.5"></div>
+    </div>`;
     html += `<div class="inspector-row inspector-toggle-row"><label><input type="checkbox" id="inspStrokeOn"> ${I18N.t('enableStroke')}</label></div>`;
     html += `<div class="inspector-effect-details" id="textStrokeDetails">
-      <div class="inspector-row"><label>${I18N.t('strokeLabel')}</label><input type="range" id="inspStrokeW" min="0" max="8" step="0.5"></div>
+      <div class="inspector-row"><label>${I18N.t('strokeWidthPx')}</label><input type="range" id="inspStrokeW" min="0" max="12" step="0.5"></div>
       <div class="inspector-row"><label>${I18N.t('strokeColor')}</label><input type="color" id="inspStrokeColor"></div>
     </div>`;
     html += `<div class="inspector-row inspector-toggle-row"><label><input type="checkbox" id="inspShadowOn"> ${I18N.t('enableShadow')}</label></div>`;
     html += `<div class="inspector-effect-details" id="textShadowDetails">
-      <div class="inspector-row"><label>${I18N.t('shadowLabel')}</label><div style="display:flex;gap:6px"><input type="number" id="inspShadowX" style="width:50%"><input type="number" id="inspShadowY" style="width:50%"></div></div>
-      <div class="inspector-row"><label>${I18N.t('shadowBlur')}</label><input type="range" id="inspShadowBlur" min="0" max="40"><input type="color" id="inspShadowColor" style="margin-top:6px"></div>
+      <div class="inspector-row"><label>${I18N.t('shadowOffset')}</label><div style="display:flex;gap:6px"><input type="number" id="inspShadowX" style="width:50%" placeholder="X"><input type="number" id="inspShadowY" style="width:50%" placeholder="Y"></div></div>
+      <div class="inspector-row"><label>${I18N.t('shadowBlur')}</label><input type="range" id="inspShadowBlur" min="0" max="40"></div>
+      <div class="inspector-row"><label>${I18N.t('shadowColor')}</label><input type="color" id="inspShadowColor"></div>
+      <div class="inspector-row"><label>${I18N.t('shadowOpacity')}</label><input type="range" id="inspShadowOpacity" min="0" max="1" step="0.05"></div>
     </div></div>`;
     html += inspectorZOrderHtml();
   } else if (layer?.type === 'rect') {
@@ -4832,6 +6200,15 @@ function renderInspector() {
     html += `<div class="inspector-row" id="rowGradientAngle"><label>${I18N.t('gradientAngle')}</label><input type="range" id="inspGradientAngle" min="0" max="360" step="1"></div>`;
     html += `<div class="inspector-row"><label>${I18N.t('rectOpacity')}</label><input type="range" id="inspRectOpacity" min="0" max="1" step="0.05"></div>`;
     html += `<div class="inspector-row" id="rowShapeRadius"><label>${I18N.t('shapeRadius')}</label><input type="range" id="inspShapeRadius" min="0" max="48" step="1"></div>`;
+    html += `<div class="inspector-row" id="rowShapeCornerGrid">
+      <label>${I18N.t('shapeCornerRadius')}</label>
+      <div class="inspector-row inline-4">
+        <div><label>${I18N.t('cornerTL')}</label><input type="number" id="inspRadiusTL" min="0" max="80" step="1"></div>
+        <div><label>${I18N.t('cornerTR')}</label><input type="number" id="inspRadiusTR" min="0" max="80" step="1"></div>
+        <div><label>${I18N.t('cornerBL')}</label><input type="number" id="inspRadiusBL" min="0" max="80" step="1"></div>
+        <div><label>${I18N.t('cornerBR')}</label><input type="number" id="inspRadiusBR" min="0" max="80" step="1"></div>
+      </div>
+    </div>`;
     html += `<div class="inspector-row inspector-toggle-row"><label><input type="checkbox" id="inspShapeStrokeOn"> ${I18N.t('enableStroke')}</label></div>`;
     html += `<div class="inspector-effect-details" id="shapeStrokeDetails">
       <div class="inspector-row"><label>${I18N.t('rectStroke')}</label><input type="color" id="inspRectStroke"></div>
@@ -4839,8 +6216,10 @@ function renderInspector() {
     </div>`;
     html += `<div class="inspector-row inspector-toggle-row"><label><input type="checkbox" id="inspShapeShadowOn"> ${I18N.t('enableShadow')}</label></div>`;
     html += `<div class="inspector-effect-details" id="shapeShadowDetails">
-      <div class="inspector-row"><label>${I18N.t('shadowLabel')}</label><div style="display:flex;gap:6px"><input type="number" id="inspShapeShadowX" style="width:50%"><input type="number" id="inspShapeShadowY" style="width:50%"></div></div>
-      <div class="inspector-row"><label>${I18N.t('shadowBlur')}</label><input type="range" id="inspShapeShadowBlur" min="0" max="40"><input type="color" id="inspShapeShadowColor" style="margin-top:6px"></div>
+      <div class="inspector-row"><label>${I18N.t('shadowOffset')}</label><div style="display:flex;gap:6px"><input type="number" id="inspShapeShadowX" style="width:50%"><input type="number" id="inspShapeShadowY" style="width:50%"></div></div>
+      <div class="inspector-row"><label>${I18N.t('shadowBlur')}</label><input type="range" id="inspShapeShadowBlur" min="0" max="40"></div>
+      <div class="inspector-row"><label>${I18N.t('shadowColor')}</label><input type="color" id="inspShapeShadowColor"></div>
+      <div class="inspector-row"><label>${I18N.t('shadowOpacity')}</label><input type="range" id="inspShapeShadowOpacity" min="0" max="1" step="0.05"></div>
     </div>`;
     html += `<h3 style="margin-top:10px">${I18N.t('addText')}</h3>`;
     html += `<div class="inspector-row"><label>${I18N.t('inspContent')}</label><textarea id="inspShapeContent" placeholder="${I18N.t('shapeTextPlaceholder')}"></textarea></div>`;
@@ -4957,9 +6336,9 @@ function renderInspector() {
           previewEditorChange();
         };
       }
-      document.getElementById('btnPickSlideBg')?.addEventListener('click', () => {
+      document.getElementById('btnPickSlideBg').onclick = () => {
         ipcRenderer.send('pick-slide-background', { slideId: slide.id });
-      });
+      };
     }
   }
 
@@ -4970,12 +6349,12 @@ function renderInspector() {
   if (layer?.type === 'text') bindTextInspector(layer);
   if (layer?.type === 'rect') bindRectInspector(layer);
   if (layer) bindInspectorZOrder();
-  document.getElementById('btnDeleteLayer')?.addEventListener('click', () => {
+  document.getElementById('btnDeleteLayer').onclick = () => {
     slide.layers = slide.layers.filter((l) => l.id !== selectedLayerId);
     selectedLayerId = null;
     commitEditorChange();
-  });
-  document.getElementById('btnSaveTheme')?.addEventListener('click', () => saveThemeFromEditor());
+  };
+  document.getElementById('btnSaveTheme').onclick = () => saveThemeFromEditor();
 }
 
 function getPrimaryTextLayerFromEditor() {
@@ -5303,7 +6682,7 @@ function getEditorPayload() {
 
 function slideForOutput(slide) {
   if (!slide) return slide;
-  const s = SE.normalizeSlide(JSON.parse(JSON.stringify(slide)));
+  let s = SE.normalizeSlide(JSON.parse(JSON.stringify(slide)));
   let layers = s.layers || [];
   if (!layerVisibility.lyrics) layers = layers.filter((l) => l.type !== 'text');
   if (!layerVisibility.design) layers = layers.filter((l) => l.type !== 'rect');
@@ -5311,10 +6690,35 @@ function slideForOutput(slide) {
   return s;
 }
 
+function buildStageBroadcastMeta(slide, meta = {}) {
+  const slideIndex = meta.slideIndex ?? activeSlideIndex;
+  const totalSlides = meta.totalSlides ?? currentSlides.length;
+  let nextSlide = meta.nextSlide ?? null;
+  if (!nextSlide && slideIndex >= 0 && slideIndex < currentSlides.length - 1) {
+    nextSlide = currentSlides[slideIndex + 1];
+  }
+  const curNorm = slide ? SE.normalizeSlide(JSON.parse(JSON.stringify(slide))) : null;
+  const currentStage = curNorm ? SE.getStageTextFromSlide(curNorm) : { body: '', reference: '', group: '' };
+  const nextNorm = nextSlide ? SE.normalizeSlide(JSON.parse(JSON.stringify(nextSlide))) : null;
+  const nextStage = nextNorm ? SE.getStageTextFromSlide(nextNorm) : { body: '', reference: '', group: '' };
+  return {
+    totalSlides,
+    currentText: currentStage.body,
+    currentReference: currentStage.reference,
+    currentGroup: currentStage.group,
+    current: currentStage,
+    nextText: nextStage.body,
+    nextReference: nextStage.reference,
+    nextGroup: nextStage.group,
+    next: nextStage,
+  };
+}
+
 function updateMacroBarUI() {
   const map = [
     ['macroClearText', 'lyrics'],
     ['macroClearMedia', 'media'],
+    ['macroClearAnnounce', 'announcements'],
   ];
   map.forEach(([id, key]) => {
     const el = document.getElementById(id);
@@ -5322,15 +6726,16 @@ function updateMacroBarUI() {
     const on = layerVisibility[key];
     el.classList.toggle('on', on);
     el.classList.toggle('off', !on);
-    const stateEl = el.querySelector('.macro-state');
-    if (stateEl) stateEl.textContent = on ? I18N.t('macroOn') : I18N.t('macroOff');
   });
-  const logoEl = document.getElementById('macroLogo');
-  if (logoEl) {
-    logoEl.classList.toggle('on', logoVisible);
-    logoEl.classList.toggle('off', !logoVisible);
-    const stateEl = logoEl.querySelector('.macro-state');
-    if (stateEl) stateEl.textContent = logoVisible ? I18N.t('macroOn') : I18N.t('macroOff');
+  const stageBtn = document.getElementById('btnStageDisplay');
+  if (stageBtn) {
+    stageBtn.classList.toggle('is-active', stageDisplayVisible);
+    stageBtn.textContent = stageDisplayVisible ? I18N.t('stageClose') : I18N.t('stageOpen');
+  }
+  const relayBtn = document.getElementById('btnRelayDisplay');
+  if (relayBtn) {
+    relayBtn.classList.toggle('is-active', relayDisplayVisible);
+    relayBtn.textContent = relayDisplayVisible ? I18N.t('relayClose') : I18N.t('relayOpen');
   }
   const bo = document.getElementById('macroBlackout');
   if (bo) {
@@ -5339,18 +6744,371 @@ function updateMacroBarUI() {
     bo.textContent = isBlackout ? I18N.t('blackoutOff') : I18N.t('blackout');
   }
   preview?.classList.toggle('is-blackout-preview', isBlackout);
+  renderMacroLayerToggles();
+}
+
+function sendTextLayerRestore() {
+  if (isBlackout || activeSlideIndex < 0 || activeSlideIndex >= currentSlides.length) return;
+  const norm = SE.normalizeSlide(JSON.parse(JSON.stringify(currentSlides[activeSlideIndex])));
+  const outSlide = slideForOutput(norm);
+  if (!SE.hasSlideRenderableContent(outSlide)) return;
+  ipcRenderer.send('send-slide', {
+    slide: outSlide,
+    slideIndex: activeSlideIndex,
+    songTitle: currentSongTitle,
+    source: 'text-restore',
+    layerRestore: true,
+    resyncBackground: false,
+    mediaLayerVisible: layerVisibility.media,
+    ...buildStageBroadcastMeta(norm),
+  });
+}
+
+function setLyricsLayerVisible(visible) {
+  if (layerVisibility.lyrics === visible) return;
+  layerVisibility.lyrics = visible;
+  updateMacroBarUI();
+  if (!visible) ipcRenderer.send('macro-clear-text');
+  else sendTextLayerRestore();
+  if (activeSlideIndex >= 0 && activeSlideIndex < currentSlides.length) {
+    renderPreviewSlide(resolvePreviewSlide(currentSlides[activeSlideIndex]));
+  }
 }
 
 function macroClearTextLayer() {
-  layerVisibility.lyrics = !layerVisibility.lyrics;
-  updateMacroBarUI();
-  syncLayerOutput();
+  setLyricsLayerVisible(!layerVisibility.lyrics);
 }
 
 function macroClearBackgroundLayer() {
   layerVisibility.media = !layerVisibility.media;
   updateMacroBarUI();
   syncLayerOutput();
+}
+
+function macroClearDesignLayer() {
+  layerVisibility.design = !layerVisibility.design;
+  updateMacroBarUI();
+  syncLayerOutput();
+  if (!layerVisibility.design) ipcRenderer.send('macro-clear-design');
+  else ipcRenderer.send('macro-restore-design');
+}
+
+function macroClearPropsLayer() {
+  layerVisibility.props = !layerVisibility.props;
+  updateMacroBarUI();
+  if (!layerVisibility.props) {
+    clearActiveProp(false);
+    ipcRenderer.send('macro-clear-props');
+  }
+}
+
+function macroClearAudioLayer() {
+  layerVisibility.audio = !layerVisibility.audio;
+  updateMacroBarUI();
+  if (!layerVisibility.audio) ipcRenderer.send('macro-clear-audio');
+  else ipcRenderer.send('audio:restore');
+}
+
+function macroClearAnnounceLayer() {
+  layerVisibility.announcements = !layerVisibility.announcements;
+  updateMacroBarUI();
+  if (!layerVisibility.announcements) ipcRenderer.send('announce:clear');
+}
+
+function macroRestoreAllLayers() {
+  layerVisibility = { lyrics: true, media: true, design: true, props: true, audio: true, announcements: true };
+  updateMacroBarUI();
+  ipcRenderer.send('audio:restore');
+  sendTextLayerRestore();
+  syncLayerOutput();
+}
+
+function macroClearAllLayers() {
+  const allOn = layerVisibility.lyrics && layerVisibility.media && layerVisibility.design
+    && layerVisibility.props && layerVisibility.audio && layerVisibility.announcements;
+  if (allOn) {
+    layerVisibility = { lyrics: false, media: false, design: false, props: false, audio: false, announcements: false };
+    activeMediaId = null;
+    renderMediaLibrary();
+    renderPreviewBackground(null);
+    ipcRenderer.send('macro-clear-all');
+    if (!isBlackout) setBlackout(true);
+  } else {
+    layerVisibility = { lyrics: true, media: true, design: true, props: true, audio: true, announcements: true };
+    ipcRenderer.send('audio:restore');
+    if (isBlackout) setBlackout(false);
+  }
+  updateMacroBarUI();
+  syncLayerOutput();
+}
+
+function clearActiveProp(clearLayerFlag = true) {
+  activePropId = '';
+  propOverlayActive = false;
+  renderPropsPanel();
+  if (clearLayerFlag) ipcRenderer.send('prop:clear');
+}
+
+function triggerProp(propId) {
+  const prop = macrosCatalog.props.find((p) => p.id === propId);
+  if (!prop) return;
+  if (activePropId === propId && propOverlayActive) {
+    clearActiveProp();
+    return;
+  }
+  activePropId = propId;
+  layerVisibility.props = true;
+  propOverlayActive = true;
+  updateMacroBarUI();
+  renderPropsPanel();
+  ipcRenderer.send('prop:show', { propId: prop.id });
+}
+
+function showProp(propId) {
+  triggerProp(propId);
+}
+
+function runMacro(macroId) {
+  const macro = macrosCatalog.macros.find((m) => m.id === macroId);
+  if (!macro?.actions?.length) return Promise.resolve();
+  return macro.actions.reduce(
+    (chain, action) => chain.then(() => executeMacroAction(action)),
+    Promise.resolve(),
+  );
+}
+
+function executeMacroAction(action) {
+  switch (action.type) {
+    case 'clearText': macroClearTextLayer(); break;
+    case 'hideText': setLyricsLayerVisible(false); break;
+    case 'showText': setLyricsLayerVisible(true); break;
+    case 'clearMedia': macroClearBackgroundLayer(); break;
+    case 'restoreMedia':
+      if (!layerVisibility.media) macroClearBackgroundLayer();
+      break;
+    case 'clearDesign': macroClearDesignLayer(); break;
+    case 'restoreDesign':
+      if (!layerVisibility.design) macroClearDesignLayer();
+      break;
+    case 'clearProps': macroClearPropsLayer(); break;
+    case 'clearAudio': macroClearAudioLayer(); break;
+    case 'clearAnnouncements': macroClearAnnounceLayer(); break;
+    case 'restoreAll': macroRestoreAllLayers(); break;
+    case 'clearAll': macroClearAllLayers(); break;
+    case 'blackout': setBlackout(true); break;
+    case 'unblackout': setBlackout(false); break;
+    case 'logo': toggleLogo(); break;
+    case 'look':
+    case 'theme':
+      if (action.themeId || action.lookId) applyThemeToCurrentSong(action.themeId || action.lookId);
+      break;
+    case 'prop':
+      if (action.propId) showProp(action.propId);
+      break;
+    case 'announce':
+      if (action.text) {
+        layerVisibility.announcements = true;
+        updateMacroBarUI();
+        ipcRenderer.send('announce:show', { text: action.text });
+      }
+      break;
+    case 'nextSlide':
+      if (activeSlideIndex < currentSlides.length - 1) selectSlide(activeSlideIndex + 1);
+      break;
+    case 'prevSlide':
+      if (activeSlideIndex > 0) selectSlide(activeSlideIndex - 1);
+      else if (appSettings.slideAdvanceWrap && currentSlides.length) selectSlide(currentSlides.length - 1);
+      break;
+    case 'firstSlide':
+      if (currentSlides.length) selectSlide(0);
+      break;
+    case 'lastSlide':
+      if (currentSlides.length) selectSlide(currentSlides.length - 1);
+      break;
+    case 'goLive':
+      triggerGoLive();
+      break;
+    case 'openStage':
+      ipcRenderer.send('stage:show');
+      break;
+    case 'closeStage':
+      ipcRenderer.send('stage:hide');
+      break;
+    case 'delay':
+      return new Promise((resolve) => {
+        setTimeout(resolve, Math.max(0, Number(action.ms) || 500));
+      });
+    default: break;
+  }
+  return Promise.resolve();
+}
+
+function getSectionColor(title) {
+  return String(appSettings.slideSectionColors?.[title] || '').trim();
+}
+
+function setSectionColor(title, color) {
+  const colors = { ...(appSettings.slideSectionColors || {}) };
+  const c = String(color || '').trim();
+  if (c) colors[title] = c;
+  else delete colors[title];
+  appSettings.slideSectionColors = colors;
+  ipcRenderer.send('settings:save', { slideSectionColors: colors });
+  renderSlideFilmstrip();
+}
+
+function pickSectionColor(title) {
+  const current = getSectionColor(title);
+  const idx = SECTION_COLOR_PALETTE.indexOf(current);
+  const next = SECTION_COLOR_PALETTE[(idx + 1) % SECTION_COLOR_PALETTE.length];
+  setSectionColor(title, next);
+}
+
+function renderPropsPanel() {
+  const list = document.getElementById('propsLibraryList');
+  if (!list) return;
+  list.innerHTML = '';
+  if (!macrosCatalog.props.length) {
+    list.innerHTML = `<div class="pp-library-empty">${I18N.t('propAdd')}</div>`;
+    return;
+  }
+  macrosCatalog.props.forEach((prop) => {
+    const row = document.createElement('div');
+    const isLive = activePropId === prop.id && propOverlayActive;
+    row.className = `pp-library-item pp-library-item--prop${isLive ? ' is-live' : ''}`;
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'pp-library-trigger';
+    trigger.title = prop.text;
+    trigger.innerHTML = `<span class="pp-library-name">${prop.name}</span><span class="pp-library-meta">${prop.text}</span>`;
+    trigger.onclick = () => triggerProp(prop.id);
+    row.appendChild(trigger);
+    const side = document.createElement('div');
+    side.className = 'pp-library-side';
+    if (isLive) {
+      const badge = document.createElement('span');
+      badge.className = 'pp-library-badge';
+      badge.setAttribute('aria-label', I18N.t('propLive'));
+      side.appendChild(badge);
+    }
+    const editBtn = document.createElement('button');
+    editBtn.type = 'button';
+    editBtn.className = 'pp-library-edit';
+    editBtn.textContent = '✎';
+    editBtn.title = I18N.t('propEdit');
+    editBtn.onclick = (ev) => {
+      ev.stopPropagation();
+      openPropsEditor(prop.id);
+    };
+    side.appendChild(editBtn);
+    row.appendChild(side);
+    list.appendChild(row);
+  });
+}
+
+function updateStagePreviewPanel(nowText = '', nextText = '') {
+  lastStagePreview = { now: nowText, next: nextText };
+  const nowEl = document.getElementById('stagePreviewNow');
+  const nextEl = document.getElementById('stagePreviewNext');
+  if (nowEl) nowEl.textContent = nowText || '—';
+  if (nextEl) nextEl.textContent = nextText || '—';
+}
+
+function refreshStagePreviewFromSlides() {
+  const cur = activeSlideIndex >= 0 ? currentSlides[activeSlideIndex] : null;
+  const next = activeSlideIndex >= 0 && activeSlideIndex < currentSlides.length - 1
+    ? currentSlides[activeSlideIndex + 1]
+    : null;
+  const curNorm = cur ? resolvePreviewSlide(cur) : null;
+  const nextNorm = next ? resolvePreviewSlide(next) : null;
+  const curStage = curNorm ? SE.getStageTextFromSlide(curNorm) : { body: '' };
+  const nextStage = nextNorm ? SE.getStageTextFromSlide(nextNorm) : { body: '' };
+  updateStagePreviewPanel(curStage.body, nextStage.body);
+}
+
+function renderMacrosUI() {
+  const macroSel = document.getElementById('macroRunSelect');
+  if (macroSel) {
+    macroSel.innerHTML = `<option value="">${I18N.t('macroPick')}</option>`;
+    macrosCatalog.macros.forEach((macro) => {
+      const opt = document.createElement('option');
+      opt.value = macro.id;
+      opt.textContent = macro.name;
+      macroSel.appendChild(opt);
+    });
+  }
+  renderPropsPanel();
+}
+
+function switchPpPanel(panelId) {
+  document.querySelectorAll('.pp-tab').forEach((tab) => {
+    tab.classList.toggle('is-active', tab.dataset.ppPanel === panelId);
+  });
+  ['props', 'stage', 'macros'].forEach((id) => {
+    const el = document.getElementById(`ppPanel${id.charAt(0).toUpperCase()}${id.slice(1)}`);
+    if (!el) return;
+    const active = id === panelId;
+    el.classList.toggle('is-active', active);
+    el.hidden = !active;
+  });
+}
+
+const MACRO_EXTRA_LAYERS = [
+  { key: 'design', i18n: 'appearanceLayerDesign', toggle: macroClearDesignLayer },
+  { key: 'props', i18n: 'appearanceLayerProps', toggle: macroClearPropsLayer },
+  { key: 'audio', i18n: 'appearanceLayerAudio', toggle: macroClearAudioLayer },
+];
+
+function setLayerVisibilityKey(key, visible) {
+  if (layerVisibility[key] === visible) return;
+  layerVisibility[key] = visible;
+  updateLayerToggleUI();
+  if (key === 'lyrics' && !visible) ipcRenderer.send('macro-clear-text');
+  else if (key === 'media') syncLayerOutput();
+  else if (key === 'design' && !visible) ipcRenderer.send('macro-clear-design');
+  else if (key === 'design' && visible) ipcRenderer.send('macro-restore-design');
+  else if (key === 'props' && !visible) {
+    clearActiveProp(false);
+    ipcRenderer.send('macro-clear-props');
+  } else if (key === 'audio' && !visible) ipcRenderer.send('macro-clear-audio');
+  else if (key === 'audio' && visible) ipcRenderer.send('audio:restore');
+  else if (key === 'announcements' && !visible) ipcRenderer.send('announce:clear');
+  else if (key === 'lyrics' && visible) sendTextLayerRestore();
+  if (visible && key === 'design' && !isBlackout
+    && activeSlideIndex >= 0 && activeSlideIndex < currentSlides.length) {
+    sendBroadcastFullState(currentSlides[activeSlideIndex], { source: 'layer-restore' });
+  }
+}
+
+function renderMacroLayerToggles() {
+  const grid = document.getElementById('macroLayerGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  MACRO_EXTRA_LAYERS.forEach(({ key, i18n, toggle }) => {
+    const label = document.createElement('label');
+    label.className = `appearance-layer-toggle${layerVisibility[key] ? '' : ' is-off'}`;
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.checked = !!layerVisibility[key];
+    input.dataset.layerKey = key;
+    input.addEventListener('change', () => {
+      if (input.checked !== layerVisibility[key]) toggle();
+      renderMacroLayerToggles();
+    });
+    const span = document.createElement('span');
+    span.textContent = I18N.t(i18n);
+    label.appendChild(input);
+    label.appendChild(span);
+    grid.appendChild(label);
+  });
+}
+
+function openPropsEditor(propId = null) {
+  ipcRenderer.send('props-editor:open', { propId: propId || '' });
+}
+
+function openStageEditor() {
+  ipcRenderer.send('stage-editor:open');
 }
 
 function updateLayerToggleUI() {
@@ -5362,13 +7120,16 @@ function updateBlackoutToggleUI() {
 }
 
 function syncLayerOutput() {
-  if (isBlackout) return;
   if (!layerVisibility.media) {
     ipcRenderer.send('macro-clear-media');
-  } else if (activeMediaId) {
-    const item = mediaLibrary.find((m) => m.id === activeMediaId);
-    if (item) ipcRenderer.send('background-set', item.id);
+  } else {
+    ipcRenderer.send('macro-restore-media');
+    if (activeMediaId) {
+      const item = mediaLibrary.find((m) => m.id === activeMediaId);
+      if (item) ipcRenderer.send('background-set', { id: item.id, force: true });
+    }
   }
+  if (isBlackout) return;
   if (activeSlideIndex >= 0 && activeSlideIndex < currentSlides.length) {
     sendBroadcastFullState(currentSlides[activeSlideIndex], { source: 'macro-sync' });
   } else if (!layerVisibility.lyrics && activeMediaId) {
@@ -5454,7 +7215,7 @@ function refreshSlidesAfterThemeApply(slideIdx) {
   scrollActiveSlideIntoView();
   const slide = currentSlides[slideIdx];
   if (isBlackout) {
-    stealthQueueSlide(slide, slideForOutput(slide));
+    stealthQueueSlide(slide);
   } else {
     renderPreviewSlide(slide);
     sendBroadcastFullState(slide, { slideIndex: slideIdx, source: 'theme-apply' });
@@ -5469,6 +7230,8 @@ ipcRenderer.on('theme:applied', (_e, data) => {
   songLibrary[data.title] = entry;
   currentSlides = entry.slides.map((s) => SE.normalizeSlide(JSON.parse(JSON.stringify(s))));
   syncEditorSongAfterThemeApply(entry);
+  const sel = document.getElementById('themeSelect');
+  if (sel && data.themeId) sel.value = data.themeId;
   const slideIdx = Number.isFinite(data.liveSlideIndex) && data.liveSlideIndex >= 0
     ? data.liveSlideIndex
     : activeSlideIndex;
@@ -5524,9 +7287,12 @@ function toggleShapeInspectorRows() {
   const rowEnd = document.getElementById('rowGradientEnd');
   const rowAngle = document.getElementById('rowGradientAngle');
   const rowRadius = document.getElementById('rowShapeRadius');
+  const rowCornerGrid = document.getElementById('rowShapeCornerGrid');
+  const isRect = shape === 'rect';
   if (rowEnd) rowEnd.style.display = gradOn ? '' : 'none';
   if (rowAngle) rowAngle.style.display = gradOn ? '' : 'none';
-  if (rowRadius) rowRadius.style.display = shape === 'rect' ? '' : 'none';
+  if (rowRadius) rowRadius.style.display = isRect ? '' : 'none';
+  if (rowCornerGrid) rowCornerGrid.style.display = isRect ? '' : 'none';
 }
 
 ipcRenderer.on('slide-background-imported', (_e, data) => {
@@ -5632,6 +7398,39 @@ function bindTextInspector(layer) {
       document.querySelectorAll('#inspVAlignBtns button').forEach((b) => b.classList.toggle('active', b === btn));
     });
   });
+  const syncPaddingInputs = () => {
+    ['Top', 'Right', 'Bottom', 'Left'].forEach((side) => {
+      const key = `padding${side}`;
+      const el = document.getElementById(`inspPad${side}`);
+      if (el) el.value = st[key] ?? 0;
+    });
+    const padAll = document.getElementById('inspPadAll');
+    if (padAll) padAll.value = st.paddingTop ?? 0;
+  };
+  syncPaddingInputs();
+  const bindPadSide = (key, elId) => {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    el.oninput = (e) => set(() => {
+      st[key] = Number(e.target.value);
+      syncPaddingInputs();
+    });
+  };
+  bindPadSide('paddingTop', 'inspPadTop');
+  bindPadSide('paddingRight', 'inspPadRight');
+  bindPadSide('paddingBottom', 'inspPadBottom');
+  bindPadSide('paddingLeft', 'inspPadLeft');
+  const padAll = document.getElementById('inspPadAll');
+  if (padAll) {
+    padAll.oninput = (e) => set(() => {
+      const v = Number(e.target.value);
+      st.paddingTop = v;
+      st.paddingRight = v;
+      st.paddingBottom = v;
+      st.paddingLeft = v;
+      syncPaddingInputs();
+    });
+  }
   const strokeOn = document.getElementById('inspStrokeOn');
   if (strokeOn) {
     strokeOn.checked = st.strokeEnabled === true;
@@ -5678,7 +7477,12 @@ function bindTextInspector(layer) {
   }
   if (shadowColor) {
     shadowColor.value = rgbaToHex(st.shadowColor) || '#000000';
-    shadowColor.oninput = (e) => set(() => { st.shadowColor = hexToRgba(e.target.value, 0.85); });
+    shadowColor.oninput = (e) => set(() => { st.shadowColor = hexToRgba(e.target.value, st.shadowOpacity ?? 0.85); });
+  }
+  const shadowOpacity = document.getElementById('inspShadowOpacity');
+  if (shadowOpacity) {
+    shadowOpacity.value = st.shadowOpacity ?? 0.85;
+    shadowOpacity.oninput = (e) => set(() => { st.shadowOpacity = Number(e.target.value); });
   }
   toggleTextEffectRows();
 }
@@ -5804,9 +7608,40 @@ function bindRectInspector(layer) {
     });
   }
   const radiusEl = document.getElementById('inspShapeRadius');
+  const syncCornerInputs = () => {
+    const tl = document.getElementById('inspRadiusTL');
+    const tr = document.getElementById('inspRadiusTR');
+    const bl = document.getElementById('inspRadiusBL');
+    const br = document.getElementById('inspRadiusBR');
+    if (tl) tl.value = st.borderRadiusTL ?? st.borderRadius ?? 0;
+    if (tr) tr.value = st.borderRadiusTR ?? st.borderRadius ?? 0;
+    if (bl) bl.value = st.borderRadiusBL ?? st.borderRadius ?? 0;
+    if (br) br.value = st.borderRadiusBR ?? st.borderRadius ?? 0;
+    if (radiusEl) radiusEl.value = st.borderRadius ?? st.borderRadiusTL ?? 0;
+  };
+  syncCornerInputs();
+  const bindCorner = (key, elId) => {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    el.oninput = (e) => set(() => {
+      st[key] = Number(e.target.value);
+      syncCornerInputs();
+    });
+  };
+  bindCorner('borderRadiusTL', 'inspRadiusTL');
+  bindCorner('borderRadiusTR', 'inspRadiusTR');
+  bindCorner('borderRadiusBL', 'inspRadiusBL');
+  bindCorner('borderRadiusBR', 'inspRadiusBR');
   if (radiusEl) {
-    radiusEl.value = st.borderRadius ?? 0;
-    radiusEl.oninput = (e) => set(() => { st.borderRadius = Number(e.target.value); });
+    radiusEl.oninput = (e) => set(() => {
+      const v = Number(e.target.value);
+      st.borderRadius = v;
+      st.borderRadiusTL = v;
+      st.borderRadiusTR = v;
+      st.borderRadiusBL = v;
+      st.borderRadiusBR = v;
+      syncCornerInputs();
+    });
   }
   const shadowX = document.getElementById('inspShapeShadowX');
   const shadowY = document.getElementById('inspShapeShadowY');
@@ -5826,7 +7661,12 @@ function bindRectInspector(layer) {
   }
   if (shadowColor) {
     shadowColor.value = rgbaToHex(st.shadowColor) || '#000000';
-    shadowColor.oninput = (e) => set(() => { st.shadowColor = hexToRgba(e.target.value, 0.45); });
+    shadowColor.oninput = (e) => set(() => { st.shadowColor = hexToRgba(e.target.value, st.shadowOpacity ?? 0.45); });
+  }
+  const shapeShadowOpacity = document.getElementById('inspShapeShadowOpacity');
+  if (shapeShadowOpacity) {
+    shapeShadowOpacity.value = st.shadowOpacity ?? 0.45;
+    shapeShadowOpacity.oninput = (e) => set(() => { st.shadowOpacity = Number(e.target.value); });
   }
   const labelStrokeOn = document.getElementById('inspShapeLabelStrokeOn');
   if (labelStrokeOn) {
@@ -6164,17 +8004,42 @@ function toggleOutputWindow() {
 
 function handleGlobalShortcut(e) {
   const sc = appSettings.shortcuts;
+  if (SC.matchAction(e, sc, 'quickSearch')) {
+    e.preventDefault();
+    openQuickSearchModal();
+    return true;
+  }
+  if (SC.matchAction(e, sc, 'focusBible')) {
+    e.preventDefault();
+    focusBibleWorkspace();
+    return true;
+  }
+  if (SC.matchAction(e, sc, 'focusLibrary')) {
+    e.preventDefault();
+    focusLibraryPanel();
+    return true;
+  }
+  if (SC.matchAction(e, sc, 'focusPlaylist')) {
+    e.preventDefault();
+    focusPlaylistPanel();
+    return true;
+  }
+  if (SC.matchAction(e, sc, 'toggleMediaPanel')) {
+    e.preventDefault();
+    toggleMediaPanelVisibility();
+    return true;
+  }
   if (SC.matchAction(e, sc, 'liveToggleOutput')) {
     e.preventDefault();
     toggleOutputWindow();
     return true;
   }
-  if (SC.matchAction(e, sc, 'navSlides')) {
+  if (SC.matchAction(e, sc, 'liveToggleStage')) {
     e.preventDefault();
-    if (isEditorOpen()) exitEditWorkspace();
+    ipcRenderer.send('stage:toggle');
     return true;
   }
-  if (SC.matchAction(e, sc, 'navSlideEdit')) {
+  if (SC.matchAction(e, sc, 'navSlideEdit') || SC.matchAction(e, sc, 'openEditor')) {
     e.preventDefault();
     setNavHighlight('editor');
     enterSlideEditWorkspace();
@@ -6193,17 +8058,16 @@ function handleGlobalShortcut(e) {
   }
   if (SC.matchAction(e, sc, 'librarySearch')) {
     e.preventDefault();
-    const inp = document.getElementById('librarySearch');
-    inp?.focus();
-    inp?.select();
-    if (librarySearchQuery) setLibrarySearchOpen(true);
+    openQuickSearchModal();
     return true;
   }
-  if (SC.matchAction(e, sc, 'openEditor')) {
+  if (SC.matchAction(e, sc, 'navSlides') && isEditorOpen()) {
     e.preventDefault();
-    openEditorForCurrentSong();
+    exitEditWorkspace();
     return true;
   }
+  if (SC.shouldBlockGlobalShortcut(e)) return false;
+  if (handleLiveTimelineShortcut(e)) return true;
   return false;
 }
 
@@ -6293,7 +8157,7 @@ function handleEditorShortcut(e) {
   }
   if (SC.matchAction(e, sc, 'editorSelectAll')) {
     e.preventDefault();
-    editorSelectAllAction();
+    selectAllSlidesInCurrentSong();
     return true;
   }
   if (SC.matchAction(e, sc, 'editorAddSlide')) {
@@ -6494,63 +8358,81 @@ function advanceLiveNextSlide() {
 function handleLiveShortcut(e) {
   const sc = appSettings.shortcuts;
   if (tryGroupHotkeyJump(e)) return true;
-  if (SC.matchAction(e, sc, 'liveNext')) {
+  if (tryLiveSlideDeleteShortcut(e)) return true;
+  if (SC.tryMatchAction(e, sc, 'liveDeselect')) {
+    if (isQuickSearchOpen()) {
+      e.preventDefault();
+      closeQuickSearchModal();
+      return true;
+    }
+    if (appWorkspaceMode === 'slides') {
+      e.preventDefault();
+      deselectLiveSlide();
+      return true;
+    }
+  }
+  if (SC.tryMatchAction(e, sc, 'liveNext')) {
     e.preventDefault();
     advanceLiveNextSlide();
     return true;
   }
-  if (SC.matchAction(e, sc, 'livePrev')) {
+  if (SC.tryMatchAction(e, sc, 'livePrev')) {
     e.preventDefault();
     if (activeSlideIndex > 0) selectSlide(activeSlideIndex - 1);
     else if (appSettings.slideAdvanceWrap && currentSlides.length) selectSlide(currentSlides.length - 1);
     return true;
   }
-  if (SC.matchAction(e, sc, 'liveNextBackground')) {
+  if (SC.tryMatchAction(e, sc, 'liveNextBackground')) {
     e.preventDefault();
     cycleBackground(1);
     return true;
   }
-  if (SC.matchAction(e, sc, 'livePrevBackground')) {
+  if (SC.tryMatchAction(e, sc, 'livePrevBackground')) {
     e.preventDefault();
     cycleBackground(-1);
     return true;
   }
-  if (SC.matchAction(e, sc, 'liveTrigger') && activeSlideIndex >= 0) {
+  if (SC.tryMatchAction(e, sc, 'liveTrigger') && activeSlideIndex >= 0) {
     e.preventDefault();
     selectSlide(activeSlideIndex);
     return true;
   }
-  if (SC.matchAction(e, sc, 'liveBlackout')) {
+  if (SC.tryMatchAction(e, sc, 'liveBlackout')) {
     e.preventDefault();
     setBlackout(!isBlackout);
     return true;
   }
-  if (SC.matchAction(e, sc, 'liveClearAll')) {
+  if (SC.tryMatchAction(e, sc, 'liveClearAll')) {
     e.preventDefault();
-    layerVisibility = { lyrics: false, media: false, design: false };
-    updateLayerToggleUI();
-    activeMediaId = null;
-    renderMediaLibrary();
-    renderPreviewBackground(null);
-    ipcRenderer.send('macro-clear-all');
+    macroClearAllLayers();
     return true;
   }
-  if (SC.matchAction(e, sc, 'liveClearText')) {
+  if (SC.tryMatchAction(e, sc, 'liveClearText')) {
     e.preventDefault();
     macroClearTextLayer();
     return true;
   }
-  if (SC.matchAction(e, sc, 'liveClearMedia')) {
+  if (SC.tryMatchAction(e, sc, 'liveClearMedia')) {
     e.preventDefault();
     macroClearBackgroundLayer();
     return true;
   }
-  if (SC.matchAction(e, sc, 'liveClearProps')) {
+  if (SC.tryMatchAction(e, sc, 'liveClearProps')) {
     e.preventDefault();
-    if (layerVisibility.design) toggleLayerVisibility('design');
+    macroClearPropsLayer();
     return true;
   }
-  if (SC.matchAction(e, sc, 'liveLogo')) {
+  if (SC.tryMatchAction(e, sc, 'liveClearAudio')) {
+    e.preventDefault();
+    macroClearAudioLayer();
+    return true;
+  }
+  if (SC.tryMatchAction(e, sc, 'liveClearAnnouncements')) {
+    e.preventDefault();
+    macroClearAnnounceLayer();
+    return true;
+  }
+  if (SC.tryMatchAction(e, sc, 'liveLogo')) {
     e.preventDefault();
     toggleLogo();
     return true;
@@ -6606,8 +8488,31 @@ shapeAddMenu?.querySelectorAll('[data-shape]').forEach((btn) => {
 
 document.getElementById('macroClearText')?.addEventListener('click', () => macroClearTextLayer());
 document.getElementById('macroClearMedia')?.addEventListener('click', () => macroClearBackgroundLayer());
+document.getElementById('macroClearAll')?.addEventListener('click', () => macroClearAllLayers());
+document.getElementById('macroClearDesign')?.addEventListener('click', () => macroClearDesignLayer());
+document.getElementById('macroClearProps')?.addEventListener('click', () => macroClearPropsLayer());
+document.getElementById('macroClearAudio')?.addEventListener('click', () => macroClearAudioLayer());
+document.getElementById('macroClearAnnounce')?.addEventListener('click', () => macroClearAnnounceLayer());
 document.getElementById('macroLogo')?.addEventListener('click', () => toggleLogo());
 document.getElementById('macroBlackout')?.addEventListener('click', () => setBlackout(!isBlackout));
+document.getElementById('btnStageDisplay')?.addEventListener('click', () => ipcRenderer.send('stage:toggle'));
+document.getElementById('btnRelayDisplay')?.addEventListener('click', () => ipcRenderer.send('relay:toggle'));
+document.getElementById('btnRunMacro')?.addEventListener('click', () => {
+  const id = document.getElementById('macroRunSelect')?.value;
+  if (id) runMacro(id);
+});
+document.querySelectorAll('.pp-tab').forEach((tab) => {
+  tab.addEventListener('click', () => switchPpPanel(tab.dataset.ppPanel));
+});
+document.getElementById('btnToggleGrid')?.addEventListener('click', () => toggleEditorGrid());
+document.getElementById('btnToggleGuideCrosshair')?.addEventListener('click', () => toggleEditorGuide('showGuideCrosshair'));
+document.getElementById('btnToggleGuideSafe')?.addEventListener('click', () => toggleEditorGuide('showGuideSafeArea'));
+document.getElementById('btnToggleGuideTitle')?.addEventListener('click', () => toggleEditorGuide('showGuideTitleSafe'));
+document.getElementById('btnEditMacros')?.addEventListener('click', () => ipcRenderer.send('macros-editor:open'));
+document.getElementById('btnPropClearAll')?.addEventListener('click', () => clearActiveProp());
+document.getElementById('btnPropAdd')?.addEventListener('click', () => openPropsEditor());
+document.getElementById('btnOpenPropsEditor')?.addEventListener('click', () => openPropsEditor());
+document.getElementById('btnOpenStageEditor')?.addEventListener('click', () => openStageEditor());
 
 document.getElementById('btnDupLayer')?.addEventListener('click', () => duplicateSelectedLayer());
 document.getElementById('btnLayerUp')?.addEventListener('click', () => {
@@ -6680,10 +8585,269 @@ function renderSlideStrip() {
 }
 
 function isTypingTarget() {
-  const t = document.activeElement;
-  if (!t) return false;
-  if (t.tagName === 'TEXTAREA' || t.tagName === 'INPUT' || t.tagName === 'SELECT') return true;
-  return t.isContentEditable;
+  return SC.shouldBlockGlobalShortcut({});
+}
+
+function isQuickSearchOpen() {
+  const modal = document.getElementById('quickSearchModal');
+  return quickSearchOpen && modal && !modal.classList.contains('is-hidden');
+}
+
+function applyMediaPanelVisibility() {
+  document.querySelector('.app-body')?.classList.toggle('media-panel-hidden', !mediaPanelVisible);
+}
+
+function toggleMediaPanelVisibility() {
+  mediaPanelVisible = !mediaPanelVisible;
+  appSettings.mediaPanelVisible = mediaPanelVisible;
+  applyMediaPanelVisibility();
+  ipcRenderer.send('settings:save', { mediaPanelVisible });
+}
+
+function openQuickSearchModal() {
+  const modal = document.getElementById('quickSearchModal');
+  const input = document.getElementById('quickSearchInput');
+  if (!modal || !input) return;
+  quickSearchOpen = true;
+  quickSearchActiveIndex = 0;
+  modal.classList.remove('is-hidden');
+  input.value = '';
+  renderQuickSearchResults('');
+  requestAnimationFrame(() => input.focus());
+}
+
+function closeQuickSearchModal() {
+  quickSearchOpen = false;
+  document.getElementById('quickSearchModal')?.classList.add('is-hidden');
+}
+
+function renderQuickSearchResults(query) {
+  const list = document.getElementById('quickSearchResults');
+  if (!list) return;
+  const q = String(query || '').trim().toLowerCase();
+  list.innerHTML = '';
+  if (!q) {
+    list.innerHTML = `<div class="list-empty" style="padding:14px 18px;color:var(--muted)">${I18N.t('librarySearchPrompt')}</div>`;
+    return;
+  }
+  const items = [];
+  Object.keys(songLibrary).sort((a, b) => a.localeCompare(b, 'ko')).forEach((title) => {
+    if (title.toLowerCase().includes(q)) items.push({ kind: 'song', label: title, value: title });
+  });
+  if (/^[a-zA-Z가-힣0-9\s:.]+$/.test(q)) {
+    items.push({ kind: 'bible', label: q, value: q });
+  }
+  if (!items.length) {
+    list.innerHTML = `<div class="list-empty" style="padding:14px 18px">${I18N.t('emptySearch')}</div>`;
+    return;
+  }
+  items.slice(0, 24).forEach((item, i) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.classList.toggle('is-active', i === quickSearchActiveIndex);
+    btn.innerHTML = `${escapeHtml(item.label)}<span class="qs-meta">${item.kind === 'bible' ? I18N.t('navBible') : I18N.t('navSlides')}</span>`;
+    btn.onclick = () => activateQuickSearchItem(item);
+    list.appendChild(btn);
+  });
+}
+
+function activateQuickSearchItem(item) {
+  closeQuickSearchModal();
+  if (!item) return;
+  if (item.kind === 'bible') {
+    handleNavAction('bible');
+    const inp = document.getElementById('bibleQueryInput');
+    if (inp) {
+      inp.value = item.value;
+      inp.focus();
+      runBibleSearch(item.value);
+    }
+    return;
+  }
+  if (item.kind === 'song') {
+    if (isEditorOpen()) exitEditWorkspace();
+    handleNavAction('slides');
+    loadSongToSlides(item.value);
+    focusLibraryPanel(false);
+  }
+}
+
+function activateQuickSearchSelection() {
+  const q = document.getElementById('quickSearchInput')?.value || '';
+  const buttons = document.querySelectorAll('#quickSearchResults button');
+  if (buttons[quickSearchActiveIndex]) buttons[quickSearchActiveIndex].click();
+  else renderQuickSearchResults(q);
+}
+
+function focusBibleWorkspace() {
+  if (isEditorOpen()) exitEditWorkspace();
+  setNavHighlight('bible');
+  handleNavAction('bible');
+  requestAnimationFrame(() => document.getElementById('bibleQueryInput')?.focus());
+}
+
+function focusLibraryPanel(scrollSetlist = true) {
+  if (isEditorOpen()) exitEditWorkspace();
+  setNavHighlight('slides');
+  handleNavAction('slides');
+  if (scrollSetlist) {
+    document.getElementById('setlist')?.querySelector('.list-item')?.scrollIntoView({ block: 'nearest' });
+  }
+  document.getElementById('librarySearch')?.focus();
+}
+
+function focusPlaylistPanel() {
+  if (isEditorOpen()) exitEditWorkspace();
+  setNavHighlight('slides');
+  handleNavAction('slides');
+  const id = playlistsState.activePlaylistId || playlistsState.treeFocusId;
+  scrollPlaylistTreeIntoView(id);
+  document.querySelector(`[data-tree-id="${id}"]`)?.focus?.();
+}
+
+function getFilmstripSelectedIndicesForSong(songTitle) {
+  if (!songTitle) return [];
+  const indices = [];
+  for (let i = 0; i < currentSlides.length; i += 1) {
+    if (filmstripSelectedKeys.has(filmstripSlideKey(songTitle, i))) indices.push(i);
+  }
+  return indices.sort((a, b) => a - b);
+}
+
+function hasFilmstripMultiSelection(songTitle = currentSongTitle) {
+  return getFilmstripSelectedIndicesForSong(songTitle).length > 0;
+}
+
+function tryLiveSlideDeleteShortcut(e) {
+  if (appWorkspaceMode !== 'slides' || !currentSongTitle) return false;
+  const sc = appSettings.shortcuts;
+  const selected = getFilmstripSelectedIndicesForSong(currentSongTitle);
+  const hasSelect = selected.length > 0;
+  if (e.code === 'Backspace' && !e.metaKey && !e.ctrlKey && !e.altKey && hasSelect) {
+    e.preventDefault();
+    deleteSelectedLiveSlides();
+    return true;
+  }
+  if (e.code === 'Delete' && (hasSelect || activeSlideIndex >= 0)) {
+    e.preventDefault();
+    deleteSelectedLiveSlides();
+    return true;
+  }
+  if (SC.tryMatchAction(e, sc, 'liveDeleteSelection') && (hasSelect || activeSlideIndex >= 0)) {
+    e.preventDefault();
+    deleteSelectedLiveSlides();
+    return true;
+  }
+  return false;
+}
+
+function selectAllSlidesInCurrentSong() {
+  if (appWorkspaceMode === 'slides') {
+    if (!currentSongTitle || !currentSlides.length) return;
+    filmstripSelectedKeys.clear();
+    for (let i = 0; i < currentSlides.length; i += 1) {
+      filmstripSelectedKeys.add(filmstripSlideKey(currentSongTitle, i));
+    }
+    filmstripSelectionAnchor = { songTitle: currentSongTitle, slideIndex: 0 };
+    syncFilmstripMultiSelectUI();
+    return;
+  }
+  if (appWorkspaceMode === 'slide-edit' || appWorkspaceMode === 'reflow') {
+    editorSelectedIndices.clear();
+    for (let i = 0; i < editorSongData.slides.length; i += 1) editorSelectedIndices.add(i);
+    editorSelectionAnchor = 0;
+    syncEditorStripMultiSelectUI();
+  }
+}
+
+function deselectLiveSlide() {
+  if (appWorkspaceMode !== 'slides') return;
+  const prev = activeSlideIndex;
+  activeSlideIndex = -1;
+  filmstripSelectedKeys.clear();
+  filmstripSelectionAnchor = null;
+  syncFilmstripMultiSelectUI();
+  if (currentSongTitle) updateSlideFilmstripSelection(currentSongTitle, prev, currentSongTitle, -1, { preserveMultiSelect: true });
+  renderPreviewSlide(null);
+  if (!isBlackout) ipcRenderer.send('send-slide', null);
+  setBroadcastStatus(false, 'statusWaitSlide');
+  updateWorkspaceHeadForMode();
+}
+
+function deleteSelectedLiveSlides() {
+  if (!currentSongTitle || !currentSlides.length) return;
+  let indices = getFilmstripSelectedIndicesForSong(currentSongTitle);
+  if (!indices.length && activeSlideIndex >= 0) indices = [activeSlideIndex];
+  if (!indices.length) return;
+  if (currentSlides.length - indices.length < 1) {
+    alert(I18N.t('ctxDelSlideLast'));
+    return;
+  }
+  if (appSettings.confirmBeforeDelete && !confirm(I18N.t('ctxDelSlideConfirm'))) return;
+  indices.sort((a, b) => b - a).forEach((idx) => currentSlides.splice(idx, 1));
+  filmstripSelectedKeys.clear();
+  filmstripSelectionAnchor = null;
+  if (activeSlideIndex >= currentSlides.length) activeSlideIndex = currentSlides.length - 1;
+  persistCurrentSongSlides();
+  renderSlideFilmstrip();
+  if (activeSlideIndex >= 0) selectSlide(activeSlideIndex);
+  else deselectLiveSlide();
+}
+
+function duplicateSelectedLiveSlides() {
+  if (!currentSongTitle || !currentSlides.length) return;
+  let indices = getFilmstripSelectedIndicesForSong(currentSongTitle);
+  if (!indices.length && activeSlideIndex >= 0) indices = [activeSlideIndex];
+  if (!indices.length) return;
+  const { slides: next, firstNewIndex } = SE.duplicateSlidesAtIndices(currentSlides, indices);
+  currentSlides.splice(0, currentSlides.length, ...next);
+  persistCurrentSongSlides();
+  renderSlideFilmstrip();
+  if (firstNewIndex >= 0) selectSlide(firstNewIndex);
+}
+
+function insertBlankSlideLive() {
+  if (!currentSongTitle) return;
+  const blank = SE.createBlankSlide({
+    group: appSettings.defaultSlideGroup,
+    fontSize: appSettings.defaultTextFontSize,
+  });
+  const after = activeSlideIndex >= 0 ? activeSlideIndex : currentSlides.length - 1;
+  const insertAt = Math.min(after + 1, currentSlides.length);
+  currentSlides.splice(insertAt, 0, blank);
+  persistCurrentSongSlides();
+  renderSlideFilmstrip();
+  selectSlide(insertAt);
+}
+
+function handleLiveTimelineShortcut(e) {
+  const sc = appSettings.shortcuts;
+  if (SC.tryMatchAction(e, sc, 'editorSelectAll')) {
+    e.preventDefault();
+    selectAllSlidesInCurrentSong();
+    return true;
+  }
+  if (SC.tryMatchAction(e, sc, 'editorDuplicateSlide')) {
+    e.preventDefault();
+    if (appWorkspaceMode === 'slides') duplicateSelectedLiveSlides();
+    else duplicateCurrentSlide();
+    return true;
+  }
+  if (SC.tryMatchAction(e, sc, 'editorAddSlide')) {
+    e.preventDefault();
+    if (appWorkspaceMode === 'slides') insertBlankSlideLive();
+    else {
+      editorSongData.slides.push(SE.createSlideFromText('새 슬라이드', {
+        group: appSettings.defaultSlideGroup,
+        fontSize: appSettings.defaultTextFontSize,
+      }));
+      editorSlideIndex = editorSongData.slides.length - 1;
+      commitEditorChange();
+    }
+    return true;
+  }
+  if (tryLiveSlideDeleteShortcut(e)) return true;
+  return false;
 }
 
 function onReflowInput(ev) {
@@ -6969,6 +9133,10 @@ function getStageMetrics() {
   return { width: dims.width, height: dims.height, ratio: dims.width / dims.height };
 }
 
+function getSlideThumbLayoutMetrics() {
+  return getSlideThumbMetrics();
+}
+
 /** 슬라이드창·성경 미리보기 공통 — 송출 비율 유지 그리드 열 계산 */
 function layoutThumbGridBoard(board, slideCount, areaEl, opts = {}) {
   if (!board || !slideCount) return;
@@ -6988,7 +9156,7 @@ function layoutThumbGridBoard(board, slideCount, areaEl, opts = {}) {
     const rows = Math.ceil(n / cols);
     const cellW = (areaW - gap * (cols - 1)) / cols;
     if (cellW <= 0) continue;
-    const { ratio } = getStageMetrics();
+    const { ratio } = getSlideThumbLayoutMetrics();
     const thumbH = cellW / ratio;
     const cellH = thumbH + capH;
     const gridH = rows * cellH + gap * (rows - 1);
@@ -6999,7 +9167,7 @@ function layoutThumbGridBoard(board, slideCount, areaEl, opts = {}) {
     }
   }
   if (bestCellW <= 0) {
-    const { ratio } = getStageMetrics();
+    const { ratio } = getSlideThumbLayoutMetrics();
     bestCols = Math.max(1, Math.min(n, Math.round(Math.sqrt((n * areaW) / (areaH * ratio)))));
     bestCellW = (areaW - gap * (bestCols - 1)) / bestCols;
   }
@@ -7345,7 +9513,7 @@ function buildPlaylistTreeRow(item, depth) {
       playlistsState.treeFocusId = item.id;
       renderPlaylistTree();
     };
-  } else {
+  } else if (PlaylistStore.isPlaylist(item)) {
     row.classList.add('is-playlist');
     chevron.classList.add('is-leaf');
     icon.textContent = '♪';
@@ -8011,6 +10179,7 @@ function loadSongToSlides(title, opts = {}) {
     scrollActiveSlideIntoView('auto');
   } else {
     scrollCurrentSongSectionIntoView('auto');
+    refreshStagePreviewFromSlides();
   }
 }
 
@@ -8085,7 +10254,25 @@ function renderSlideFilmstrip() {
     section.dataset.songTitle = title;
     const header = document.createElement('div');
     header.className = 'slide-song-header';
-    header.textContent = `${songIndex + 1}. ${title}`;
+    const accent = getSectionColor(title);
+    if (accent) header.style.setProperty('--section-accent', accent);
+    const colorBtn = document.createElement('button');
+    colorBtn.type = 'button';
+    colorBtn.className = 'section-color-btn';
+    colorBtn.style.background = accent || 'transparent';
+    colorBtn.title = I18N.t('sectionColorPick');
+    colorBtn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      pickSectionColor(title);
+    });
+    const titleSpan = document.createElement('span');
+    titleSpan.textContent = `${songIndex + 1}. ${title}`;
+    titleSpan.style.flex = '1';
+    titleSpan.style.minWidth = '0';
+    titleSpan.style.overflow = 'hidden';
+    titleSpan.style.textOverflow = 'ellipsis';
+    titleSpan.style.whiteSpace = 'nowrap';
+    header.append(colorBtn, titleSpan);
     header.title = title;
     header.addEventListener('click', () => loadSongToSlides(title, { preserveFilmstrip: true }));
     const board = document.createElement('div');
@@ -8157,14 +10344,18 @@ function updateSlideCounter() {
 }
 
 /** Stealth cue: queue slide in main (lastSlide) while program stays in blackout. */
-function stealthQueueSlide(slide, outSlide) {
+function stealthQueueSlide(slide) {
+  const norm = SE.normalizeSlide(JSON.parse(JSON.stringify(slide)));
+  const stageMeta = buildStageBroadcastMeta(norm, { slideIndex: activeSlideIndex });
   ipcRenderer.send('send-slide', {
-    slide: outSlide,
+    slide: norm,
     slideIndex: activeSlideIndex,
     songTitle: currentSongTitle,
     source: 'stealth',
+    mediaLayerVisible: layerVisibility.media,
+    ...stageMeta,
   });
-  renderPreviewSlide(slide);
+  renderPreviewSlide(resolvePreviewSlide(norm));
   setBroadcastStatus(false, 'statusBlackout');
   updateWorkspaceHeadForMode();
 }
@@ -8192,18 +10383,19 @@ function selectPlaylistSlide(songTitle, slideIndex, opts = {}) {
       activeSlideIndex = index;
   updateSlideFilmstripSelection(prevSong, prev, currentSongTitle, index, opts);
   scrollActiveSlideIntoView();
+  refreshStagePreviewFromSlides();
   const slide = SE.normalizeSlide(JSON.parse(JSON.stringify(currentSlides[index])));
   currentSlides[index] = slide;
   renderPreviewSlide(slide);
   const outSlide = slideForOutput(slide);
   if (!SE.hasSlideRenderableContent(outSlide)) {
-    if (!isBlackout) ipcRenderer.send('send-slide', null);
+    ipcRenderer.send('send-slide', null);
     setBroadcastStatus(false, 'statusWaitSlide');
     updateWorkspaceHeadForMode();
     return;
   }
   if (isBlackout) {
-    stealthQueueSlide(slide, outSlide);
+    stealthQueueSlide(slide);
     return;
   }
   sendBroadcastFullState(slide, { slideIndex: index, source: 'select' });
@@ -8229,6 +10421,9 @@ function setBlackout(on) {
 
 window.addEventListener('keydown', (e) => {
   if (!appSettings.keyboardShortcuts) return;
+  if (isQuickSearchOpen()) {
+    if (handleQuickSearchModalKeys(e)) return;
+  }
   if (isModalOpen(settingsModal)) {
     if (e.key === 'Escape') closeSettings();
     return;
@@ -8242,12 +10437,51 @@ window.addEventListener('keydown', (e) => {
     return;
   }
   if (handleGlobalShortcut(e)) return;
+  const typingBlocked = SC.shouldBlockGlobalShortcut(e);
   if (isEditorOpen()) {
     if (handleEditorShortcut(e)) return;
+    if (typingBlocked) return;
     return;
   }
-  if (isTypingTarget()) return;
+  if (typingBlocked) return;
   handleLiveShortcut(e);
+});
+
+function handleQuickSearchModalKeys(e) {
+  const input = document.getElementById('quickSearchInput');
+  if (!input) return false;
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    closeQuickSearchModal();
+    return true;
+  }
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    const max = document.querySelectorAll('#quickSearchResults button').length;
+    if (max) quickSearchActiveIndex = Math.min(quickSearchActiveIndex + 1, max - 1);
+    renderQuickSearchResults(input.value);
+    return true;
+  }
+  if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    quickSearchActiveIndex = Math.max(quickSearchActiveIndex - 1, 0);
+    renderQuickSearchResults(input.value);
+    return true;
+  }
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    activateQuickSearchSelection();
+    return true;
+  }
+  return false;
+}
+
+document.getElementById('quickSearchInput')?.addEventListener('input', (e) => {
+  quickSearchActiveIndex = 0;
+  renderQuickSearchResults(e.target.value);
+});
+document.getElementById('quickSearchModal')?.addEventListener('click', (e) => {
+  if (e.target.id === 'quickSearchModal') closeQuickSearchModal();
 });
 
 function mediaThumbSrcKey(src) {
@@ -8512,11 +10746,104 @@ document.getElementById('bibleShowVerseNumbers')?.addEventListener('change', (e)
     renderBiblePreview();
   }
 });
+document.getElementById('bibleTranslation')?.addEventListener('change', (e) => {
+  const version = e.target.value === 'revised' ? 'revised' : 'old';
+  if (version === 'revised' && !bibleMeta?.revisedAvailable) {
+    syncBibleTranslationSelect();
+    return;
+  }
+  appSettings.bibleVersion = version;
+  ipcRenderer.send('bible:set-version', { version });
+});
+document.getElementById('btnBibleDownloadConfirm')?.addEventListener('click', () => confirmBibleDownload());
+document.getElementById('btnBibleDownloadOpenFolder')?.addEventListener('click', () => {
+  ipcRenderer.invoke('bible:open-folder');
+});
+document.getElementById('btnBibleRepair')?.addEventListener('click', async () => {
+  const btn = document.getElementById('btnBibleRepair');
+  if (btn) btn.disabled = true;
+  try {
+    const result = await ipcRenderer.invoke('bible:repair');
+    const msg = result?.repairedCount > 0
+      ? I18N.t('bibleRepairDone')
+      : I18N.t('bibleRepairNone');
+    alert(msg);
+    populateBibleBookSelect();
+    populateBibleChapterSelect();
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+});
 syncBibleOptionsUI();
-ipcRenderer.on('bible:sync', (_e, data) => {
+ipcRenderer.on('bible:sync', (_e, data, meta) => {
   bibleData = data && typeof data === 'object' ? data : {};
+  applyBibleMeta(meta);
   populateBibleBookSelect();
   populateBibleChapterSelect();
+});
+ipcRenderer.on('bible:download-required', () => {
+  openBibleDownloadModal();
+});
+
+let pendingAppUpdateVersion = '';
+
+function openAppUpdateModal(version) {
+  pendingAppUpdateVersion = version || '';
+  const modal = document.getElementById('appUpdateModal');
+  const msg = document.getElementById('appUpdateMessage');
+  const progress = document.getElementById('appUpdateProgress');
+  const btnDownload = document.getElementById('btnAppUpdateDownload');
+  const btnInstall = document.getElementById('btnAppUpdateInstall');
+  if (msg) msg.textContent = I18N.t('appUpdateAvailable', { version: pendingAppUpdateVersion });
+  if (progress) progress.hidden = true;
+  if (btnDownload) { btnDownload.hidden = false; btnDownload.disabled = false; }
+  if (btnInstall) btnInstall.hidden = true;
+  modal?.classList.add('is-open');
+}
+
+function closeAppUpdateModal() {
+  document.getElementById('appUpdateModal')?.classList.remove('is-open');
+}
+
+ipcRenderer.on('app:update-available', (_e, payload) => {
+  openAppUpdateModal(payload?.version || '');
+});
+ipcRenderer.on('app:update-progress', (_e, payload) => {
+  const progress = document.getElementById('appUpdateProgress');
+  const btnDownload = document.getElementById('btnAppUpdateDownload');
+  if (progress) {
+    progress.hidden = false;
+    progress.textContent = I18N.t('appUpdateDownloading', { percent: Math.round(payload?.percent || 0) });
+  }
+  if (btnDownload) btnDownload.disabled = true;
+});
+ipcRenderer.on('app:update-downloaded', () => {
+  const progress = document.getElementById('appUpdateProgress');
+  const btnDownload = document.getElementById('btnAppUpdateDownload');
+  const btnInstall = document.getElementById('btnAppUpdateInstall');
+  if (progress) {
+    progress.hidden = false;
+    progress.textContent = I18N.t('appUpdateReady');
+  }
+  if (btnDownload) btnDownload.hidden = true;
+  if (btnInstall) btnInstall.hidden = false;
+});
+ipcRenderer.on('app:update-error', (_e, payload) => {
+  const progress = document.getElementById('appUpdateProgress');
+  if (progress) {
+    progress.hidden = false;
+    progress.textContent = payload?.message || I18N.t('appUpdateError');
+  }
+});
+document.getElementById('btnAppUpdateLater')?.addEventListener('click', () => closeAppUpdateModal());
+document.getElementById('btnAppUpdateDownload')?.addEventListener('click', async () => {
+  try { await ipcRenderer.invoke('app:update-download'); } catch (err) {
+    const progress = document.getElementById('appUpdateProgress');
+    if (progress) { progress.hidden = false; progress.textContent = err?.message || I18N.t('appUpdateError'); }
+  }
+});
+document.getElementById('btnAppUpdateInstall')?.addEventListener('click', () => {
+  ipcRenderer.invoke('app:update-install');
 });
 document.getElementById('btnPlaylistModalCancel')?.addEventListener('click', () => closePlaylistModal());
 document.getElementById('btnPlaylistModalConfirm')?.addEventListener('click', () => confirmPlaylistModal());
@@ -8528,13 +10855,47 @@ document.getElementById('playlistModalInput')?.addEventListener('keydown', (e) =
   if (e.key === 'Escape') { e.preventDefault(); closePlaylistModal(); }
 });
 
+ipcRenderer.on('macros:sync', (_e, data) => {
+  macrosCatalog = {
+    macros: Array.isArray(data?.macros) ? data.macros : [],
+    props: Array.isArray(data?.props) ? data.props : [],
+  };
+  renderMacrosUI();
+});
+
+ipcRenderer.on('prop:state-changed', (_e, state) => {
+  activePropId = String(state?.activePropId || '').trim();
+  propOverlayActive = Boolean(state?.visible);
+  layerVisibility.props = propOverlayActive;
+  updateMacroBarUI();
+  renderPropsPanel();
+});
+
+ipcRenderer.on('output:state-changed', (_e, state) => {
+  updateOutputWindowUI(state?.visible);
+});
+
+ipcRenderer.on('stage:state-changed', (_e, state) => {
+  stageDisplayVisible = Boolean(state?.visible);
+  updateMacroBarUI();
+});
+
+ipcRenderer.on('relay:state-changed', (_e, state) => {
+  relayDisplayVisible = Boolean(state?.visible);
+  updateMacroBarUI();
+});
+
 setupSongDragDrop();
 
     ipcRenderer.send('request-library');
 ipcRenderer.send('request-playlists');
 ipcRenderer.send('request-themes');
+ipcRenderer.send('request-macros');
 ipcRenderer.send('request-media-library');
 ipcRenderer.send('request-bible');
+ipcRenderer.send('output:get-state');
+ipcRenderer.send('relay:get-state');
+applyMediaPanelVisibility();
   </script>
 </body>
 </html>

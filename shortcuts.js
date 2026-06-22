@@ -7,21 +7,30 @@
 /** @typedef {Record<string, string>} ShortcutMap */
 
 const DEFAULT_SHORTCUTS = {
-  // — Presentation (live) —
+  // — Presentation (live) — Mac-first (Meta = ⌘) —
   liveNext: 'Space,ArrowRight',
-  livePrev: 'ArrowLeft',
+  livePrev: 'ArrowLeft,Backspace',
+  liveDeleteSelection: 'Delete,Backspace',
+  liveDeselect: 'Escape',
   liveNextBackground: 'Meta+ArrowRight,Control+ArrowRight',
   livePrevBackground: 'Meta+ArrowLeft,Control+ArrowLeft',
-  liveClearText: 'F1,Meta+F1',
-  liveClearMedia: 'F2,Meta+F2',
-  liveClearAll: 'F3,Meta+F3',
-  liveClearProps: 'F4,Meta+F4',
+  liveClearAll: 'F1,Meta+Shift+KeyX',
+  liveClearText: 'F2,Meta+Shift+KeyT',
+  liveClearMedia: 'F3,Meta+Shift+KeyB',
+  liveClearProps: 'F4,Meta+Shift+KeyP',
   liveClearAudio: 'F5,Meta+F5',
   liveClearAnnouncements: 'F7,Meta+F7',
   liveLogo: 'F6,Meta+F6',
-  liveBlackout: 'Backquote,Slash',
+  liveBlackout: 'Meta+Backquote,Backquote,Slash',
+  inlineTextCommit: 'Meta+Enter,Control+Enter',
   liveTrigger: 'Meta+Enter,Control+Enter',
-  liveToggleOutput: 'Control+F12,Meta+F12',
+  liveToggleOutput: 'Meta+Digit1,Control+F12',
+  liveToggleStage: 'Meta+Digit2',
+  toggleMediaPanel: 'Meta+KeyI',
+  quickSearch: 'Meta+KeyF,Control+KeyF',
+  focusBible: 'Meta+KeyB',
+  focusLibrary: 'Meta+KeyL',
+  focusPlaylist: 'Meta+KeyP',
 
   // — Navigation (workspace modes) —
   navSlides: 'Escape',
@@ -36,19 +45,19 @@ const DEFAULT_SHORTCUTS = {
   // — Editor document —
   editorSave: 'Meta+KeyS,Control+KeyS',
   editorUndo: 'Meta+KeyZ,Control+KeyZ',
-  editorRedo: 'Meta+Shift+KeyZ,Control+KeyY',
+  editorRedo: 'Meta+Shift+KeyZ,Control+Shift+KeyZ,Control+KeyY',
   editorCut: 'Meta+KeyX,Control+KeyX',
   editorCopyLayer: 'Meta+KeyC,Control+KeyC',
   editorPasteLayer: 'Meta+KeyV,Control+KeyV',
   editorDeleteLayer: 'Delete,Backspace',
-  editorDeselect: 'Meta+KeyD,Control+KeyU',
+  editorDeselect: 'Meta+KeyU,Control+KeyU',
   editorSelectAll: 'Meta+KeyA,Control+KeyA',
 
   // — Slides (editor) —
   editorNextSlide: 'Space,ArrowRight',
   editorPrevSlide: 'ArrowLeft',
   editorAddSlide: 'Meta+KeyN,Control+KeyN',
-  editorDuplicateSlide: 'Meta+Shift+KeyD,Control+Shift+KeyD',
+  editorDuplicateSlide: 'Meta+KeyD,Control+KeyD',
   editorDeleteSlide: 'Delete,Backspace',
 
   // — Reflow editor —
@@ -59,8 +68,8 @@ const DEFAULT_SHORTCUTS = {
   editorReflowPrevSlide: 'ArrowUp',
 
   // — Visual editor (items / text) —
-  editorBold: 'Meta+KeyB,Control+KeyB',
-  editorItalic: 'Meta+KeyI,Control+KeyI',
+  editorBold: 'Meta+Shift+KeyB,Control+Shift+KeyB',
+  editorItalic: 'Meta+Shift+KeyI,Control+Shift+KeyI',
   editorUnderline: 'Meta+KeyU,Control+KeyU',
   editorMakeBigger: 'Meta+Equal,Control+Equal',
   editorMakeSmaller: 'Meta+Minus,Control+Minus',
@@ -83,6 +92,8 @@ const ACTION_LABEL_KEYS = {
   livePrev: 'scLivePrev',
   liveNextBackground: 'scLiveNextBg',
   livePrevBackground: 'scLivePrevBg',
+  liveDeselect: 'scLiveDeselect',
+  liveDeleteSelection: 'scLiveDeleteSelection',
   liveClearAll: 'scLiveClearAll',
   liveClearText: 'scLiveClearText',
   liveClearMedia: 'scLiveClearMedia',
@@ -91,8 +102,15 @@ const ACTION_LABEL_KEYS = {
   liveClearAnnouncements: 'scLiveClearAnnouncements',
   liveLogo: 'scLiveLogo',
   liveBlackout: 'scLiveBlackout',
+  inlineTextCommit: 'scInlineTextCommit',
   liveTrigger: 'scLiveTrigger',
   liveToggleOutput: 'scLiveToggleOutput',
+  liveToggleStage: 'scLiveToggleStage',
+  toggleMediaPanel: 'scToggleMediaPanel',
+  quickSearch: 'scQuickSearch',
+  focusBible: 'scFocusBible',
+  focusLibrary: 'scFocusLibrary',
+  focusPlaylist: 'scFocusPlaylist',
   navSlides: 'scNavSlides',
   navSlideEdit: 'scNavSlideEdit',
   navReflow: 'scNavReflow',
@@ -136,14 +154,31 @@ const ACTION_LABEL_KEYS = {
   editorDuplicateLayer: 'scEditorDuplicateLayer',
 };
 
+/** Shortcuts that stay active while focus is in input/textarea/contenteditable (Mac operator keys). */
+const GLOBAL_ALWAYS_ACTIONS = new Set([
+  'quickSearch', 'librarySearch', 'focusBible', 'focusLibrary', 'focusPlaylist',
+  'toggleMediaPanel', 'liveToggleOutput', 'liveToggleStage',
+  'openPreferences', 'navSlideEdit', 'openEditor', 'navReflow',
+]);
+
+/** Presentation keys blocked while typing in editable fields. */
+const PRESENTATION_ACTIONS = new Set([
+  'liveNext', 'livePrev', 'liveDeselect', 'liveDeleteSelection',
+  'liveNextBackground', 'livePrevBackground', 'liveTrigger',
+  'liveBlackout', 'liveClearAll', 'liveClearText', 'liveClearMedia',
+  'liveClearProps', 'liveClearAudio', 'liveClearAnnouncements', 'liveLogo',
+  'editorSelectAll', 'editorAddSlide', 'editorDuplicateSlide', 'editorDeleteSlide',
+]);
+
 /** ProPresenter-style grouping in settings UI */
 const SHORTCUT_SECTIONS = [
   {
     id: 'presentation',
     labelKey: 'scSecPresentation',
     actions: [
-      'liveNext', 'livePrev', 'liveNextBackground', 'livePrevBackground',
-      'liveTrigger', 'liveBlackout', 'liveToggleOutput',
+      'liveNext', 'livePrev', 'liveDeselect', 'liveDeleteSelection',
+      'liveNextBackground', 'livePrevBackground',
+      'liveTrigger', 'liveBlackout', 'liveToggleOutput', 'liveToggleStage',
     ],
   },
   {
@@ -157,7 +192,10 @@ const SHORTCUT_SECTIONS = [
   {
     id: 'navigation',
     labelKey: 'scSecNavigation',
-    actions: ['navSlides', 'navSlideEdit', 'navReflow'],
+    actions: [
+      'navSlides', 'navSlideEdit', 'navReflow',
+      'quickSearch', 'focusBible', 'focusLibrary', 'focusPlaylist', 'toggleMediaPanel',
+    ],
   },
   {
     id: 'app',
@@ -238,6 +276,24 @@ function matchAction(e, shortcuts, actionId) {
   return splitCombos(binding).some((combo) => comboMatchesEvent(combo, e));
 }
 
+/** Match only if combo hits and typing guard allows this action category. */
+function tryMatchAction(e, shortcuts, actionId, opts = {}) {
+  if (!matchAction(e, shortcuts, actionId)) return false;
+  if (GLOBAL_ALWAYS_ACTIONS.has(actionId)) return true;
+  if (opts.forceAllow) return true;
+  if (PRESENTATION_ACTIONS.has(actionId) && shouldBlockGlobalShortcut(e, opts)) return false;
+  if (shouldBlockGlobalShortcut(e, opts)) return false;
+  return true;
+}
+
+function isPresentationAction(actionId) {
+  return PRESENTATION_ACTIONS.has(actionId);
+}
+
+function isGlobalAlwaysAction(actionId) {
+  return GLOBAL_ALWAYS_ACTIONS.has(actionId);
+}
+
 function formatComboForDisplay(combo, lang = 'ko') {
   const isMac = typeof process !== 'undefined' && process.platform === 'darwin';
   const macStyle = lang === 'ko' || isMac;
@@ -288,15 +344,72 @@ function captureComboFromEvent(e) {
   return eventToCombo(e);
 }
 
+const NON_TYPING_INPUT_TYPES = new Set([
+  'button', 'checkbox', 'radio', 'range', 'color', 'file', 'submit', 'reset', 'hidden',
+]);
+
+/**
+ * True when focus is in a field that should receive normal typing/editing (block global hotkeys).
+ */
+function isEditableTarget(el, opts = {}) {
+  if (!el || el === document.body || el === document.documentElement) return false;
+  const root = opts.root || (typeof document !== 'undefined' ? document : null);
+  if (root?.querySelector?.('.inline-text-editor:focus-within')) return true;
+  if (root?.querySelector?.('.inline-text-editor')) {
+    const activeInline = root.querySelector('.inline-text-editor');
+    if (activeInline && (el === activeInline || activeInline.contains(el))) return true;
+  }
+  if (el.closest?.('.shortcut-capture-input')) return true;
+  if (el.closest?.('.inline-text-editor')) return true;
+  if (el.closest?.('[data-hotkey-block="true"]')) return true;
+  if (el.closest?.('.quick-search-modal:not(.is-hidden)')) return true;
+  const tag = String(el.tagName || '').toUpperCase();
+  if (tag === 'TEXTAREA') return true;
+  if (tag === 'SELECT') return true;
+  if (tag === 'INPUT') {
+    const type = String(el.type || 'text').toLowerCase();
+    if (NON_TYPING_INPUT_TYPES.has(type)) return false;
+    return true;
+  }
+  if (el.isContentEditable) return true;
+  return false;
+}
+
+/**
+ * Block global presentation shortcuts while typing; allow Escape in modals separately.
+ */
+function shouldBlockGlobalShortcut(e, opts = {}) {
+  if (opts.forceAllow) return false;
+  if (opts.actionId && GLOBAL_ALWAYS_ACTIONS.has(opts.actionId)) return false;
+  const active = (typeof document !== 'undefined' ? document.activeElement : null);
+  if (isEditableTarget(active, opts)) return true;
+  if (e?.target && e.target !== active && isEditableTarget(e.target, opts)) return true;
+  return false;
+}
+
+/** Mac presentation mode — prefer Meta bindings and ⌘ display. */
+function isMacPlatform() {
+  return typeof process !== 'undefined' && process.platform === 'darwin';
+}
+
 module.exports = {
   DEFAULT_SHORTCUTS,
   ACTION_LABEL_KEYS,
   SHORTCUT_SECTIONS,
+  GLOBAL_ALWAYS_ACTIONS,
+  PRESENTATION_ACTIONS,
   normalizeShortcuts,
   splitCombos,
   eventToCombo,
   matchAction,
+  tryMatchAction,
+  isPresentationAction,
+  isGlobalAlwaysAction,
   formatBindingForDisplay,
   formatComboForDisplay,
   captureComboFromEvent,
+  isEditableTarget,
+  shouldBlockGlobalShortcut,
+  isMacPlatform,
+  NON_TYPING_INPUT_TYPES,
 };

@@ -40,12 +40,19 @@ const BIBLE_BOOK_ORDER = [
   '야고보서', '베드로전서', '베드로후서', '요한1서', '요한2서', '요한3서', '유다서', '요한계시록',
 ];
 
-/** 약어/별칭 → bible_ko.json 실제 권명 */
+/** 약어/별칭 → bible JSON 표준 권명 */
 const BOOK_NAME_ALIASES = {
   요한일서: '요한1서',
   요한이서: '요한2서',
   요한삼서: '요한3서',
+  '요한 1서': '요한1서',
+  '요한 2서': '요한2서',
+  '요한 3서': '요한3서',
 };
+
+function normalizeBookKey(name) {
+  return String(name || '').trim().replace(/\s+/g, '');
+}
 
 /** Longest-match abbrev keys for parsing */
 const ABBREV_KEYS = Object.keys(BIBLE_ABBREV).sort((a, b) => b.length - a.length);
@@ -126,13 +133,20 @@ function sampleBibleData() {
 function canonicalBookName(name) {
   const key = String(name || '').trim();
   if (!key) return '';
-  return BOOK_NAME_ALIASES[key] || key;
+  if (BOOK_NAME_ALIASES[key]) return BOOK_NAME_ALIASES[key];
+  const compact = normalizeBookKey(key);
+  if (BOOK_NAME_ALIASES[compact]) return BOOK_NAME_ALIASES[compact];
+  return compact;
 }
 
 function resolveBookKey(bookName, bibleData) {
   const canon = canonicalBookName(bookName);
   if (bibleData?.[canon]) return canon;
   if (bibleData?.[bookName]) return bookName;
+  const keys = Object.keys(bibleData || {});
+  const target = normalizeBookKey(canon);
+  const found = keys.find((k) => normalizeBookKey(k) === target);
+  if (found) return found;
   return canon || bookName;
 }
 
@@ -299,16 +313,55 @@ function listChapters(bibleData, bookName) {
 
 function listBooks(bibleData) {
   const available = new Set(Object.keys(bibleData || {}));
-  const orderKeys = BIBLE_BOOK_ORDER.map((name) => resolveBookKey(name, bibleData) || name);
-  const seen = new Set();
   const ordered = [];
-  for (const name of orderKeys) {
-    if (!available.has(name) || seen.has(name)) continue;
-    seen.add(name);
-    ordered.push(name);
+  const seen = new Set();
+  for (const name of BIBLE_BOOK_ORDER) {
+    const key = available.has(name) ? name : resolveBookKey(name, bibleData);
+    if (!available.has(key) || seen.has(key)) continue;
+    seen.add(key);
+    ordered.push(key);
   }
   const extras = [...available].filter((name) => !seen.has(name));
   return [...ordered, ...extras];
+}
+
+/**
+ * Re-key books to canonical names and order chapters canonically.
+ * @returns {{ data: object, renamed: Array<{from:string,to:string}>, changed: boolean }}
+ */
+function normalizeBibleData(raw) {
+  const renamed = [];
+  const merged = {};
+  for (const [book, chapters] of Object.entries(raw || {})) {
+    const canon = canonicalBookName(book);
+    if (!canon) continue;
+    if (book !== canon) renamed.push({ from: book, to: canon });
+    if (merged[canon]) {
+      merged[canon] = { ...merged[canon], ...chapters };
+    } else {
+      merged[canon] = chapters;
+    }
+  }
+  const data = sortBibleDataByCanon(merged);
+  const orderChanged = JSON.stringify(Object.keys(raw || {})) !== JSON.stringify(Object.keys(data));
+  return {
+    data,
+    renamed,
+    changed: renamed.length > 0 || orderChanged,
+  };
+}
+
+/** Object keys follow BIBLE_BOOK_ORDER (정경 순). */
+function sortBibleDataByCanon(data) {
+  const out = {};
+  const available = new Set(Object.keys(data || {}));
+  for (const name of BIBLE_BOOK_ORDER) {
+    if (available.has(name)) out[name] = data[name];
+  }
+  for (const name of Object.keys(data || {})) {
+    if (!out[name]) out[name] = data[name];
+  }
+  return out;
 }
 
 module.exports = {
@@ -329,4 +382,8 @@ module.exports = {
   listChapters,
   splitTextByCharLimit,
   sanitizeVerseText,
+  canonicalBookName,
+  resolveBookKey,
+  normalizeBibleData,
+  sortBibleDataByCanon,
 };

@@ -2,8 +2,11 @@ const fs = require('fs');
 const path = require('path');
 const AtomicWrite = require('./atomic-write');
 const SlideEngine = require('./slide-engine');
+const AppPaths = require('./app-paths');
 
-const THEMES_PATH = path.join(__dirname, 'themes.json');
+function themesPath() {
+  return AppPaths.resolveUserFile('themes.json');
+}
 
 let themesCache = null;
 
@@ -44,8 +47,8 @@ function normalizeThemeRecord(raw) {
 function loadThemesFile() {
   if (themesCache) return themesCache;
   try {
-    if (fs.existsSync(THEMES_PATH)) {
-      const data = JSON.parse(fs.readFileSync(THEMES_PATH, 'utf-8'));
+    if (fs.existsSync(themesPath())) {
+      const data = JSON.parse(fs.readFileSync(themesPath(), 'utf-8'));
       const themes = Array.isArray(data?.themes) ? data.themes : [];
       themesCache = {
         version: 1,
@@ -66,7 +69,7 @@ function saveThemesFile(data) {
     themes: (data?.themes || []).map(normalizeThemeRecord).filter(Boolean),
   };
   try {
-    AtomicWrite.atomicWriteJsonSync(THEMES_PATH, out);
+    AtomicWrite.atomicWriteJsonSync(themesPath(), out);
     themesCache = out;
   } catch (err) {
     console.error('themes.json 저장 오류:', err);
@@ -142,7 +145,7 @@ function reloadThemes() {
 }
 
 module.exports = {
-  THEMES_PATH,
+  themesPath,
   loadThemesFile,
   saveThemesFile,
   listThemes,

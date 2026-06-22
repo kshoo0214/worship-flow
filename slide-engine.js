@@ -6,19 +6,26 @@ const STAGE_ASPECT_W = 16;
 const STAGE_ASPECT_H = 9;
 const STAGE_ASPECT_RATIO = STAGE_ASPECT_W / STAGE_ASPECT_H;
 
-function normalizeStageDimensions(width, height) {
+function normalizeStageDimensions(width, height, lockAspect = false) {
   let w = clampNum(Math.round(Number(width) || STAGE_REF_WIDTH), 320, 7680);
-  let h = clampNum(Math.round(w * STAGE_ASPECT_H / STAGE_ASPECT_W), 180, 4320);
-  w = clampNum(Math.round(h * STAGE_ASPECT_W / STAGE_ASPECT_H), 320, 7680);
+  let h = clampNum(Math.round(Number(height) || STAGE_REF_HEIGHT), 180, 4320);
+  if (lockAspect) {
+    h = clampNum(Math.round(w * STAGE_ASPECT_H / STAGE_ASPECT_W), 180, 4320);
+    w = clampNum(Math.round(h * STAGE_ASPECT_W / STAGE_ASPECT_H), 320, 7680);
+  }
   return { width: w, height: h };
 }
 
-/** @param {{ outputWidth?: number, outputHeight?: number } | null | undefined} settings */
+/** @param {{ outputWidth?: number, outputHeight?: number, outputLockAspect?: boolean } | null | undefined} settings */
 function getStageDimensions(settings) {
   if (!settings || typeof settings !== 'object') {
     return { width: STAGE_REF_WIDTH, height: STAGE_REF_HEIGHT };
   }
-  return normalizeStageDimensions(settings.outputWidth, settings.outputHeight);
+  return normalizeStageDimensions(
+    settings.outputWidth,
+    settings.outputHeight,
+    settings.outputLockAspect === true,
+  );
 }
 
 function getStageAspectRatio(settings) {
@@ -119,12 +126,17 @@ function uid() {
   return `ly_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
-const TEXT_ROLES = ['body', 'reference'];
+const TEXT_ROLES = ['body', 'reference', 'timer', 'clock'];
+
+/** Roles rendered with live system data on output. */
+const LIVE_TEXT_ROLES = new Set(['timer', 'clock']);
 
 const THEME_STYLE_KEYS = [
   'fontFamily', 'fontSize', 'color', 'textAlign', 'verticalAlign',
   'fontWeight', 'lineHeight', 'fontStyle', 'textDecoration', 'letterSpacing', 'opacity',
-  'strokeWidth', 'strokeColor', 'shadowX', 'shadowY', 'shadowBlur', 'shadowColor',
+  'strokeWidth', 'strokeColor', 'strokeEnabled',
+  'shadowX', 'shadowY', 'shadowBlur', 'shadowColor', 'shadowEnabled', 'shadowOpacity',
+  'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft',
   'boxFillEnabled', 'boxFillColor', 'boxFillOpacity', 'boxRadius',
 ];
 
@@ -171,6 +183,11 @@ function defaultTextStyle() {
     shadowBlur: 14,
     shadowColor: 'rgba(0,0,0,0.85)',
     shadowEnabled: true,
+    shadowOpacity: 0.85,
+    paddingTop: 0,
+    paddingRight: 0,
+    paddingBottom: 0,
+    paddingLeft: 0,
     boxFillEnabled: false,
     boxFillColor: '#000000',
     boxFillOpacity: 0.45,
@@ -195,6 +212,11 @@ function normalizeThemeStyle(style) {
   out.opacity = clampNum(Number(s.opacity ?? base.opacity), 0, 1);
   out.boxFillOpacity = clampNum(Number(s.boxFillOpacity ?? base.boxFillOpacity), 0, 1);
   out.boxRadius = clampNum(Number(s.boxRadius ?? base.boxRadius), 0, 48);
+  out.paddingTop = clampNum(Number(s.paddingTop ?? base.paddingTop), 0, 24);
+  out.paddingRight = clampNum(Number(s.paddingRight ?? base.paddingRight), 0, 24);
+  out.paddingBottom = clampNum(Number(s.paddingBottom ?? base.paddingBottom), 0, 24);
+  out.paddingLeft = clampNum(Number(s.paddingLeft ?? base.paddingLeft), 0, 24);
+  out.shadowOpacity = clampNum(Number(s.shadowOpacity ?? base.shadowOpacity), 0, 1);
   if (s.boxFillEnabled !== undefined) out.boxFillEnabled = Boolean(s.boxFillEnabled);
   if (s.boxFillColor !== undefined) out.boxFillColor = String(s.boxFillColor);
   if (s.strokeEnabled !== undefined) out.strokeEnabled = Boolean(s.strokeEnabled);
@@ -399,6 +421,19 @@ function getPrimaryTextRaw(slide) {
   return String(layer?.content ?? '');
 }
 
+/** Stage display: body + reference text for current/next slide. */
+function getStageTextFromSlide(slide) {
+  const norm = normalizeSlide(slide);
+  const texts = (norm.layers || []).filter((l) => l.type === 'text');
+  const bodyLayer = texts.find((l) => l.textRole === 'body') || getPrimaryTextLayer(norm);
+  const refLayer = texts.find((l) => l.textRole === 'reference');
+  return {
+    body: String(bodyLayer?.content ?? '').trim(),
+    reference: String(refLayer?.content ?? '').trim(),
+    group: String(norm.group || '').trim(),
+  };
+}
+
 function applyThemeToSlide(slide, theme) {
   const normalized = normalizeSlide(JSON.parse(JSON.stringify(slide)));
   const themeNorm = normalizeTheme(theme);
@@ -539,11 +574,16 @@ function defaultShapeStyle() {
     strokeEnabled: true,
     opacity: 1,
     borderRadius: 4,
+    borderRadiusTL: 4,
+    borderRadiusTR: 4,
+    borderRadiusBL: 4,
+    borderRadiusBR: 4,
     shadowX: 0,
     shadowY: 4,
     shadowBlur: 12,
     shadowColor: 'rgba(0,0,0,0.45)',
     shadowEnabled: true,
+    shadowOpacity: 0.45,
   };
 }
 
@@ -565,6 +605,7 @@ function defaultShapeLabelStyle() {
     shadowBlur: 14,
     shadowColor: 'rgba(0,0,0,0.85)',
     shadowEnabled: false,
+    shadowOpacity: 0.85,
   };
 }
 
@@ -583,6 +624,7 @@ function normalizeShapeLabelStyle(raw) {
   s.shadowY = clampNum(Number(s.shadowY) || 0, -80, 80);
   s.shadowBlur = clampNum(Number(s.shadowBlur) || 0, 0, 80);
   s.shadowColor = String(s.shadowColor || 'rgba(0,0,0,0.85)');
+  s.shadowOpacity = clampNum(Number(s.shadowOpacity ?? 0.85), 0, 1);
   if (raw?.shadowEnabled !== undefined) s.shadowEnabled = Boolean(raw.shadowEnabled);
   else s.shadowEnabled = s.shadowBlur > 0 || s.shadowX !== 0 || s.shadowY !== 0;
   return s;
@@ -598,11 +640,17 @@ function normalizeShapeStyle(raw) {
   s.stroke = String(s.stroke || '#5b8def');
   s.strokeWidth = clampNum(Number(s.strokeWidth) || 0, 0, 24);
   s.opacity = clampNum(Number(s.opacity ?? 1), 0, 1);
-  s.borderRadius = clampNum(Number(s.borderRadius) || 0, 0, 50);
+  const legacyRadius = clampNum(Number(s.borderRadius) || 0, 0, 80);
+  s.borderRadiusTL = clampNum(Number(s.borderRadiusTL ?? legacyRadius), 0, 80);
+  s.borderRadiusTR = clampNum(Number(s.borderRadiusTR ?? legacyRadius), 0, 80);
+  s.borderRadiusBL = clampNum(Number(s.borderRadiusBL ?? legacyRadius), 0, 80);
+  s.borderRadiusBR = clampNum(Number(s.borderRadiusBR ?? legacyRadius), 0, 80);
+  s.borderRadius = legacyRadius;
   s.shadowX = clampNum(Number(s.shadowX) || 0, -80, 80);
   s.shadowY = clampNum(Number(s.shadowY) || 0, -80, 80);
   s.shadowBlur = clampNum(Number(s.shadowBlur) || 0, 0, 80);
   s.shadowColor = String(s.shadowColor || 'rgba(0,0,0,0.45)');
+  s.shadowOpacity = clampNum(Number(s.shadowOpacity ?? 0.45), 0, 1);
   if (raw?.strokeEnabled !== undefined) s.strokeEnabled = Boolean(raw.strokeEnabled);
   else s.strokeEnabled = s.strokeWidth > 0;
   if (raw?.shadowEnabled !== undefined) s.shadowEnabled = Boolean(raw.shadowEnabled);
@@ -619,10 +667,12 @@ function buildShapeBackground(st) {
 }
 
 function buildShapeBoxShadow(st, scale = 1) {
+  if (st.shadowEnabled === false) return 'none';
   const x = (st.shadowX ?? 0) * scale;
   const y = (st.shadowY ?? 0) * scale;
   const blur = (st.shadowBlur ?? 0) * scale;
-  const color = st.shadowColor || 'rgba(0,0,0,0.45)';
+  const opacity = clampNum(Number(st.shadowOpacity ?? 0.45), 0, 1);
+  const color = colorWithAlpha(st.shadowColor || 'rgba(0,0,0,0.45)', opacity);
   if (!blur && !x && !y) return 'none';
   return `${x}px ${y}px ${blur}px ${color}`;
 }
@@ -645,13 +695,21 @@ function applyShapeAppearance(box, st, scale = 1) {
     box.style.borderRadius = '0';
     box.style.clipPath = STAR_CLIP_PATH;
   } else {
-    box.style.borderRadius = `${style.borderRadius}px`;
+    const tl = (style.borderRadiusTL ?? style.borderRadius ?? 0) * scale;
+    const tr = (style.borderRadiusTR ?? style.borderRadius ?? 0) * scale;
+    const br = (style.borderRadiusBR ?? style.borderRadius ?? 0) * scale;
+    const bl = (style.borderRadiusBL ?? style.borderRadius ?? 0) * scale;
+    box.style.borderRadius = `${tl}px ${tr}px ${br}px ${bl}px`;
     box.style.clipPath = 'none';
   }
 }
 
 function isDesignLayer(layer) {
   return layer?.type === 'rect';
+}
+
+function hasDesignLayers(slide) {
+  return (slide?.layers || []).some((l) => isDesignLayer(l));
 }
 
 function normalizeGroup(group) {
@@ -760,6 +818,10 @@ function createSlideFromText(text, opts = {}) {
     background: { type: 'color', color: '#000000' },
     layers: [createTextLayer(text, layerOpts)],
   };
+}
+
+function createBlankSlide(opts = {}) {
+  return normalizeSlide(createSlideFromText('', { ...opts, preserveEmpty: true }));
 }
 
 function getPrimaryText(slide) {
@@ -1020,24 +1082,28 @@ function applyBackground(el, background, resolveFileUrl) {
   }
 }
 
+function applyTextStroke(el, style, scale = 1) {
+  if (!el || style.strokeEnabled === false || !(style.strokeWidth > 0)) {
+    if (el) {
+      el.style.webkitTextStroke = '';
+      el.style.paintOrder = '';
+    }
+    return;
+  }
+  const w = Math.max(0.5, (style.strokeWidth || 0) * scale);
+  el.style.webkitTextStroke = `${w}px ${style.strokeColor || '#000000'}`;
+  el.style.paintOrder = 'stroke fill';
+}
+
 function buildTextShadow(style, scale = 1) {
-  const parts = [];
-  if (style.strokeEnabled !== false && style.strokeWidth > 0) {
-    const c = style.strokeColor || '#000';
-    const w = (style.strokeWidth || 0) * scale;
-    parts.push(
-      `${-w}px ${-w}px 0 ${c}`,
-      `${w}px ${-w}px 0 ${c}`,
-      `${-w}px ${w}px 0 ${c}`,
-      `${w}px ${w}px 0 ${c}`
-    );
-  }
-  if (style.shadowEnabled !== false) {
-    parts.push(
-      `${(style.shadowX || 0) * scale}px ${(style.shadowY || 0) * scale}px ${(style.shadowBlur || 0) * scale}px ${style.shadowColor || 'rgba(0,0,0,0.8)'}`
-    );
-  }
-  return parts.length ? parts.join(', ') : 'none';
+  if (style.shadowEnabled === false) return 'none';
+  const opacity = clampNum(Number(style.shadowOpacity ?? 0.85), 0, 1);
+  const color = colorWithAlpha(style.shadowColor || '#000000', opacity);
+  const x = (style.shadowX || 0) * scale;
+  const y = (style.shadowY || 0) * scale;
+  const blur = (style.shadowBlur || 0) * scale;
+  if (!blur && !x && !y) return 'none';
+  return `${x}px ${y}px ${blur}px ${color}`;
 }
 
 function filterLayersForRender(layers, textMode) {
@@ -1102,6 +1168,7 @@ function renderLayer(layer, scale = 1, fontUnit = 'cqh', refHeight = 1080, layer
         label.style.fontSize = `${(ls.fontSize || 3.5) * scale}${fontUnit}`;
       }
       label.style.textShadow = buildTextShadow(ls, scale);
+      applyTextStroke(label, ls, scale);
       wrap.appendChild(label);
     }
     return wrap;
@@ -1138,16 +1205,25 @@ function renderLayer(layer, scale = 1, fontUnit = 'cqh', refHeight = 1080, layer
     inner.style.overflow = layerOpts.clipText === false ? 'visible' : 'hidden';
     inner.style.boxSizing = 'border-box';
     inner.style.pointerEvents = 'none';
+    const padT = st.paddingTop ?? 0;
+    const padR = st.paddingRight ?? 0;
+    const padB = st.paddingBottom ?? 0;
+    const padL = st.paddingLeft ?? 0;
+    if (padT || padR || padB || padL) {
+      inner.style.padding = `${padT}% ${padR}% ${padB}% ${padL}%`;
+    }
     if (fontUnit === 'px') {
       const px = Math.max(7, Math.round(((st.fontSize || 5) / 100) * refHeight * scale));
       inner.style.fontSize = `${px}px`;
       inner.style.letterSpacing = `${Math.round((st.letterSpacing ?? 1) * scale)}px`;
       inner.style.textShadow = buildTextShadow(st, scale);
+      applyTextStroke(inner, st, scale);
     } else {
       const sizePct = (st.fontSize || 5) * scale;
       inner.style.fontSize = `${sizePct}${fontUnit}`;
       inner.style.letterSpacing = `${(st.letterSpacing ?? 1) * scale * 0.15}${fontUnit}`;
       inner.style.textShadow = buildTextShadow(st, scale * (sizePct / 5));
+      applyTextStroke(inner, st, scale * (sizePct / 5));
     }
     wrap.appendChild(inner);
     return wrap;
@@ -1219,7 +1295,13 @@ function renderSlide(slide, container, options = {}) {
         el.style.cursor = 'default';
       } else {
         el.style.pointerEvents = 'auto';
-        el.style.cursor = isSelected ? 'grab' : 'pointer';
+        if (layer.type === 'text') {
+          el.style.cursor = 'text';
+        } else if (isSelected) {
+          el.style.cursor = 'grab';
+        } else {
+          el.style.cursor = 'pointer';
+        }
       }
     }
     container.appendChild(el);
@@ -1298,6 +1380,28 @@ function duplicateSlide(slide) {
   copy.id = uid();
   copy.layers = copy.layers.map((l) => ({ ...l, id: uid() }));
   return copy;
+}
+
+/** Keyboard multi-select: duplicate slides at indices (sorted internally). */
+function duplicateSlidesAtIndices(slides, indices) {
+  const src = Array.isArray(slides) ? slides : [];
+  const picks = [...new Set(indices)]
+    .filter((i) => Number.isInteger(i) && i >= 0 && i < src.length)
+    .sort((a, b) => a - b);
+  if (!picks.length) {
+    return { slides: src.map((s) => normalizeSlide(JSON.parse(JSON.stringify(s)))), firstNewIndex: -1 };
+  }
+  const out = src.map((s) => normalizeSlide(JSON.parse(JSON.stringify(s))));
+  let offset = 0;
+  let firstNewIndex = -1;
+  picks.forEach((idx) => {
+    const copy = duplicateSlide(out[idx + offset]);
+    const at = idx + offset + 1;
+    if (firstNewIndex < 0) firstNewIndex = at;
+    out.splice(at, 0, copy);
+    offset += 1;
+  });
+  return { slides: out, firstNewIndex };
 }
 
 function nudgeLayer(layer, dx, dy) {
@@ -1438,6 +1542,7 @@ module.exports = {
   defaultShapeLabelStyle,
   SHAPE_KINDS,
   isDesignLayer,
+  hasDesignLayers,
   createShapeLayer,
   createEllipseLayer,
   createStarLayer,
@@ -1474,8 +1579,10 @@ module.exports = {
   createRectLayer,
   createBibleSlide,
   createSlideFromText,
+  createBlankSlide,
   getPrimaryText,
   getPrimaryTextContent,
+  getStageTextFromSlide,
   getPrimaryTextLayer,
   getLyricsDisplay,
   slidesToLyrics,
@@ -1490,6 +1597,8 @@ module.exports = {
   filterLayersForRender,
   syncSlidesFromReflow,
   buildTextShadow,
+  applyTextStroke,
+  colorWithAlpha,
   getLayerIndex,
   hitTestLayerAtPoint,
   duplicateLayer,
@@ -1498,10 +1607,57 @@ module.exports = {
   bringLayerToFront,
   sendLayerToBack,
   duplicateSlide,
+  duplicateSlidesAtIndices,
   nudgeLayer,
   EDITOR_SNAP_THRESHOLD,
   snapPercentValue,
   snapLayerMoveBox,
   applyLayerResize,
   applyShapeAppearance,
+  mergeContentIntoSlide,
+  extractSlideContent,
+  resolveSlideForBroadcast,
 };
+
+function mergeContentIntoSlide(baseSlide, content) {
+  const slide = normalizeSlide(JSON.parse(JSON.stringify(baseSlide || createSlideFromText(''))));
+  if (!content || typeof content !== 'object') return slide;
+  const body = content.body != null ? String(content.body) : null;
+  const reference = content.reference != null ? String(content.reference) : null;
+  const group = content.group != null ? String(content.group) : null;
+  if (group != null) slide.group = group;
+  const texts = (slide.layers || []).filter((l) => l.type === 'text');
+  const bodyLayer = texts.find((l) => l.textRole === 'body') || getPrimaryTextLayer(slide);
+  if (bodyLayer && body != null) bodyLayer.content = body;
+  const refLayer = texts.find((l) => l.textRole === 'reference');
+  if (refLayer && reference != null) refLayer.content = reference;
+  else if (reference != null && bodyLayer) {
+    slide.layers.push(createTextLayer(reference, {
+      textRole: 'reference',
+      preserveEmpty: true,
+      style: { fontSize: 2.2, textAlign: 'right', verticalAlign: 'bottom' },
+    }));
+  }
+  if (!bodyLayer && body != null) {
+    slide.layers.push(createTextLayer(body, { textRole: 'body' }));
+  }
+  return normalizeSlide(slide);
+}
+
+function extractSlideContent(slide) {
+  const norm = normalizeSlide(JSON.parse(JSON.stringify(slide || {})));
+  const stageText = getStageTextFromSlide(norm);
+  return {
+    payload: {
+      body: stageText.body,
+      reference: stageText.reference,
+      group: stageText.group,
+      slideId: norm.id || '',
+    },
+    baseSlide: norm,
+  };
+}
+
+function resolveSlideForBroadcast(baseSlide, content) {
+  return prepareSlideForBroadcast(mergeContentIntoSlide(baseSlide, content));
+}

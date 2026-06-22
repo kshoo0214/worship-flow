@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "macros": [
+    {
+      "id": "macro_pre_service",
+      "name": "예배 전",
+      "actions": [
+        {
+          "type": "clearAll"
+        },
+        {
+          "type": "unblackout"
+        }
+      ],
+      "updatedAt": "2026-06-12T06:24:27.442Z"
+    },
+    {
+      "id": "macro_worship",
+      "name": "찬양 시작",
+      "actions": [
+        {
+          "type": "clearText"
+        },
+        {
+          "type": "clearProps"
+        }
+      ],
+      "updatedAt": "2026-06-12T06:24:27.443Z"
+    }
+  ],
+  "props": [
+    {
+      "id": "prop_stand",
+      "name": "일어남",
+      "text": "일어나 주세요",
+      "position": "bottom",
+      "fontSize": 5,
+      "color": "#ffffff",
+      "bgColor": "#000000",
+      "bgOpacity": 0.55,
+      "updatedAt": "2026-06-15T15:22:05.133Z",
+      "boxX": 10,
+      "boxY": 10,
+      "boxW": 80,
+      "boxH": 20,
+      "textAlign": "center",
+      "fontWeight": 800,
+      "padding": 16,
+      "borderRadius": 10
+    },
+    {
+      "id": "prop_sit",
+      "name": "착석",
+      "text": "착석해 주세요",
+      "position": "bottom",
+      "fontSize": 5,
+      "color": "#ffffff",
+      "bgColor": "#000000",
+      "bgOpacity": 0.55,
+      "updatedAt": "2026-06-12T16:55:13.036Z",
+      "boxX": 8.9,
+      "boxY": 76.3,
+      "boxW": 80,
+      "boxH": 18,
+      "textAlign": "center"
+    },
+    {
+      "id": "prop_offering",
+      "name": "헌금",
+      "text": "헌금 시간입니다",
+      "position": "bottom",
+      "fontSize": 5,
+      "color": "#ffffff",
+      "bgColor": "#000000",
+      "bgOpacity": 0.55,
+      "updatedAt": "2026-06-14T20:08:13.452Z",
+      "boxX": 10,
+      "boxY": 10,
+      "boxW": 80,
+      "boxH": 20,
+      "textAlign": "center",
+      "fontWeight": 800,
+      "padding": 16,
+      "borderRadius": 10
+    },
+    {
+      "id": "prop_mqjarbf8_rlzh",
+      "name": "새 Prop 4",
+      "text": "표시할 메시지를 입력하세요",
+      "position": "bottom",
+      "fontSize": 5,
+      "color": "#ffffff",
+      "bgColor": "#000000",
+      "bgOpacity": 0.55,
+      "updatedAt": "2026-06-18T09:27:58.881Z",
+      "textAlign": "center"
+    }
+  ]
+}

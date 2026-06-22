@@ -1,5 +1,5 @@
 /**
- * Build bible_ko.json (개역개정) from bskorea.or.kr.
+ * Build bible_ko_revised.json (개역개정) from bskorea.or.kr.
  * Output shape: { "창세기": { "1": { "1": "..." } } }
  *
  * Usage: node scripts/build-bible-ko.js
@@ -9,7 +9,7 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 
-const OUT_PATH = path.join(__dirname, '..', 'bible_ko.json');
+const OUT_PATH = path.join(__dirname, '..', 'resources', 'bible', 'bible_ko_revised.json');
 const TMP_PATH = `${OUT_PATH}.tmp`;
 const PROGRESS_PATH = `${OUT_PATH}.progress.json`;
 const BASE_URL = 'https://www.bskorea.or.kr/bible/korbibReadpage.php';

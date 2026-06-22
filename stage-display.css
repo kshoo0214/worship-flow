@@ -1,0 +1,198 @@
+/* Shared stage display layout — used by stage.html and stage-editor.html preview */
+.stage-display-root {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  padding: var(--stage-safe-margin, 20px);
+  gap: 10px;
+  min-height: 0;
+  container-type: inline-size;
+  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  color: var(--stage-current-color, #eef0f4);
+  background: var(--stage-bg, #0a0a0f);
+  --stage-text-align: center;
+}
+
+.stage-display-root.layout-side .stage-main-area {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+  min-height: 0;
+  height: 100%;
+}
+
+.stage-display-root.layout-stacked .stage-main-area {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  gap: 10px;
+  height: 100%;
+}
+
+.stage-display-root.layout-stacked .stage-current {
+  flex: 1;
+  min-height: 0;
+}
+
+.stage-display-root.layout-stacked .stage-next {
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: 42%;
+}
+
+.stage-main-area {
+  min-height: 0;
+}
+
+.stage-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 0;
+}
+
+.stage-song {
+  flex: 1;
+  min-width: 0;
+  font-size: calc(1.4cqw * var(--stage-font-scale, 1));
+  font-weight: 700;
+  color: var(--stage-song-color, #93c5fd);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stage-head-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.stage-clock {
+  font-size: calc(1.6cqw * var(--stage-font-scale, 1));
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #e2e8f0;
+  letter-spacing: 0.04em;
+}
+
+.stage-counter {
+  font-size: calc(1.2cqw * var(--stage-font-scale, 1));
+  font-weight: 700;
+  color: #8b93a7;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.stage-progress {
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.stage-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #3b82f6, #4ade80);
+  border-radius: inherit;
+  transition: width 0.35s ease-out;
+}
+
+.stage-current,
+.stage-next {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+}
+
+.stage-panel-label {
+  padding: 6px 12px;
+  font-size: calc(0.9cqw * var(--stage-font-scale, 1));
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.stage-current .stage-panel-label {
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.12);
+}
+
+.stage-next .stage-panel-label {
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.1);
+}
+
+.stage-panel-body {
+  flex: 1;
+  min-height: 0;
+  padding: 2.5cqw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+  container-type: size;
+}
+
+.stage-group {
+  font-size: calc(1.1cqw * var(--stage-font-scale, 1));
+  font-weight: 700;
+  color: var(--stage-group-color, #a78bfa);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  flex-shrink: 0;
+}
+
+.stage-body-text {
+  font-size: calc(3.8cqw * var(--stage-font-scale, 1));
+  font-weight: 800;
+  line-height: 1.22;
+  text-align: var(--stage-text-align, center);
+  color: var(--stage-current-color, #eef0f4);
+  white-space: pre-wrap;
+  word-break: keep-all;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+
+.stage-next .stage-body-text {
+  font-size: calc(2.2cqw * var(--stage-next-font-scale, 0.85));
+  color: var(--stage-next-color, #cbd5e1);
+  font-weight: 700;
+  line-height: 1.24;
+}
+
+.stage-ref-text {
+  margin-top: 8px;
+  font-size: calc(1.4cqw * var(--stage-font-scale, 1));
+  color: var(--stage-ref-color, #94a3b8);
+  white-space: pre-wrap;
+  text-align: var(--stage-text-align, center);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.stage-next .stage-ref-text {
+  margin-top: 6px;
+  font-size: calc(1.2cqw * var(--stage-next-font-scale, 0.85));
+}
+
+.stage-empty {
+  color: #64748b;
+  font-weight: 600;
+}
+
+.stage-display-root.is-blackout .stage-main-area {
+  opacity: 0.25;
+}

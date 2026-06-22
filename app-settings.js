@@ -2,8 +2,11 @@ const fs = require('fs');
 const path = require('path');
 const AtomicWrite = require('./atomic-write');
 const { normalizeShortcuts } = require('./shortcuts');
+const AppPaths = require('./app-paths');
 
-const SETTINGS_PATH = path.join(__dirname, 'settings.json');
+function settingsPath() {
+  return AppPaths.resolveUserFile('settings.json');
+}
 
 /** Quick preset menu in settings (standard broadcast sizes). */
 const OUTPUT_QUICK_PRESETS = [
@@ -21,6 +24,11 @@ const DEFAULTS = {
   language: 'ko',
   outputWidth: 1920,
   outputHeight: 1080,
+  outputLockAspect: false,
+  /** Stage display logical resolution (independent from program output). */
+  stageWidth: 1920,
+  stageHeight: 1080,
+  stageLockAspect: false,
   /** Electron display.id for program output target (empty = auto secondary). */
   outputDisplayId: '',
   outputDisplayScale: 100,
@@ -53,6 +61,47 @@ const DEFAULTS = {
   logoMediaId: '',
   /** Theme id applied to Bible workspace slides (empty = default black) */
   bibleThemeId: '',
+  /** Active Bible translation: old (개역한글) | revised (개역개정) */
+  bibleVersion: 'old',
+  /** Active ProPresenter-style Look preset id (multi-display matrix). */
+  /** Relay overlay logical resolution (transparent capture for OBS etc.). */
+  relayWidth: 1920,
+  relayHeight: 1080,
+  relayLockAspect: false,
+  /** Electron display.id for relay overlay (empty = auto). */
+  relayDisplayId: '',
+  autoOpenRelayOnStart: false,
+  /** @deprecated use autoOpenRelayOnStart */
+  relayOutputEnabled: false,
+  /** Song/folder section header colors in slide grid { title: '#hex' } */
+  slideSectionColors: {},
+  /** Editor guide overlays */
+  showGuideCrosshair: true,
+  showGuideSafeArea: true,
+  showGuideTitleSafe: true,
+  /** Bottom media bin panel visible in live mode */
+  mediaPanelVisible: true,
+  /** Electron display.id for stage display (empty = auto tertiary / same as output) */
+  stageDisplayId: '',
+  autoOpenStageOnStart: false,
+  stageShowClock: true,
+  stageShowCounter: true,
+  stageShowSongTitle: true,
+  stageShowGroup: true,
+  stageShowReference: true,
+  stageShowNext: true,
+  stageShowProgress: true,
+  stageFontScale: 100,
+  stageNextFontScale: 85,
+  stageLayout: 'stacked',
+  stageTextAlign: 'center',
+  stageBgColor: '#0a0a0f',
+  stageCurrentTextColor: '#eef0f4',
+  stageNextTextColor: '#cbd5e1',
+  stageSongTitleColor: '#93c5fd',
+  stageGroupColor: '#a78bfa',
+  stageRefTextColor: '#94a3b8',
+  stageSafeMargin: 20,
   /** Prefix each verse with its number in bible slide body text */
   bibleShowVerseNumbers: false,
   shortcuts: null,
@@ -96,16 +145,42 @@ function clamp(n, min, max) {
   return Math.min(max, Math.max(min, n));
 }
 
-function normalizeOutputResolution(width, height) {
+function normalizeResolution(width, height, lockAspect = false) {
   let w = clamp(Math.round(Number(width) || 1920), 320, 7680);
-  let h = clamp(Math.round(w * 9 / 16), 180, 4320);
-  w = clamp(Math.round(h * 16 / 9), 320, 7680);
+  let h = clamp(Math.round(Number(height) || 1080), 180, 4320);
+  if (lockAspect) {
+    h = clamp(Math.round(w * 9 / 16), 180, 4320);
+    w = clamp(Math.round(h * 16 / 9), 320, 7680);
+  }
   return { width: w, height: h };
+}
+
+/** @deprecated alias — use normalizeResolution */
+function normalizeOutputResolution(width, height, lockAspect) {
+  return normalizeResolution(width, height, lockAspect);
 }
 
 function getOutputResolution(settings) {
   const s = settings && typeof settings === 'object' ? settings : {};
-  return normalizeOutputResolution(s.outputWidth, s.outputHeight);
+  return normalizeResolution(s.outputWidth, s.outputHeight, s.outputLockAspect === true);
+}
+
+function getStageResolution(settings) {
+  const s = settings && typeof settings === 'object' ? settings : {};
+  return normalizeResolution(
+    s.stageWidth ?? s.outputWidth,
+    s.stageHeight ?? s.outputHeight,
+    s.stageLockAspect === true,
+  );
+}
+
+function getRelayResolution(settings) {
+  const s = settings && typeof settings === 'object' ? settings : {};
+  return normalizeResolution(
+    s.relayWidth ?? s.outputWidth,
+    s.relayHeight ?? s.outputHeight,
+    s.relayLockAspect === true,
+  );
 }
 
 function findResolutionPresetId(width, height) {
@@ -121,9 +196,36 @@ function normalize(raw) {
   s.autoLoadLastPlaylist = s.autoLoadLastPlaylist !== false;
   s.masterVolume = clamp(Math.round(Number(s.masterVolume) || 100), 0, 100);
   s.muteMediaOnBlackout = s.muteMediaOnBlackout !== false;
-  const res = normalizeOutputResolution(s.outputWidth, s.outputHeight);
+  if (s.outputLockAspect === true) {
+    const ow = Math.round(Number(s.outputWidth) || 1920);
+    const oh = Math.round(Number(s.outputHeight) || 1080);
+    if (Math.abs(oh - Math.round(ow * 9 / 16)) > 2) s.outputLockAspect = false;
+  }
+  if (s.stageLockAspect === true) {
+    const sw = Math.round(Number(s.stageWidth ?? s.outputWidth) || 1920);
+    const sh = Math.round(Number(s.stageHeight ?? s.outputHeight) || 1080);
+    if (Math.abs(sh - Math.round(sw * 9 / 16)) > 2) s.stageLockAspect = false;
+  }
+  if (s.relayLockAspect === true) {
+    const rw = Math.round(Number(s.relayWidth ?? s.outputWidth) || 1920);
+    const rh = Math.round(Number(s.relayHeight ?? s.outputHeight) || 1080);
+    if (Math.abs(rh - Math.round(rw * 9 / 16)) > 2) s.relayLockAspect = false;
+  }
+  const res = getOutputResolution(s);
   s.outputWidth = res.width;
   s.outputHeight = res.height;
+  s.outputLockAspect = s.outputLockAspect === true;
+  const stageRes = getStageResolution(s);
+  s.stageWidth = stageRes.width;
+  s.stageHeight = stageRes.height;
+  s.stageLockAspect = s.stageLockAspect === true;
+  const relayRes = getRelayResolution(s);
+  s.relayWidth = relayRes.width;
+  s.relayHeight = relayRes.height;
+  s.relayLockAspect = s.relayLockAspect === true;
+  s.relayDisplayId = String(s.relayDisplayId || '').trim();
+  s.autoOpenRelayOnStart = Boolean(s.autoOpenRelayOnStart ?? s.relayOutputEnabled);
+  s.relayOutputEnabled = s.autoOpenRelayOnStart;
   s.outputDisplayId = String(s.outputDisplayId || '').trim();
   s.outputDisplayScale = clamp(Math.round(Number(s.outputDisplayScale) || 100), 25, 200);
   s.outputAutoFit = s.outputAutoFit !== false;
@@ -150,7 +252,37 @@ function normalize(raw) {
   s.biblePreviewZoom = clamp(Math.round(Number(s.biblePreviewZoom) || 80), 50, 200);
   s.logoMediaId = String(s.logoMediaId || '').trim();
   s.bibleThemeId = String(s.bibleThemeId || '').trim();
+  let bibleVersion = String(s.bibleVersion || '').trim();
+  if (!bibleVersion && s.bibleTranslation === 'ko') bibleVersion = 'revised';
+  if (!['old', 'revised'].includes(bibleVersion)) bibleVersion = 'old';
+  s.bibleVersion = bibleVersion;
   s.bibleShowVerseNumbers = Boolean(s.bibleShowVerseNumbers);
+  s.slideSectionColors = (s.slideSectionColors && typeof s.slideSectionColors === 'object')
+    ? s.slideSectionColors : {};
+  s.showGuideCrosshair = s.showGuideCrosshair !== false;
+  s.showGuideSafeArea = s.showGuideSafeArea !== false;
+  s.showGuideTitleSafe = s.showGuideTitleSafe !== false;
+  s.stageDisplayId = String(s.stageDisplayId || '').trim();
+  s.autoOpenStageOnStart = Boolean(s.autoOpenStageOnStart);
+  s.stageShowClock = s.stageShowClock !== false;
+  s.stageShowCounter = s.stageShowCounter !== false;
+  s.stageShowSongTitle = s.stageShowSongTitle !== false;
+  s.stageShowGroup = s.stageShowGroup !== false;
+  s.stageShowReference = s.stageShowReference !== false;
+  s.stageShowNext = s.stageShowNext !== false;
+  s.stageShowProgress = s.stageShowProgress !== false;
+  s.stageFontScale = clamp(Math.round(Number(s.stageFontScale) || 100), 70, 150);
+  s.stageNextFontScale = clamp(Math.round(Number(s.stageNextFontScale) || 85), 50, 120);
+  s.stageLayout = s.stageLayout === 'side' ? 'side' : 'stacked';
+  s.stageTextAlign = ['left', 'center', 'right'].includes(s.stageTextAlign) ? s.stageTextAlign : 'center';
+  s.stageBgColor = String(s.stageBgColor || '#0a0a0f').trim();
+  s.stageCurrentTextColor = String(s.stageCurrentTextColor || '#eef0f4').trim();
+  s.stageNextTextColor = String(s.stageNextTextColor || '#cbd5e1').trim();
+  s.stageSongTitleColor = String(s.stageSongTitleColor || '#93c5fd').trim();
+  s.stageGroupColor = String(s.stageGroupColor || '#a78bfa').trim();
+  s.stageRefTextColor = String(s.stageRefTextColor || '#94a3b8').trim();
+  s.stageSafeMargin = clamp(Math.round(Number(s.stageSafeMargin) || 20), 8, 48);
+  s.mediaPanelVisible = s.mediaPanelVisible !== false;
   s.shortcuts = normalizeShortcuts(s.shortcuts);
   s.panelSizes = normalizePanelSizes(s.panelSizes);
   return s;
@@ -158,8 +290,8 @@ function normalize(raw) {
 
 function loadSettings() {
   try {
-    if (fs.existsSync(SETTINGS_PATH)) {
-      return normalize(JSON.parse(fs.readFileSync(SETTINGS_PATH, 'utf-8')));
+    if (fs.existsSync(settingsPath())) {
+      return normalize(JSON.parse(fs.readFileSync(settingsPath(), 'utf-8')));
     }
   } catch (err) {
     console.error('설정 읽기 오류:', err);
@@ -170,7 +302,7 @@ function loadSettings() {
 function saveSettings(partial) {
   const next = normalize({ ...loadSettings(), ...(partial || {}) });
   try {
-    AtomicWrite.atomicWriteJsonSync(SETTINGS_PATH, next);
+    AtomicWrite.atomicWriteJsonSync(settingsPath(), next);
   } catch (err) {
     console.error('설정 저장 오류:', err);
   }
@@ -179,7 +311,7 @@ function saveSettings(partial) {
 
 function resetSettings() {
   try {
-    if (fs.existsSync(SETTINGS_PATH)) fs.unlinkSync(SETTINGS_PATH);
+    if (fs.existsSync(settingsPath())) fs.unlinkSync(settingsPath());
   } catch (_) { /* ignore */ }
   return normalize({});
 }
@@ -190,13 +322,16 @@ module.exports = {
   OUTPUT_RESOLUTION_PRESETS,
   PANEL_SIZE_DEFAULTS,
   PANEL_SIZE_LIMITS,
-  SETTINGS_PATH,
+  settingsPath,
   loadSettings,
   saveSettings,
   resetSettings,
   normalize,
   normalizeOutputResolution,
+  normalizeResolution,
   getOutputResolution,
+  getStageResolution,
+  getRelayResolution,
   findResolutionPresetId,
   normalizePanelSizes,
 };

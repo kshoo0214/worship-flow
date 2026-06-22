@@ -337,7 +337,7 @@
       renderList();
     });
 
-    ipcRenderer.once('settings:sync', (_e, s) => {
+    ipcRenderer.on('settings:sync', (_e, s) => {
       I18N.setLanguage(s?.language || 'ko');
       applyChromeI18n();
     });

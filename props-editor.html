@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Props Editor</title>
+  <style>
+    :root {
+      --bg: #0d0d11; --surface: #16161b; --surface-2: #1e1e24;
+      --border: rgba(255,255,255,0.08); --text: #ececf1; --muted: #9494a0;
+      --accent: #4d8ef7; --accent-dim: rgba(77,142,247,0.16);
+      --live: #f97316; --success: #3dd68c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
+      background: var(--bg); color: var(--text); font-size: 13px;
+      height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+    }
+    header {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 10px 14px; border-bottom: 1px solid var(--border); background: var(--surface);
+    }
+    header h1 { margin: 0; font-size: 14px; font-weight: 700; }
+    header .hint { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    button {
+      border: none; border-radius: 8px; padding: 8px 12px; font-size: 11px; font-weight: 700; cursor: pointer;
+    }
+    button.primary { background: var(--accent); color: #fff; }
+    button.secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+    button.live { background: rgba(249,115,22,0.18); color: #fdba74; border: 1px solid rgba(249,115,22,0.35); }
+    button.danger { background: transparent; color: #fca5a5; border: 1px solid var(--border); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    .layout { flex: 1; display: grid; grid-template-columns: 220px 1fr 300px; min-height: 0; }
+    .list-panel {
+      border-right: 1px solid var(--border); background: var(--surface);
+      display: flex; flex-direction: column; min-height: 0;
+    }
+    .list-toolbar { padding: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .list-toolbar button:first-child { grid-column: 1 / -1; }
+    #propList { flex: 1; overflow-y: auto; padding: 6px 8px 12px; }
+    .prop-item {
+      padding: 9px 10px; border-radius: 7px; cursor: pointer; margin-bottom: 4px;
+      border: 1px solid var(--border); background: var(--surface-2);
+    }
+    .prop-item:hover { background: #25252d; }
+    .prop-item.active { background: var(--accent-dim); border-color: rgba(77,142,247,0.45); box-shadow: inset 3px 0 0 var(--accent); }
+    .prop-item.is-live { border-color: rgba(249,115,22,0.45); background: rgba(249,115,22,0.1); box-shadow: inset 3px 0 0 var(--live); }
+    .prop-item .name { font-size: 11px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .prop-item .sub { font-size: 10px; color: var(--muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .preview-panel { display: flex; flex-direction: column; min-height: 0; background: var(--bg); }
+    .preview-toolbar {
+      display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+      border-bottom: 1px solid var(--border); background: var(--surface-2);
+    }
+    .preview-toolbar .spacer { flex: 1; }
+    .preview-viewport {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      padding: 16px; min-height: 0; overflow: auto;
+    }
+    .preview-frame {
+      width: min(100%, 920px); aspect-ratio: var(--preview-aspect, 16/9); position: relative;
+      background: #000; border: 1px solid #333; border-radius: 8px; overflow: hidden;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.55); container-type: size;
+    }
+    .canvas-grid-overlay {
+      position: absolute; inset: 0; z-index: 10; pointer-events: none; opacity: 0;
+      background-image:
+        linear-gradient(to right, rgba(255,255,255,0.07) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.07) 1px, transparent 1px),
+        linear-gradient(to right, rgba(77,142,247,0.12) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(77,142,247,0.12) 1px, transparent 1px);
+      background-size: 5% 5%, 5% 5%, 25% 25%, 25% 25%;
+    }
+    .canvas-grid-overlay.is-on { opacity: 1; }
+    .canvas-guide-overlay { position: absolute; inset: 0; z-index: 11; pointer-events: none; }
+    .canvas-guide-overlay > div { position: absolute; display: none; }
+    .canvas-guide-overlay.is-crosshair-on .guide-crosshair-v,
+    .canvas-guide-overlay.is-crosshair-on .guide-crosshair-h { display: block; }
+    .canvas-guide-overlay.is-safe-on .guide-safe-area { display: block; }
+    .canvas-guide-overlay.is-title-on .guide-title-safe { display: block; }
+    .guide-crosshair-v { top: 0; bottom: 0; left: 50%; width: 1px; margin-left: -0.5px; background: rgba(255,255,255,0.22); }
+    .guide-crosshair-h { left: 0; right: 0; top: 50%; height: 1px; margin-top: -0.5px; background: rgba(255,255,255,0.22); }
+    .guide-safe-area { inset: 5%; border: 1px dashed rgba(250,204,21,0.45); border-radius: 2px; }
+    .guide-title-safe { inset: 10%; border: 1px dashed rgba(77,142,247,0.5); border-radius: 2px; }
+    .guide-snap-v, .guide-snap-h { display: none; background: rgba(250,204,21,0.85); z-index: 1; }
+    .canvas-guide-overlay.is-snap-on .guide-snap-v,
+    .canvas-guide-overlay.is-snap-on .guide-snap-h { display: block; }
+    .guide-snap-v { top: 0; bottom: 0; left: 50%; width: 2px; margin-left: -1px; }
+    .guide-snap-h { left: 0; right: 0; top: 50%; height: 2px; margin-top: -1px; }
+    .preview-guide-bar { display: flex; gap: 4px; align-items: center; }
+    .preview-guide-bar button.toggle {
+      padding: 5px 8px; font-size: 10px; font-weight: 800;
+      background: var(--surface-3); color: var(--muted); border: 1px solid var(--border); border-radius: 6px;
+    }
+    .preview-guide-bar button.toggle.is-on {
+      background: rgba(77,142,247,0.18); color: #93c5fd; border-color: rgba(77,142,247,0.45);
+    }
+    .preview-frame::before {
+      content: 'PROGRAM';
+      position: absolute; top: 8px; left: 10px; z-index: 0;
+      font-size: 9px; font-weight: 800; letter-spacing: 0.12em; color: rgba(255,255,255,0.18);
+    }
+    #editCanvas.prop-edit-canvas {
+      position: absolute; inset: 0; z-index: 3; overflow: hidden;
+      width: 100%; height: 100%; cursor: default;
+    }
+    .scaled-stage-viewport {
+      position: absolute; inset: 0; overflow: hidden; width: 100%; height: 100%;
+    }
+    .scaled-stage { position: absolute; transform-origin: top left; }
+    .scaled-stage-viewport.is-scale-pending { visibility: hidden; }
+    #editCanvas.is-dragging-layer { cursor: grabbing; user-select: none; }
+    .interactive-layer {
+      cursor: pointer;
+      transition: outline-color 0.12s ease, box-shadow 0.12s ease;
+    }
+    .interactive-layer.selected {
+      outline: 2px solid var(--accent); outline-offset: -1px;
+      box-shadow: 0 0 0 1px rgba(77, 141, 255, 0.35);
+      cursor: grab;
+    }
+    .interactive-layer.selected[data-layer-type="text"] {
+      outline: none;
+      box-shadow: inset 0 0 0 2px rgba(77,142,247,0.95), 0 0 0 1px rgba(77,142,247,0.35);
+    }
+    .interactive-layer.selected[data-layer-type="text"]::after {
+      content: '';
+      position: absolute; inset: 0;
+      border: 1px dashed rgba(255,255,255,0.45);
+      pointer-events: none;
+    }
+    #editCanvas.is-dragging-layer .interactive-layer.selected { cursor: grabbing; }
+    .layer-resize-handle {
+      position: absolute; width: 8px; height: 8px;
+      background: var(--accent); border: 1px solid #fff; border-radius: 2px;
+      z-index: 20; margin: 0; pointer-events: auto;
+    }
+    .layer-resize-handle.nw { top: -4px; left: -4px; cursor: nw-resize; }
+    .layer-resize-handle.n { top: -4px; left: 50%; margin-left: -4px; cursor: n-resize; }
+    .layer-resize-handle.ne { top: -4px; right: -4px; cursor: ne-resize; }
+    .layer-resize-handle.e { top: 50%; right: -4px; margin-top: -4px; cursor: e-resize; }
+    .layer-resize-handle.se { right: -4px; bottom: -4px; cursor: se-resize; }
+    .layer-resize-handle.s { bottom: -4px; left: 50%; margin-left: -4px; cursor: s-resize; }
+    .layer-resize-handle.sw { bottom: -4px; left: -4px; cursor: sw-resize; }
+    .layer-resize-handle.w { top: 50%; left: -4px; margin-top: -4px; cursor: w-resize; }
+    .canvas-snap-guides {
+      position: absolute; inset: 0; z-index: 12; pointer-events: none;
+    }
+    .canvas-snap-guides .snap-line { position: absolute; display: none; pointer-events: none; }
+    .canvas-snap-guides .snap-line.is-on { display: block; }
+    .canvas-snap-guides .snap-v {
+      top: 0; bottom: 0; width: 0; border-left: 1px dashed rgba(255, 72, 72, 0.9);
+      transform: translateX(-0.5px);
+    }
+    .canvas-snap-guides .snap-h {
+      left: 0; right: 0; height: 0; border-top: 1px dashed rgba(255, 72, 72, 0.9);
+      transform: translateY(-0.5px);
+    }
+    .inspector {
+      border-left: 1px solid var(--border); background: var(--surface-2);
+      overflow-y: auto; padding: 10px 12px; min-height: 0;
+    }
+    .inspector-section { margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+    .inspector-section:last-child { border-bottom: none; }
+    .inspector-section h3 {
+      margin: 0 0 8px; font-size: 10px; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .inspector-row { margin-bottom: 8px; }
+    .inspector-row label { display: block; font-size: 10px; color: var(--muted); margin-bottom: 4px; }
+    .inspector-row input, .inspector-row select, .inspector-row textarea {
+      width: 100%; padding: 8px 10px; border-radius: 6px;
+      border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 12px;
+    }
+    .inspector-row textarea { min-height: 72px; resize: vertical; }
+    .inspector-row.inline-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .save-hint { font-size: 10px; color: var(--muted); text-align: center; margin-top: 6px; min-height: 14px; }
+    .empty-hint { padding: 24px 12px; text-align: center; color: var(--muted); font-size: 12px; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1 id="editorTitle">Props Editor</h1>
+      <div class="hint" id="editorHint">ProPresenter-style props library</div>
+    </div>
+    <button type="button" class="secondary" id="btnClose">Close</button>
+  </header>
+  <div class="layout">
+    <aside class="list-panel">
+      <div class="list-toolbar">
+        <button type="button" class="primary" id="btnNew">+ New Prop</button>
+        <button type="button" class="secondary" id="btnDup">Duplicate</button>
+        <button type="button" class="danger" id="btnDel">Delete</button>
+      </div>
+      <div id="propList"></div>
+    </aside>
+    <main class="preview-panel">
+      <div class="preview-toolbar">
+        <span id="previewLabel">Preview</span>
+        <div class="preview-guide-bar">
+          <button type="button" class="toggle" id="btnPropGrid" title="Grid">▦</button>
+          <button type="button" class="toggle" id="btnPropCross" title="Cross">＋</button>
+          <button type="button" class="toggle" id="btnPropSafe" title="Safe">▢</button>
+          <button type="button" class="toggle" id="btnPropTitle" title="10%">10</button>
+        </div>
+        <span class="spacer"></span>
+        <button type="button" class="live" id="btnTrigger">Trigger</button>
+        <button type="button" class="secondary" id="btnClear">Clear</button>
+      </div>
+      <div class="preview-viewport">
+        <div class="preview-frame" id="previewFrame">
+          <div id="propCanvasGrid" class="canvas-grid-overlay" aria-hidden="true"></div>
+          <div id="propCanvasGuides" class="canvas-guide-overlay" aria-hidden="true">
+            <div class="guide-crosshair-v"></div>
+            <div class="guide-crosshair-h"></div>
+            <div class="guide-safe-area"></div>
+            <div class="guide-title-safe"></div>
+            <div class="guide-snap-v"></div>
+            <div class="guide-snap-h"></div>
+          </div>
+          <div id="propSnapGuides" class="canvas-snap-guides" aria-hidden="true">
+            <div class="snap-line snap-v" id="propSnapV"></div>
+            <div class="snap-line snap-h" id="propSnapH"></div>
+          </div>
+          <div id="editCanvas" class="prop-edit-canvas"></div>
+        </div>
+      </div>
+    </main>
+    <aside class="inspector" id="inspector">
+      <div class="empty-hint" id="inspectorEmpty">Select a prop to edit</div>
+      <div id="inspectorForm" hidden>
+        <section class="inspector-section">
+          <h3 id="secBasic">Basic</h3>
+          <div class="inspector-row">
+            <label for="inpName" id="lblName">Name</label>
+            <input type="text" id="inpName" autocomplete="off">
+          </div>
+          <div class="inspector-row">
+            <label for="inpText" id="lblText">Text</label>
+            <textarea id="inpText" spellcheck="false"></textarea>
+          </div>
+        </section>
+        <section class="inspector-section">
+          <h3 id="secLayout">Layout</h3>
+          <div class="inspector-row">
+            <label for="inpPosition" id="lblPosition">Position</label>
+            <select id="inpPosition">
+              <option value="top">Top</option>
+              <option value="center">Center</option>
+              <option value="bottom">Bottom</option>
+            </select>
+          </div>
+          <div class="inspector-row">
+            <label for="inpFontSize" id="lblFontSize">Font size</label>
+            <input type="number" id="inpFontSize" min="2" max="12" step="0.1" value="5">
+          </div>
+          <div class="inspector-row inline-2">
+            <div>
+              <label for="inpTextAlign" id="lblTextAlign">Align</label>
+              <select id="inpTextAlign">
+                <option value="left">Left</option>
+                <option value="center">Center</option>
+                <option value="right">Right</option>
+              </select>
+            </div>
+            <div>
+              <label for="inpFontWeight" id="lblFontWeight">Weight</label>
+              <select id="inpFontWeight">
+                <option value="400">Regular</option>
+                <option value="600">Semibold</option>
+                <option value="700">Bold</option>
+                <option value="800">Extra Bold</option>
+              </select>
+            </div>
+          </div>
+          <div class="inspector-row inline-2">
+            <div>
+              <label for="inpPadding" id="lblPadding">Padding</label>
+              <input type="number" id="inpPadding" min="0" max="48" step="1" value="16">
+            </div>
+            <div>
+              <label for="inpBorderRadius" id="lblBorderRadius">Radius</label>
+              <input type="number" id="inpBorderRadius" min="0" max="48" step="1" value="10">
+            </div>
+          </div>
+          <div class="inspector-row inline-2">
+            <div>
+              <label for="inpBoxX" id="lblBoxX">X (%)</label>
+              <input type="number" id="inpBoxX" min="0" max="100" step="0.5">
+            </div>
+            <div>
+              <label for="inpBoxY" id="lblBoxY">Y (%)</label>
+              <input type="number" id="inpBoxY" min="0" max="100" step="0.5">
+            </div>
+          </div>
+          <div class="inspector-row inline-2">
+            <div>
+              <label for="inpBoxW" id="lblBoxW">Width (%)</label>
+              <input type="number" id="inpBoxW" min="5" max="100" step="0.5">
+            </div>
+            <div>
+              <label for="inpBoxH" id="lblBoxH">Height (%)</label>
+              <input type="number" id="inpBoxH" min="4" max="100" step="0.5">
+            </div>
+          </div>
+        </section>
+        <section class="inspector-section">
+          <h3 id="secColors">Colors</h3>
+          <div class="inspector-row inline-2">
+            <div>
+              <label for="inpColor" id="lblColor">Text</label>
+              <input type="color" id="inpColor" value="#ffffff">
+            </div>
+            <div>
+              <label for="inpBgColor" id="lblBgColor">Background</label>
+              <input type="color" id="inpBgColor" value="#000000">
+            </div>
+          </div>
+          <div class="inspector-row">
+            <label for="inpBgOpacity" id="lblBgOpacity">Background opacity</label>
+            <input type="range" id="inpBgOpacity" min="0" max="100" step="5" value="55">
+          </div>
+        </section>
+        <button type="button" class="primary" id="btnSave" style="width:100%;">Save</button>
+        <div class="save-hint" id="saveHint"></div>
+      </div>
+    </aside>
+  </div>
+  <script>
+    const { ipcRenderer } = require('electron');
+    const I18N = require('./i18n');
+    const AppSettings = require('./app-settings');
+    const MacrosStore = require('./macros-store');
+    const SE = require('./slide-engine');
+
+    const EC = require('./editor-canvas');
+
+    let appSettings = AppSettings.loadSettings();
+    I18N.setLanguage(appSettings.language);
+
+    let props = [];
+    let selectedId = null;
+    let activePropId = '';
+    let propLive = false;
+    let suppressInspector = false;
+    let saveHintTimer = null;
+
+    function t(key) { return I18N.t(key); }
+
+    function applyPreviewAspect() {
+      const out = AppSettings.getOutputResolution(appSettings);
+      const frame = document.getElementById('previewFrame');
+      if (frame) frame.style.setProperty('--preview-aspect', `${out.width} / ${out.height}`);
+    }
+
+    function updatePropGuideUI() {
+      document.getElementById('propCanvasGrid')?.classList.toggle('is-on', appSettings.showEditorGrid !== false);
+      const guides = document.getElementById('propCanvasGuides');
+      if (!guides) return;
+      guides.classList.toggle('is-crosshair-on', appSettings.showGuideCrosshair !== false);
+      guides.classList.toggle('is-safe-on', appSettings.showGuideSafeArea !== false);
+      guides.classList.toggle('is-title-on', appSettings.showGuideTitleSafe !== false);
+      document.getElementById('btnPropGrid')?.classList.toggle('is-on', appSettings.showEditorGrid !== false);
+      document.getElementById('btnPropCross')?.classList.toggle('is-on', appSettings.showGuideCrosshair !== false);
+      document.getElementById('btnPropSafe')?.classList.toggle('is-on', appSettings.showGuideSafeArea !== false);
+      document.getElementById('btnPropTitle')?.classList.toggle('is-on', appSettings.showGuideTitleSafe !== false);
+    }
+
+    function togglePropGuide(key) {
+      appSettings[key] = !appSettings[key];
+      updatePropGuideUI();
+      ipcRenderer.send('settings:save', { [key]: appSettings[key] });
+    }
+
+    function hexToRgba(hex, alpha) {
+      const h = String(hex || '#000000').replace('#', '');
+      const full = h.length === 3 ? h.split('').map((c) => c + c).join('') : h;
+      const n = parseInt(full.slice(0, 6), 16);
+      if (!Number.isFinite(n)) return `rgba(0,0,0,${alpha})`;
+      return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${alpha})`;
+    }
+
+    function defaultPropBox(position) {
+      if (position === 'top') return { boxX: 10, boxY: 8, boxW: 80, boxH: 18 };
+      if (position === 'center') return { boxX: 15, boxY: 38, boxW: 70, boxH: 24 };
+      return { boxX: 10, boxY: 72, boxW: 80, boxH: 18 };
+    }
+
+    function resolvePropBox(prop) {
+      const d = defaultPropBox(prop?.position);
+      return {
+        boxX: Number.isFinite(Number(prop?.boxX)) ? Number(prop.boxX) : d.boxX,
+        boxY: Number.isFinite(Number(prop?.boxY)) ? Number(prop.boxY) : d.boxY,
+        boxW: Number.isFinite(Number(prop?.boxW)) ? Number(prop.boxW) : d.boxW,
+        boxH: Number.isFinite(Number(prop?.boxH)) ? Number(prop.boxH) : d.boxH,
+      };
+    }
+
+    let propDragState = null;
+    let propLayerDraft = null;
+    const editCanvas = document.getElementById('editCanvas');
+
+    function propStyleFromProp(prop) {
+      const dims = AppSettings.getOutputResolution(appSettings);
+      const box = resolvePropBox(prop);
+      const layerWpx = (box.boxW / 100) * dims.width;
+      const layerHpx = (box.boxH / 100) * dims.height;
+      const padPx = Number(prop?.padding);
+      const padPct = Number.isFinite(padPx) && layerWpx > 0
+        ? Math.min(24, (padPx / layerWpx) * 100)
+        : 0;
+      const radiusPx = Number(prop?.borderRadius);
+      const radiusPct = Number.isFinite(radiusPx) && layerHpx > 0
+        ? Math.min(48, (radiusPx / layerHpx) * 100)
+        : 0;
+      return {
+        color: prop?.color || '#ffffff',
+        fontSize: Number(prop?.fontSize) || 5,
+        fontWeight: Number(prop?.fontWeight) || 800,
+        textAlign: prop?.textAlign || 'center',
+        verticalAlign: 'middle',
+        boxFillEnabled: true,
+        boxFillColor: prop?.bgColor || '#000000',
+        boxFillOpacity: Number(prop?.bgOpacity ?? 0.55),
+        boxRadius: radiusPct,
+        paddingTop: padPct,
+        paddingRight: padPct,
+        paddingBottom: padPct,
+        paddingLeft: padPct,
+        strokeEnabled: false,
+        shadowEnabled: false,
+      };
+    }
+
+    function propToSlide(prop) {
+      const box = resolvePropBox(prop);
+      const layer = SE.createTextLayer(prop?.text || t('propDefaultText'), {
+        x: box.boxX,
+        y: box.boxY,
+        w: box.boxW,
+        h: box.boxH,
+        style: propStyleFromProp(prop),
+      });
+      return SE.normalizeSlide({
+        background: { type: 'color', color: '#111111' },
+        layers: [layer],
+      });
+    }
+
+    function getPropLayerFromSlide(slide) {
+      return slide?.layers?.[0] || null;
+    }
+
+    function boxFromLayer(layer) {
+      return {
+        boxX: layer.x,
+        boxY: layer.y,
+        boxW: layer.w,
+        boxH: layer.h,
+      };
+    }
+
+    function updatePropSnapGuides(guides) {
+      const v = document.getElementById('propSnapV');
+      const h = document.getElementById('propSnapH');
+      if (v) {
+        v.classList.toggle('is-on', guides?.vertical != null);
+        if (guides?.vertical != null) v.style.left = `${guides.vertical}%`;
+      }
+      if (h) {
+        h.classList.toggle('is-on', guides?.horizontal != null);
+        if (guides?.horizontal != null) h.style.top = `${guides.horizontal}%`;
+      }
+    }
+
+    function clearPropSnapGuides() {
+      updatePropSnapGuides(null);
+    }
+
+    function snapPropGrid(value, grid = 5) {
+      return Math.round(Number(value) / grid) * grid;
+    }
+
+    function clampPropBox(box) {
+      const boxW = Math.max(5, Math.min(100, Number(box.boxW ?? box.w) || 5));
+      const boxH = Math.max(4, Math.min(100, Number(box.boxH ?? box.h) || 4));
+      const boxX = Math.max(0, Math.min(100 - boxW, Number(box.boxX ?? box.x) || 0));
+      const boxY = Math.max(0, Math.min(100 - boxH, Number(box.boxY ?? box.y) || 0));
+      return { boxX, boxY, boxW, boxH };
+    }
+
+    function layerFromBox(box) {
+      const c = clampPropBox(box);
+      return { x: c.boxX, y: c.boxY, w: c.boxW, h: c.boxH };
+    }
+
+    function attachPropLayerHandles(layerEl, layer) {
+      EC.attachLayerResizeHandles(layerEl, layer, (e, dir) => {
+        beginPropDrag(e, `resize-${dir}`, layer);
+      });
+    }
+
+    function beginPropDrag(e, mode, layer) {
+      if (e.button !== 0) return;
+      propDragState = {
+        mode,
+        pointerId: e.pointerId,
+        startX: e.clientX,
+        startY: e.clientY,
+        orig: { x: layer.x, y: layer.y, w: layer.w, h: layer.h },
+      };
+      propLayerDraft = { ...layer };
+      editCanvas.classList.add('is-dragging-layer');
+      try { editCanvas.setPointerCapture(e.pointerId); } catch (_) { /* noop */ }
+      e.preventDefault();
+    }
+
+    function applyPropDrag(e) {
+      if (!propDragState || !propLayerDraft) return;
+      const rect = EC.getCanvasHitRect(editCanvas);
+      if (!rect.width || !rect.height) return;
+      const dx = ((e.clientX - propDragState.startX) / rect.width) * 100;
+      const dy = ((e.clientY - propDragState.startY) / rect.height) * 100;
+      const { orig, mode } = propDragState;
+
+      if (mode === 'move') {
+        const snapped = SE.snapLayerMoveBox(orig.x + dx, orig.y + dy, orig.w, orig.h);
+        propLayerDraft.x = snapPropGrid(Math.max(0, Math.min(100 - orig.w, snapped.x)));
+        propLayerDraft.y = snapPropGrid(Math.max(0, Math.min(100 - orig.h, snapped.y)));
+        propLayerDraft.w = orig.w;
+        propLayerDraft.h = orig.h;
+        updatePropSnapGuides(snapped.guides);
+      } else if (mode.startsWith('resize-')) {
+        const draft = { x: orig.x, y: orig.y, w: orig.w, h: orig.h };
+        SE.applyLayerResize(draft, mode.replace('resize-', ''), dx, dy, orig, { lockAspect: e.shiftKey });
+        propLayerDraft.x = snapPropGrid(draft.x);
+        propLayerDraft.y = snapPropGrid(draft.y);
+        propLayerDraft.w = snapPropGrid(draft.w);
+        propLayerDraft.h = snapPropGrid(draft.h);
+        clearPropSnapGuides();
+      }
+
+      const layerEl = editCanvas.querySelector('.interactive-layer');
+      EC.syncLayerElementBounds(layerEl, propLayerDraft);
+    }
+
+    function finishPropDrag(e) {
+      if (!propDragState) return;
+      editCanvas.classList.remove('is-dragging-layer');
+      clearPropSnapGuides();
+      if (propLayerDraft) {
+        const box = clampPropBox(boxFromLayer(propLayerDraft));
+        const idx = props.findIndex((p) => p.id === selectedId);
+        if (idx >= 0) props[idx] = { ...props[idx], ...box };
+        syncBoxInputs(box);
+        saveDebounced();
+      }
+      propDragState = null;
+      propLayerDraft = null;
+      try { if (e?.pointerId != null) editCanvas.releasePointerCapture(e.pointerId); } catch (_) { /* noop */ }
+    }
+
+    function onPropCanvasPointerDownCapture(e) {
+      if (e.button !== 0) return;
+      if (e.target.classList.contains('layer-resize-handle')) {
+        const dir = EC.RESIZE_HANDLES.find((h) => e.target.classList.contains(h));
+        const layerEl = e.target.closest('[data-layer-id]');
+        const slide = propToSlide(selectedProp());
+        const layer = getPropLayerFromSlide(slide);
+        if (dir && layer) beginPropDrag(e, `resize-${dir}`, { ...layer });
+        return;
+      }
+      const layerEl = e.target.closest('.interactive-layer');
+      if (!layerEl) return;
+      const slide = propToSlide(selectedProp());
+      const layer = getPropLayerFromSlide(slide);
+      if (layer) beginPropDrag(e, 'move', { ...layer });
+    }
+
+    function bindPropCanvasInteraction() {
+      if (!editCanvas || editCanvas.dataset.propCaptureBound) return;
+      editCanvas.addEventListener('pointerdown', onPropCanvasPointerDownCapture, true);
+      editCanvas.addEventListener('pointermove', (e) => {
+        if (!propDragState) return;
+        if (propDragState.pointerId != null && e.pointerId !== propDragState.pointerId) return;
+        applyPropDrag(e);
+      });
+      editCanvas.addEventListener('pointerup', finishPropDrag);
+      editCanvas.addEventListener('pointercancel', finishPropDrag);
+      editCanvas.dataset.propCaptureBound = '1';
+    }
+
+    function renderPropCanvas(prop) {
+      if (!editCanvas || !prop) return;
+      const slide = propToSlide(prop);
+      const layer = getPropLayerFromSlide(slide);
+      EC.renderScaledStage(editCanvas, slide, appSettings, {
+        interactive: true,
+        selectedLayerId: layer?.id,
+        onLayout: (stage) => {
+          const layerEl = stage.querySelector('.interactive-layer');
+          if (layerEl && layer) {
+            layerEl.classList.add('selected');
+            attachPropLayerHandles(layerEl, layer);
+          }
+        },
+      });
+    }
+
+    function syncBoxInputs(box) {
+      const xEl = document.getElementById('inpBoxX');
+      const yEl = document.getElementById('inpBoxY');
+      const wEl = document.getElementById('inpBoxW');
+      const hEl = document.getElementById('inpBoxH');
+      if (xEl) xEl.value = String(box.boxX);
+      if (yEl) yEl.value = String(box.boxY);
+      if (wEl) wEl.value = String(box.boxW);
+      if (hEl) hEl.value = String(box.boxH);
+    }
+
+    function applyPreview(prop) {
+      if (!prop) return;
+      renderPropCanvas(prop);
+    }
+
+    function selectedProp() {
+      return props.find((p) => p.id === selectedId) || null;
+    }
+
+    function renderList() {
+      const list = document.getElementById('propList');
+      if (!list) return;
+      list.innerHTML = '';
+      if (!props.length) {
+        list.innerHTML = `<div class="empty-hint">${t('propAdd')}</div>`;
+        return;
+      }
+      props.forEach((prop) => {
+        const row = document.createElement('div');
+        row.className = 'prop-item'
+          + (prop.id === selectedId ? ' active' : '')
+          + (propLive && prop.id === activePropId ? ' is-live' : '');
+        row.innerHTML = `<div class="name">${prop.name}</div><div class="sub">${prop.text}</div>`;
+        row.onclick = () => selectProp(prop.id);
+        list.appendChild(row);
+      });
+    }
+
+    function readInspector() {
+      if (!selectedId) return null;
+      const base = selectedProp() || { id: selectedId };
+      const name = String(document.getElementById('inpName')?.value || '').trim();
+      const text = String(document.getElementById('inpText')?.value || '').trim();
+      if (!name || !text) return null;
+      const boxDraft = {
+        ...base,
+        boxX: Number(document.getElementById('inpBoxX')?.value),
+        boxY: Number(document.getElementById('inpBoxY')?.value),
+        boxW: Number(document.getElementById('inpBoxW')?.value),
+        boxH: Number(document.getElementById('inpBoxH')?.value),
+      };
+      return {
+        ...base,
+        id: selectedId,
+        name,
+        text,
+        position: document.getElementById('inpPosition')?.value || 'bottom',
+        fontSize: Number(document.getElementById('inpFontSize')?.value) || 5,
+        color: document.getElementById('inpColor')?.value || '#ffffff',
+        bgColor: document.getElementById('inpBgColor')?.value || '#000000',
+        bgOpacity: (Number(document.getElementById('inpBgOpacity')?.value) || 55) / 100,
+        textAlign: document.getElementById('inpTextAlign')?.value || 'center',
+        fontWeight: Number(document.getElementById('inpFontWeight')?.value) || 800,
+        padding: Number(document.getElementById('inpPadding')?.value) || 16,
+        borderRadius: Number(document.getElementById('inpBorderRadius')?.value) || 10,
+        ...resolvePropBox(boxDraft),
+      };
+    }
+
+    function fillInspector(prop) {
+      if (!prop) return;
+      suppressInspector = true;
+      document.getElementById('inpName').value = prop.name || '';
+      document.getElementById('inpText').value = prop.text || '';
+      document.getElementById('inpPosition').value = prop.position || 'bottom';
+      document.getElementById('inpFontSize').value = String(prop.fontSize ?? 5);
+      document.getElementById('inpColor').value = prop.color || '#ffffff';
+      document.getElementById('inpBgColor').value = prop.bgColor || '#000000';
+      document.getElementById('inpBgOpacity').value = String(Math.round((prop.bgOpacity ?? 0.55) * 100));
+      document.getElementById('inpTextAlign').value = prop.textAlign || 'center';
+      document.getElementById('inpFontWeight').value = String(prop.fontWeight || 800);
+      document.getElementById('inpPadding').value = String(prop.padding ?? 16);
+      document.getElementById('inpBorderRadius').value = String(prop.borderRadius ?? 10);
+      const box = resolvePropBox(prop);
+      document.getElementById('inpBoxX').value = String(box.boxX);
+      document.getElementById('inpBoxY').value = String(box.boxY);
+      document.getElementById('inpBoxW').value = String(box.boxW);
+      document.getElementById('inpBoxH').value = String(box.boxH);
+      suppressInspector = false;
+      applyPreview(prop);
+    }
+
+    function selectProp(id) {
+      selectedId = id;
+      const prop = selectedProp();
+      const empty = document.getElementById('inspectorEmpty');
+      const form = document.getElementById('inspectorForm');
+      if (!prop) {
+        if (empty) empty.hidden = false;
+        if (form) form.hidden = true;
+        renderList();
+        return;
+      }
+      if (empty) empty.hidden = true;
+      if (form) form.hidden = false;
+      fillInspector(prop);
+      renderList();
+    }
+
+    function showSaveHint(msg) {
+      const el = document.getElementById('saveHint');
+      if (!el) return;
+      el.textContent = msg || '';
+      if (saveHintTimer) clearTimeout(saveHintTimer);
+      if (msg) saveHintTimer = setTimeout(() => { el.textContent = ''; }, 1800);
+    }
+
+    function saveCurrentProp() {
+      const draft = readInspector();
+      if (!draft) {
+        showSaveHint(t('propSaveInvalid'));
+        return;
+      }
+      ipcRenderer.send('macros:save', { prop: draft });
+      showSaveHint(t('propSaved'));
+    }
+
+    const saveDebounced = (() => {
+      let timer = null;
+      return () => {
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => saveCurrentProp(), 400);
+      };
+    })();
+
+    function createNewProp() {
+      const draft = MacrosStore.normalizeProp({
+        id: MacrosStore.propId(),
+        name: `${t('propDefaultName')} ${props.length + 1}`,
+        text: t('propDefaultText'),
+        position: 'bottom',
+        fontSize: 5,
+        color: '#ffffff',
+        bgColor: '#000000',
+        bgOpacity: 0.55,
+      });
+      if (!draft) return;
+      selectedId = draft.id;
+      props = [...props, draft];
+      selectProp(draft.id);
+      ipcRenderer.send('macros:save', { prop: draft });
+    }
+
+    function duplicateProp() {
+      const prop = selectedProp();
+      if (!prop) return;
+      const copy = MacrosStore.normalizeProp({
+        ...prop,
+        id: MacrosStore.propId(),
+        name: `${prop.name} 2`,
+      });
+      if (!copy) return;
+      selectedId = copy.id;
+      props = [...props, copy];
+      selectProp(copy.id);
+      ipcRenderer.send('macros:save', { prop: copy });
+    }
+
+    function deleteProp() {
+      if (!selectedId) return;
+      if (appSettings.confirmBeforeDelete && !confirm(`${t('propDelete')}?`)) return;
+      const id = selectedId;
+      ipcRenderer.send('macros:delete', { id, kind: 'prop' });
+      props = props.filter((p) => p.id !== id);
+      selectedId = props[0]?.id || null;
+      selectProp(selectedId);
+    }
+
+    function bindInspectorLivePreview() {
+      ['inpName', 'inpText', 'inpPosition', 'inpFontSize', 'inpColor', 'inpBgColor', 'inpBgOpacity',
+        'inpTextAlign', 'inpFontWeight', 'inpPadding', 'inpBorderRadius',
+        'inpBoxX', 'inpBoxY', 'inpBoxW', 'inpBoxH'].forEach((id) => {
+        document.getElementById(id)?.addEventListener('input', () => {
+          if (suppressInspector) return;
+          const draft = readInspector();
+          if (draft) {
+            applyPreview(draft);
+            const idx = props.findIndex((p) => p.id === selectedId);
+            if (idx >= 0) props[idx] = { ...props[idx], ...draft };
+            renderList();
+          }
+          saveDebounced();
+        });
+      });
+    }
+
+    function applyI18n() {
+      document.getElementById('editorTitle').textContent = t('propsEditorTitle');
+      document.getElementById('editorHint').textContent = t('propsEditorHint');
+      document.getElementById('btnClose').textContent = t('propsEditorClose');
+      document.getElementById('btnNew').textContent = `+ ${t('propAdd')}`;
+      document.getElementById('btnDup').textContent = t('propDuplicate');
+      document.getElementById('btnDel').textContent = t('propDelete');
+      document.getElementById('btnTrigger').textContent = t('propTrigger');
+      document.getElementById('btnClear').textContent = t('propClearAll');
+      document.getElementById('previewLabel').textContent = t('propsEditorPreview');
+      document.getElementById('inspectorEmpty').textContent = t('propsEditorPick');
+      document.getElementById('secBasic').textContent = t('propsEditorSecBasic');
+      document.getElementById('secLayout').textContent = t('propsEditorSecLayout');
+      document.getElementById('secColors').textContent = t('propsEditorSecColors');
+      document.getElementById('lblName').textContent = t('propName');
+      document.getElementById('lblText').textContent = t('propText');
+      document.getElementById('lblPosition').textContent = t('propPosition');
+      document.getElementById('lblFontSize').textContent = t('propFontSize');
+      document.getElementById('lblColor').textContent = t('propColor');
+      document.getElementById('lblBgColor').textContent = t('propBgColor');
+      document.getElementById('lblBgOpacity').textContent = t('propBgOpacity');
+      document.getElementById('lblTextAlign').textContent = t('propTextAlign');
+      document.getElementById('lblFontWeight').textContent = t('propFontWeight');
+      document.getElementById('lblPadding').textContent = t('propPadding');
+      document.getElementById('lblBorderRadius').textContent = t('propBorderRadius');
+      document.getElementById('lblBoxX').textContent = t('propBoxX');
+      document.getElementById('lblBoxY').textContent = t('propBoxY');
+      document.getElementById('lblBoxW').textContent = t('propBoxW');
+      document.getElementById('lblBoxH').textContent = t('propBoxH');
+      document.getElementById('btnSave').textContent = t('btnSave');
+      const pos = document.getElementById('inpPosition');
+      if (pos) {
+        pos.options[0].textContent = t('propPositionTop');
+        pos.options[1].textContent = t('propPositionCenter');
+        pos.options[2].textContent = t('propPositionBottom');
+      }
+    }
+
+    function syncProps(data) {
+      props = Array.isArray(data?.props) ? data.props : [];
+      if (selectedId && !props.some((p) => p.id === selectedId)) {
+        selectedId = props[0]?.id || null;
+      }
+      if (!selectedId && props.length) selectedId = props[0].id;
+      renderList();
+      const editing = document.activeElement?.closest('#inspectorForm');
+      if (selectedId && !editing) fillInspector(selectedProp());
+      else if (!selectedId) {
+        document.getElementById('inspectorEmpty').hidden = false;
+        document.getElementById('inspectorForm').hidden = true;
+      }
+    }
+
+    document.getElementById('btnClose').onclick = () => window.close();
+    document.getElementById('btnNew').onclick = () => createNewProp();
+    document.getElementById('btnDup').onclick = () => duplicateProp();
+    document.getElementById('btnDel').onclick = () => deleteProp();
+    document.getElementById('btnSave').onclick = () => saveCurrentProp();
+    document.getElementById('btnTrigger').onclick = () => {
+      const draft = readInspector();
+      if (draft) {
+        ipcRenderer.send('macros:save', { prop: draft });
+        ipcRenderer.send('prop:show', { propId: draft.id });
+      } else if (selectedId) {
+        ipcRenderer.send('prop:show', { propId: selectedId });
+      }
+    };
+    document.getElementById('btnClear').onclick = () => ipcRenderer.send('prop:clear');
+
+    ipcRenderer.on('settings:sync', (_e, settings) => {
+      appSettings = AppSettings.normalize(settings || appSettings);
+      I18N.setLanguage(appSettings.language);
+      applyI18n();
+      applyPreviewAspect();
+      updatePropGuideUI();
+      const prop = selectedProp();
+      if (prop) renderPropCanvas(prop);
+    });
+
+    ipcRenderer.on('macros:sync', (_e, data) => syncProps(data));
+
+    ipcRenderer.on('prop:state-changed', (_e, state) => {
+      activePropId = String(state?.activePropId || '').trim();
+      propLive = Boolean(state?.visible);
+      renderList();
+    });
+
+    ipcRenderer.on('props-editor:focus', (_e, data) => {
+      const id = String(data?.propId || '').trim();
+      if (id && props.some((p) => p.id === id)) selectProp(id);
+    });
+
+    document.getElementById('btnPropGrid')?.addEventListener('click', () => togglePropGuide('showEditorGrid'));
+    document.getElementById('btnPropCross')?.addEventListener('click', () => togglePropGuide('showGuideCrosshair'));
+    document.getElementById('btnPropSafe')?.addEventListener('click', () => togglePropGuide('showGuideSafeArea'));
+    document.getElementById('btnPropTitle')?.addEventListener('click', () => togglePropGuide('showGuideTitleSafe'));
+
+    bindInspectorLivePreview();
+    bindPropCanvasInteraction();
+    window.addEventListener('resize', () => {
+      const prop = selectedProp();
+      if (!prop || !editCanvas) return;
+      const viewport = editCanvas.querySelector('.scaled-stage-viewport');
+      const stage = editCanvas.querySelector('.scaled-stage');
+      if (viewport && stage) EC.layoutScaledStageIn(viewport, stage, appSettings);
+    });
+    applyPreviewAspect();
+    updatePropGuideUI();
+    ipcRenderer.send('settings:get');
+    applyI18n();
+    syncProps(MacrosStore.loadMacrosFile());
+    ipcRenderer.send('request-macros');
+  </script>
+</body>
+</html>

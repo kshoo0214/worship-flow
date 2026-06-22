@@ -1,14 +1,97 @@
 {
   "name": "subtitle-broadcast",
-  "version": "1.0.0",
-  "description": "멀티 디스플레이 자막 송출 (순수 Electron)",
+  "productName": "Worship FLOW",
+  "version": "1.1.0",
+  "description": "Worship FLOW — 멀티 디스플레이 자막 송출",
   "main": "main.js",
+  "author": "Worship FLOW",
   "private": true,
+  "homepage": "https://github.com/kshoo0214/worship-flow",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kshoo0214/worship-flow.git"
+  },
   "scripts": {
     "start": "env -u ELECTRON_RUN_AS_NODE electron .",
+    "build:prep": "node scripts/smoke-test.js",
+    "build:mac": "npm run build:prep && electron-builder --mac",
+    "build:win": "npm run build:prep && electron-builder --win",
+    "build:all": "npm run build:prep && electron-builder --mac --win",
+    "publish:mac": "npm run build:prep && electron-builder --mac --publish always",
+    "publish:win": "npm run build:prep && electron-builder --win --publish always",
+    "publish:all": "npm run build:prep && electron-builder --mac --win --publish always",
     "postinstall": "node scripts/fix-electron.js"
   },
+  "dependencies": {
+    "electron-updater": "^6.6.2"
+  },
   "devDependencies": {
-    "electron": "^35.7.5"
+    "electron": "^35.7.5",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "app.worshipflow.subtitle-broadcast",
+    "productName": "Worship FLOW",
+    "copyright": "Copyright © 2026 Worship FLOW",
+    "asar": true,
+    "files": [
+      "**/*",
+      "!**/.cursor/**",
+      "!**/.git/**",
+      "!dist/**",
+      "!bible_ko.json",
+      "!resources/bible/bible_ko_revised.json",
+      "!settings.json",
+      "!songs.json",
+      "!playlists.json",
+      "!themes.json",
+      "!macros.json",
+      "!media-library.json",
+      "!media/assets/**"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "kshoo0214",
+      "repo": "worship-flow",
+      "host": "github.com",
+      "protocol": "https",
+      "releaseType": "release",
+      "publishAutoUpdate": true,
+      "vPrefixedTagName": true
+    },
+    "mac": {
+      "category": "public.app-category.video",
+      "target": [
+        "dmg"
+      ],
+      "identity": null,
+      "darkModeSupport": true
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "${productName}-${version}-win-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "Worship FLOW"
+    }
   }
 }

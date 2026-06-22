@@ -3,3 +3,5 @@ media/assets/
 media-library.json
 .DS_Store
 npm-debug.log*
+dist/
+resources/bible/bible_ko_revised.json

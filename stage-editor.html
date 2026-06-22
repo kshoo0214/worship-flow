@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Stage Display Editor</title>
+  <style>
+    :root {
+      --bg: #0d0d11; --surface: #16161b; --surface-2: #1e1e24;
+      --border: rgba(255,255,255,0.08); --text: #ececf1; --muted: #9494a0;
+      --accent: #4d8ef7; --success: #3dd68c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
+      background: var(--bg); color: var(--text); font-size: 13px;
+      height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+    }
+    header {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 10px 14px; border-bottom: 1px solid var(--border); background: var(--surface);
+    }
+    header h1 { margin: 0; font-size: 14px; font-weight: 700; }
+    header .actions { display: flex; gap: 8px; }
+    button {
+      border: none; border-radius: 8px; padding: 8px 12px; font-size: 11px; font-weight: 700; cursor: pointer;
+    }
+    button.primary { background: var(--accent); color: #fff; }
+    button.secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+    button.success { background: rgba(61,214,140,0.16); color: var(--success); border: 1px solid rgba(61,214,140,0.35); }
+    button.toggle {
+      flex: 1; padding: 10px 8px; background: var(--surface-2); color: var(--muted); border: 1px solid var(--border);
+    }
+    button.toggle.is-active { background: rgba(77,142,247,0.18); color: #93c5fd; border-color: rgba(77,142,247,0.4); }
+    .layout { flex: 1; display: grid; grid-template-columns: 340px 1fr; min-height: 0; }
+    .settings-panel {
+      border-right: 1px solid var(--border); background: var(--surface);
+      overflow-y: auto; padding: 10px 12px 20px;
+    }
+    .settings-section { margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+    .settings-section:last-child { border-bottom: none; }
+    .settings-section h3 {
+      margin: 0 0 8px; font-size: 10px; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .settings-row { margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .settings-row label { font-size: 11px; flex: 1; }
+    .settings-row input[type="range"] { flex: 1; min-width: 0; }
+    .settings-row input[type="color"] { width: 42px; height: 28px; padding: 0; border: none; background: transparent; }
+    .settings-row select, .settings-field select {
+      width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border);
+      background: var(--bg); color: var(--text); font-size: 12px;
+    }
+    .settings-field { margin-bottom: 8px; }
+    .settings-field label { display: block; font-size: 10px; color: var(--muted); margin-bottom: 4px; }
+    .settings-check { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 11px; }
+    .hint { font-size: 10px; color: var(--muted); line-height: 1.45; margin: 0 0 8px; }
+    .layout-toggle-row { display: flex; gap: 6px; margin-bottom: 8px; }
+    .display-mapper {
+      position: relative; width: 100%; min-height: 100px; margin-top: 6px;
+      background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 8px;
+    }
+    .display-mapper-block {
+      position: absolute; border: 2px solid rgba(255,255,255,0.15); border-radius: 6px;
+      background: rgba(255,255,255,0.04); cursor: pointer; padding: 4px;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      font-size: 9px; color: var(--text); min-width: 48px; min-height: 36px;
+    }
+    .display-mapper-block.is-selected { border-color: var(--success); box-shadow: 0 0 0 1px rgba(61,214,140,0.35); }
+    .display-mapper-block.is-primary { border-style: dashed; }
+    .dm-empty { display: block; padding: 16px; text-align: center; color: var(--muted); font-size: 11px; }
+    .preview-panel { display: flex; flex-direction: column; min-height: 0; background: #08080c; }
+    .preview-label {
+      padding: 8px 12px; font-size: 10px; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; border-bottom: 1px solid var(--border); background: var(--surface-2);
+    }
+    .preview-viewport {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      padding: 16px; overflow: auto;
+    }
+    .preview-shell {
+      width: min(100%, 960px); aspect-ratio: var(--stage-preview-aspect, 16/9); border-radius: 10px; overflow: hidden;
+      border: 1px solid #333; box-shadow: 0 16px 48px rgba(0,0,0,0.55); position: relative;
+    }
+    .preview-guide-overlay { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
+    .preview-guide-overlay > div { position: absolute; display: none; }
+    .preview-guide-overlay.is-crosshair-on .guide-crosshair-v,
+    .preview-guide-overlay.is-crosshair-on .guide-crosshair-h { display: block; }
+    .preview-guide-overlay.is-safe-on .guide-safe-area { display: block; }
+    .preview-guide-overlay.is-title-on .guide-title-safe { display: block; }
+    .guide-crosshair-v { top: 0; bottom: 0; left: 50%; width: 1px; margin-left: -0.5px; background: rgba(255,255,255,0.22); }
+    .guide-crosshair-h { left: 0; right: 0; top: 50%; height: 1px; margin-top: -0.5px; background: rgba(255,255,255,0.22); }
+    .guide-safe-area { inset: 5%; border: 1px dashed rgba(250,204,21,0.45); }
+    .guide-title-safe { inset: 10%; border: 1px dashed rgba(77,142,247,0.5); }
+  </style>
+  <link rel="stylesheet" href="stage-display.css" />
+</head>
+<body>
+  <header>
+    <h1 id="editorTitle">Stage Display Editor</h1>
+    <div class="actions">
+      <button type="button" class="success" id="btnOpenStage">Open Stage</button>
+      <button type="button" class="secondary" id="btnClose">Close</button>
+    </div>
+  </header>
+  <div class="layout">
+    <aside class="settings-panel" id="settingsPanel"></aside>
+    <main class="preview-panel">
+      <div class="preview-label" id="previewLabel">Live preview</div>
+      <div class="preview-viewport">
+        <div class="preview-shell">
+          <div id="stagePreviewGuides" class="preview-guide-overlay" aria-hidden="true">
+            <div class="guide-crosshair-v"></div>
+            <div class="guide-crosshair-h"></div>
+            <div class="guide-safe-area"></div>
+            <div class="guide-title-safe"></div>
+          </div>
+          <div id="stagePreviewRoot" class="stage-display-root layout-stacked">
+            <header class="stage-head">
+              <div class="stage-song" id="stageSong">주님의 마음</div>
+              <div class="stage-head-meta">
+                <div class="stage-clock" id="stageClock">12:34:56</div>
+                <div class="stage-counter" id="stageCounter">3 / 8</div>
+              </div>
+            </header>
+            <div class="stage-progress" id="stageProgressWrap"><div class="stage-progress-fill"></div></div>
+            <div class="stage-main-area">
+              <section class="stage-current">
+                <div class="stage-panel-label">NOW</div>
+                <div class="stage-panel-body">
+                  <div class="stage-group" id="stageCurrentGroup">Verse 1</div>
+                  <div class="stage-body-text" id="stageCurrentBody"></div>
+                  <div class="stage-ref-text" id="stageCurrentRef"></div>
+                </div>
+              </section>
+              <section class="stage-next" id="stageNextSection">
+                <div class="stage-panel-label">NEXT</div>
+                <div class="stage-panel-body">
+                  <div class="stage-group" id="stageNextGroup">Chorus</div>
+                  <div class="stage-body-text" id="stageNextBody"></div>
+                  <div class="stage-ref-text" id="stageNextRef"></div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script>
+    const { ipcRenderer } = require('electron');
+    const I18N = require('./i18n');
+    const AppSettings = require('./app-settings');
+    const StageConfig = require('./stage-config');
+    const DisplayMapperUI = require('./display-mapper-ui');
+
+    let appSettings = AppSettings.loadSettings();
+    I18N.setLanguage(appSettings.language);
+    let displaysCache = null;
+    let panelReady = false;
+
+    function t(key) { return I18N.t(key); }
+
+    function savePartial(partial) {
+      appSettings = AppSettings.normalize({ ...appSettings, ...partial });
+      ipcRenderer.send('settings:save', partial);
+      refreshPreview();
+      if ('stageDisplayId' in partial) renderDisplayMapper();
+      syncLayoutToggles();
+    }
+
+    function refreshPreview() {
+      const payload = StageConfig.buildUpdatePayload(appSettings);
+      const previewRoot = document.getElementById('stagePreviewRoot');
+      StageConfig.applyStageConfig(document, payload, { rootEl: previewRoot });
+      const stageRes = AppSettings.getStageResolution(appSettings);
+      document.documentElement.style.setProperty('--stage-preview-aspect', `${stageRes.width} / ${stageRes.height}`);
+      const guides = document.getElementById('stagePreviewGuides');
+      if (guides) {
+        guides.classList.toggle('is-crosshair-on', appSettings.showGuideCrosshair !== false);
+        guides.classList.toggle('is-safe-on', appSettings.showGuideSafeArea !== false);
+        guides.classList.toggle('is-title-on', appSettings.showGuideTitleSafe !== false);
+      }
+    }
+
+    function syncLayoutToggles() {
+      document.querySelectorAll('[data-layout]').forEach((btn) => {
+        btn.classList.toggle('is-active', btn.dataset.layout === (appSettings.stageLayout || 'stacked'));
+      });
+    }
+
+    function buildSettingsPanel() {
+      const panel = document.getElementById('settingsPanel');
+      if (!panel) return;
+      panel.innerHTML = `
+        <section class="settings-section">
+          <h3>${t('stageEditorDisplay')}</h3>
+          <p class="hint">${t('stageEditorDisplayHint')}</p>
+          <div class="settings-field">
+            <label for="stageDisplaySelect">${t('displaySelectLabel')}</label>
+            <select id="stageDisplaySelect"></select>
+          </div>
+          <div id="stageDisplayMapper" class="display-mapper"></div>
+          <label class="settings-check" style="margin-top:10px;">
+            <input type="checkbox" id="optAutoOpen">
+            <span>${t('stageEditorAutoOpen')}</span>
+          </label>
+        </section>
+        <section class="settings-section">
+          <h3>${t('stageEditorLayout')}</h3>
+          <div class="layout-toggle-row">
+            <button type="button" class="toggle is-active" data-layout="stacked">${t('stageLayoutStacked')}</button>
+            <button type="button" class="toggle" data-layout="side">${t('stageLayoutSide')}</button>
+          </div>
+          <div class="settings-field">
+            <label for="optAlign">${t('stageTextAlign')}</label>
+            <select id="optAlign">
+              <option value="left">${t('stageAlignLeft')}</option>
+              <option value="center">${t('stageAlignCenter')}</option>
+              <option value="right">${t('stageAlignRight')}</option>
+            </select>
+          </div>
+          <div class="settings-row" style="margin-top:8px;">
+            <label>${t('stageSafeMargin')}</label>
+            <strong id="valMargin">${appSettings.stageSafeMargin}px</strong>
+          </div>
+          <input type="range" id="optMargin" min="8" max="48" step="2" value="${appSettings.stageSafeMargin}">
+        </section>
+        <section class="settings-section">
+          <h3>${t('stageEditorVisibility')}</h3>
+          ${[
+            ['optClock', 'stageShowClock'],
+            ['optCounter', 'stageShowCounter'],
+            ['optSongTitle', 'stageShowSongTitle'],
+            ['optGroupVis', 'stageShowGroup'],
+            ['optRefVis', 'stageShowReference'],
+            ['optNextVis', 'stageShowNext'],
+            ['optProgressVis', 'stageShowProgress'],
+          ].map(([id, key]) => `<label class="settings-check"><input type="checkbox" id="${id}" data-key="${key}"><span>${t(key)}</span></label>`).join('')}
+        </section>
+        <section class="settings-section">
+          <h3>${t('stageEditorTypography')}</h3>
+          <div class="settings-row"><label>${t('stageFontScale')}</label><strong id="valScale">${appSettings.stageFontScale}%</strong></div>
+          <input type="range" id="optScale" min="70" max="150" step="5" value="${appSettings.stageFontScale}">
+          <div class="settings-row" style="margin-top:8px;"><label>${t('stageNextFontScale')}</label><strong id="valNextScale">${appSettings.stageNextFontScale}%</strong></div>
+          <input type="range" id="optNextScale" min="50" max="120" step="5" value="${appSettings.stageNextFontScale}">
+        </section>
+        <section class="settings-section">
+          <h3>${t('guideCrosshair')}</h3>
+          <label class="settings-check"><input type="checkbox" id="optGuideCross"><span>${t('guideCrosshair')}</span></label>
+          <label class="settings-check"><input type="checkbox" id="optGuideSafe"><span>${t('guideSafeArea')}</span></label>
+          <label class="settings-check"><input type="checkbox" id="optGuideTitle"><span>${t('guideTitleSafe')}</span></label>
+        </section>
+        <section class="settings-section">
+          <h3>${t('stageEditorColors')}</h3>
+          ${[
+            ['optBgColor', 'stageBgColor', t('stageBgColor')],
+            ['optCurColor', 'stageCurrentTextColor', t('stageCurrentColor')],
+            ['optNextColor', 'stageNextTextColor', t('stageNextColor')],
+            ['optSongColor', 'stageSongTitleColor', t('stageSongColor')],
+            ['optGroupColor', 'stageGroupColor', t('stageGroupColor')],
+            ['optRefColor', 'stageRefTextColor', t('stageRefColor')],
+          ].map(([id, key, label]) => `<div class="settings-row"><label>${label}</label><input type="color" id="${id}" data-key="${key}"></div>`).join('')}
+        </section>
+      `;
+      panelReady = true;
+      bindSettingsControls();
+      syncControlsFromSettings();
+      refreshDisplayMapper();
+      initSamplePreviewText();
+    }
+
+    function initSamplePreviewText() {
+      document.getElementById('stageCurrentBody').textContent = '주님의 마음 주님의 음성\n내 영혼이 듣도다';
+      document.getElementById('stageNextBody').textContent = '할렐루야 주님께 영광';
+    }
+
+    function syncControlsFromSettings() {
+      if (!panelReady) return;
+      const setChecked = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.checked = val;
+      };
+      setChecked('optAutoOpen', appSettings.autoOpenStageOnStart === true);
+      const align = document.getElementById('optAlign');
+      if (align) align.value = appSettings.stageTextAlign || 'center';
+      const margin = document.getElementById('optMargin');
+      if (margin) margin.value = String(appSettings.stageSafeMargin ?? 20);
+      const valMargin = document.getElementById('valMargin');
+      if (valMargin) valMargin.textContent = `${appSettings.stageSafeMargin}px`;
+      const scale = document.getElementById('optScale');
+      if (scale) scale.value = String(appSettings.stageFontScale ?? 100);
+      const valScale = document.getElementById('valScale');
+      if (valScale) valScale.textContent = `${appSettings.stageFontScale}%`;
+      const nextScale = document.getElementById('optNextScale');
+      if (nextScale) nextScale.value = String(appSettings.stageNextFontScale ?? 85);
+      const valNextScale = document.getElementById('valNextScale');
+      if (valNextScale) valNextScale.textContent = `${appSettings.stageNextFontScale}%`;
+      document.querySelectorAll('input[type="checkbox"][data-key]').forEach((el) => {
+        el.checked = appSettings[el.dataset.key] !== false;
+      });
+      document.querySelectorAll('input[type="color"][data-key]').forEach((el) => {
+        el.value = appSettings[el.dataset.key] || '#000000';
+      });
+      setChecked('optGuideCross', appSettings.showGuideCrosshair !== false);
+      setChecked('optGuideSafe', appSettings.showGuideSafeArea !== false);
+      setChecked('optGuideTitle', appSettings.showGuideTitleSafe !== false);
+      syncLayoutToggles();
+      refreshPreview();
+    }
+
+    function bindSettingsControls() {
+      document.getElementById('optAutoOpen')?.addEventListener('change', (e) => {
+        savePartial({ autoOpenStageOnStart: e.target.checked });
+      });
+      document.querySelectorAll('[data-layout]').forEach((btn) => {
+        btn.addEventListener('click', () => savePartial({ stageLayout: btn.dataset.layout }));
+      });
+      document.getElementById('optAlign')?.addEventListener('change', (e) => {
+        savePartial({ stageTextAlign: e.target.value });
+      });
+      document.getElementById('optMargin')?.addEventListener('input', (e) => {
+        const el = document.getElementById('valMargin');
+        if (el) el.textContent = `${e.target.value}px`;
+      });
+      document.getElementById('optMargin')?.addEventListener('change', (e) => {
+        savePartial({ stageSafeMargin: Number(e.target.value) });
+      });
+      document.getElementById('optScale')?.addEventListener('input', (e) => {
+        const el = document.getElementById('valScale');
+        if (el) el.textContent = `${e.target.value}%`;
+      });
+      document.getElementById('optScale')?.addEventListener('change', (e) => {
+        savePartial({ stageFontScale: Number(e.target.value) });
+      });
+      document.getElementById('optNextScale')?.addEventListener('input', (e) => {
+        const el = document.getElementById('valNextScale');
+        if (el) el.textContent = `${e.target.value}%`;
+      });
+      document.getElementById('optNextScale')?.addEventListener('change', (e) => {
+        savePartial({ stageNextFontScale: Number(e.target.value) });
+      });
+      document.querySelectorAll('input[type="checkbox"][data-key]').forEach((el) => {
+        el.addEventListener('change', () => savePartial({ [el.dataset.key]: el.checked }));
+      });
+      document.querySelectorAll('input[type="color"][data-key]').forEach((el) => {
+        el.addEventListener('input', () => savePartial({ [el.dataset.key]: el.value }));
+      });
+      document.getElementById('stageDisplaySelect')?.addEventListener('change', (e) => {
+        savePartial({ stageDisplayId: String(e.target.value || '').trim() });
+      });
+      document.getElementById('optGuideCross')?.addEventListener('change', (e) => {
+        savePartial({ showGuideCrosshair: e.target.checked });
+      });
+      document.getElementById('optGuideSafe')?.addEventListener('change', (e) => {
+        savePartial({ showGuideSafeArea: e.target.checked });
+      });
+      document.getElementById('optGuideTitle')?.addEventListener('change', (e) => {
+        savePartial({ showGuideTitleSafe: e.target.checked });
+      });
+    }
+
+    async function refreshDisplayMapper() {
+      try {
+        displaysCache = await ipcRenderer.invoke('get-displays');
+        renderDisplayMapper();
+      } catch (err) {
+        console.error('get-displays failed:', err);
+      }
+    }
+
+    function renderDisplayMapper() {
+      const root = document.getElementById('stageDisplayMapper');
+      const select = document.getElementById('stageDisplaySelect');
+      if (!displaysCache?.displays?.length) {
+        if (root) root.innerHTML = `<span class="dm-empty">${t('displayMapperEmpty')}</span>`;
+        if (select) select.innerHTML = `<option value="">${t('displayAuto')}</option>`;
+        return;
+      }
+      const savedId = String(appSettings.stageDisplayId || '').trim();
+      const autoId = DisplayMapperUI.getAutoStageDisplayId(
+        displaysCache.displays,
+        appSettings.outputDisplayId || '',
+      );
+      DisplayMapperUI.populateDisplaySelect(select, displaysCache, savedId, {
+        auto: t('displayAuto'),
+        monitor: t('displayMonitorShort'),
+      });
+      DisplayMapperUI.renderDisplayMapper(root, displaysCache, {
+        savedId,
+        autoId,
+        emptyLabel: t('displayMapperEmpty'),
+        onSelect: (id) => savePartial({ stageDisplayId: id }),
+      });
+    }
+
+    function setPreviewText(id, text, emptyLabel) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const val = String(text || '').trim();
+      el.textContent = val || emptyLabel || '—';
+    }
+
+    function applyLiveStageData(data) {
+      if (!data) return;
+      const previewRoot = document.getElementById('stagePreviewRoot');
+      StageConfig.applyStageConfig(document, { ...StageConfig.buildUpdatePayload(appSettings), ...data }, { rootEl: previewRoot });
+      previewRoot?.classList.toggle('is-blackout', Boolean(data.isBlackout));
+
+      const showGroup = appSettings.stageShowGroup !== false;
+      const showRef = appSettings.stageShowReference !== false;
+      if (data.songTitle != null) setPreviewText('stageSong', data.songTitle, '—');
+      const cur = data.current || {};
+      const next = data.next || {};
+      const setGroup = (id, text) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const val = String(text || '').trim();
+        el.hidden = !showGroup || !val;
+        if (!el.hidden) el.textContent = val;
+      };
+      const setRef = (id, text) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const val = String(text || '').trim();
+        el.hidden = !showRef || !val;
+        if (!el.hidden) el.textContent = val;
+      };
+      setPreviewText('stageCurrentBody', cur.body, '—');
+      setGroup('stageCurrentGroup', cur.group);
+      setRef('stageCurrentRef', cur.reference);
+      setPreviewText('stageNextBody', next.body, '—');
+      setGroup('stageNextGroup', next.group);
+      setRef('stageNextRef', next.reference);
+      if (Number.isFinite(data.slideIndex) && Number.isFinite(data.totalSlides)) {
+        document.getElementById('stageCounter').textContent = `${data.slideIndex + 1} / ${data.totalSlides}`;
+        const pct = data.totalSlides ? Math.round(((data.slideIndex + 1) / data.totalSlides) * 100) : 0;
+        const fill = document.querySelector('.stage-progress-fill');
+        if (fill) fill.style.width = `${pct}%`;
+      }
+    }
+
+    function tickClock() {
+      const el = document.getElementById('stageClock');
+      if (!el || el.hidden) return;
+      el.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+
+    document.getElementById('btnClose').onclick = () => window.close();
+    document.getElementById('btnOpenStage').onclick = () => ipcRenderer.send('stage:show');
+    document.getElementById('editorTitle').textContent = t('stageEditorTitle');
+    document.getElementById('previewLabel').textContent = t('stageEditorPreview');
+    document.getElementById('btnOpenStage').textContent = t('stageOpen');
+    document.getElementById('btnClose').textContent = t('propsEditorClose');
+
+    ipcRenderer.on('settings:sync', (_e, settings) => {
+      appSettings = AppSettings.normalize(settings || appSettings);
+      I18N.setLanguage(appSettings.language);
+      syncControlsFromSettings();
+      if (panelReady) renderDisplayMapper();
+    });
+
+    ipcRenderer.on('stage:update', (_e, data) => applyLiveStageData(data));
+
+    buildSettingsPanel();
+    window.addEventListener('resize', () => {
+      if (panelReady && displaysCache) renderDisplayMapper();
+    });
+    requestAnimationFrame(() => {
+      if (panelReady && displaysCache) renderDisplayMapper();
+    });
+    setInterval(tickClock, 1000);
+    tickClock();
+    ipcRenderer.send('settings:get');
+  </script>
+</body>
+</html>

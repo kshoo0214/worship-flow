@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>Stage Display</title>
+  <link rel="stylesheet" href="stage-display.css" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%; height: 100%; overflow: hidden;
+      background: #000;
+    }
+    #viewport {
+      position: relative;
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: #000;
+    }
+    #stageCanvas {
+      position: absolute;
+      left: 0; top: 0;
+      width: var(--stage-w, 1920px);
+      height: var(--stage-h, 1080px);
+      min-width: var(--stage-w, 1920px);
+      min-height: var(--stage-h, 1080px);
+      transform-origin: top left;
+      overflow: hidden;
+    }
+    body.is-blackout::after {
+      content: 'BLACKOUT';
+      position: fixed; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: clamp(24px, 4vw, 64px);
+      font-weight: 900; letter-spacing: 0.18em;
+      color: rgba(255,255,255,0.12); pointer-events: none;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+  <div id="viewport">
+    <div id="stageCanvas">
+      <div id="stageRoot" class="stage-display-root layout-stacked">
+        <header class="stage-head">
+          <div class="stage-song" id="stageSong">—</div>
+          <div class="stage-head-meta">
+            <div class="stage-clock" id="stageClock">00:00</div>
+            <div class="stage-counter" id="stageCounter">0 / 0</div>
+          </div>
+        </header>
+        <div class="stage-progress" id="stageProgressWrap" aria-hidden="true">
+          <div class="stage-progress-fill" id="stageProgressFill"></div>
+        </div>
+        <div class="stage-main-area">
+          <section class="stage-current">
+            <div class="stage-panel-label">현재</div>
+            <div class="stage-panel-body">
+              <div class="stage-group" id="stageCurrentGroup" hidden></div>
+              <div class="stage-body-text" id="stageCurrentBody"><span class="stage-empty">—</span></div>
+              <div class="stage-ref-text" id="stageCurrentRef" hidden></div>
+            </div>
+          </section>
+          <section class="stage-next" id="stageNextSection">
+            <div class="stage-panel-label">다음</div>
+            <div class="stage-panel-body">
+              <div class="stage-group" id="stageNextGroup" hidden></div>
+              <div class="stage-body-text" id="stageNextBody"><span class="stage-empty">—</span></div>
+              <div class="stage-ref-text" id="stageNextRef" hidden></div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const { ipcRenderer } = require('electron');
+    const StageConfig = require('./stage-config');
+    const AppSettings = require('./app-settings');
+    const SlideEngine = require('./slide-engine');
+
+    const stageCanvas = document.getElementById('stageCanvas');
+    const stageRoot = document.getElementById('stageRoot');
+    const stageSong = document.getElementById('stageSong');
+    const stageClock = document.getElementById('stageClock');
+    const stageCounter = document.getElementById('stageCounter');
+    const stageProgressFill = document.getElementById('stageProgressFill');
+    const stageCurrentBody = document.getElementById('stageCurrentBody');
+    const stageCurrentRef = document.getElementById('stageCurrentRef');
+    const stageCurrentGroup = document.getElementById('stageCurrentGroup');
+    const stageNextBody = document.getElementById('stageNextBody');
+    const stageNextRef = document.getElementById('stageNextRef');
+    const stageNextGroup = document.getElementById('stageNextGroup');
+
+    let appSettings = AppSettings.loadSettings();
+    let stageConfig = {};
+    let showClock = true;
+    let pendingStageData = null;
+
+    function applyStageDimensions() {
+      const { width, height } = AppSettings.getStageResolution(appSettings);
+      stageCanvas.style.width = `${width}px`;
+      stageCanvas.style.height = `${height}px`;
+      stageCanvas.style.minWidth = `${width}px`;
+      stageCanvas.style.minHeight = `${height}px`;
+      document.documentElement.style.setProperty('--stage-w', `${width}px`);
+      document.documentElement.style.setProperty('--stage-h', `${height}px`);
+    }
+
+    function fitStageToViewport() {
+      const vp = document.getElementById('viewport');
+      if (!vp || !vp.clientWidth || !vp.clientHeight) return;
+      const { width, height } = AppSettings.getStageResolution(appSettings);
+      const scale = SlideEngine.computeViewportFitScale(
+        vp.clientWidth,
+        vp.clientHeight,
+        width,
+        height,
+        { autoFit: appSettings.stageAutoFit !== false, userScalePct: appSettings.stageDisplayScale },
+      );
+      const scaledW = width * scale;
+      const scaledH = height * scale;
+      stageCanvas.style.transform = `scale(${scale})`;
+      stageCanvas.style.transformOrigin = 'top left';
+      stageCanvas.style.left = `${Math.max(0, (vp.clientWidth - scaledW) / 2)}px`;
+      stageCanvas.style.top = `${Math.max(0, (vp.clientHeight - scaledH) / 2)}px`;
+    }
+
+    function forceFitStage() {
+      applyStageDimensions();
+      requestAnimationFrame(() => {
+        requestAnimationFrame(fitStageToViewport);
+      });
+    }
+
+    function applyConfig(config) {
+      stageConfig = config || stageConfig;
+      StageConfig.applyStageConfig(document, stageConfig, { rootEl: stageRoot });
+      showClock = stageConfig.showClock !== false;
+    }
+
+    function tickClock() {
+      if (!showClock || !stageClock || stageClock.hidden) return;
+      stageClock.textContent = new Date().toLocaleTimeString([], {
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+      });
+    }
+
+    setInterval(tickClock, 1000);
+    tickClock();
+
+    function paintStageData(data) {
+      if (!data) return;
+      document.body.classList.toggle('is-blackout', Boolean(data?.isBlackout));
+      stageRoot.classList.toggle('is-blackout', Boolean(data?.isBlackout));
+      applyConfig(data);
+
+      if (stageConfig.showSongTitle !== false) {
+        stageSong.textContent = data?.songTitle || '—';
+      }
+      const idx = Number.isFinite(data?.slideIndex) ? data.slideIndex + 1 : 0;
+      const total = Number.isFinite(data?.totalSlides) ? data.totalSlides : 0;
+      if (stageConfig.showCounter !== false) {
+        stageCounter.textContent = total ? `${idx} / ${total}` : '—';
+      }
+      if (stageProgressFill && stageConfig.showProgress !== false) {
+        const pct = total > 0 && idx > 0 ? Math.round((idx / total) * 100) : 0;
+        stageProgressFill.style.width = `${pct}%`;
+      }
+
+      const cur = data?.current || {};
+      const next = data?.next || {};
+      setOptional(stageCurrentGroup, cur.group, stageConfig.showGroup);
+      setText(stageCurrentBody, cur.body, '—');
+      setOptional(stageCurrentRef, cur.reference, stageConfig.showReference);
+      setOptional(stageNextGroup, next.group, stageConfig.showGroup);
+      setText(stageNextBody, next.body, '—');
+      setOptional(stageNextRef, next.reference, stageConfig.showReference);
+    }
+
+    function setText(el, text, emptyLabel) {
+      const val = String(text || '').trim();
+      if (!val) {
+        el.innerHTML = `<span class="stage-empty">${emptyLabel || '—'}</span>`;
+        return;
+      }
+      el.textContent = val;
+    }
+
+    function setOptional(el, text, showFlag) {
+      const val = String(text || '').trim();
+      const visible = showFlag !== false && !!val;
+      el.hidden = !visible;
+      if (visible) el.textContent = val;
+    }
+
+    ipcRenderer.on('settings:sync', (_e, settings) => {
+      appSettings = AppSettings.normalize(settings || appSettings);
+      applyConfig(StageConfig.buildUpdatePayload(appSettings));
+      forceFitStage();
+    });
+
+    ipcRenderer.on('stage:viewport-changed', () => forceFitStage());
+    ipcRenderer.on('output:viewport-changed', () => forceFitStage());
+
+    ipcRenderer.on('stage:update', (_e, data) => {
+      pendingStageData = data;
+      paintStageData(data);
+    });
+
+    ipcRenderer.send('settings:get');
+    window.addEventListener('resize', () => requestAnimationFrame(fitStageToViewport));
+    applyConfig(StageConfig.buildUpdatePayload(appSettings));
+    forceFitStage();
+  </script>
+</body>
+</html>
