@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>Worship FLOW Remote</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+      touch-action: manipulation;
+      -webkit-text-size-adjust: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+      background: #0a0a0c;
+      color: #fff;
+    }
+    .remote-app {
+      display: grid;
+      grid-template-rows: 1fr 1fr;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+    }
+    .info-zone {
+      display: grid;
+      grid-template-rows: 1fr 1fr;
+      min-height: 0;
+      border-bottom: 2px solid #1e1e24;
+    }
+    .lyric-panel {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: clamp(12px, 3vw, 24px);
+      min-height: 0;
+      overflow: hidden;
+    }
+    .lyric-panel--current {
+      background: linear-gradient(180deg, #141418 0%, #0d0d10 100%);
+      border-bottom: 1px solid #2a2a32;
+    }
+    .lyric-panel--next {
+      background: #08080a;
+    }
+    .lyric-label {
+      font-size: clamp(11px, 2.5vw, 14px);
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: clamp(6px, 1.5vw, 12px);
+      flex-shrink: 0;
+    }
+    .lyric-panel--current .lyric-label { color: #fb923c; }
+    .lyric-panel--next .lyric-label { color: #6b7280; }
+    .lyric-ref {
+      font-size: clamp(14px, 3.2vw, 20px);
+      font-weight: 600;
+      margin-bottom: clamp(4px, 1vw, 8px);
+      flex-shrink: 0;
+      opacity: 0.9;
+    }
+    .lyric-panel--current .lyric-ref { color: #fdba74; }
+    .lyric-panel--next .lyric-ref { color: #9ca3af; }
+    .lyric-text {
+      font-size: clamp(22px, 6.5vw, 42px);
+      font-weight: 800;
+      line-height: 1.25;
+      word-break: keep-all;
+      overflow-wrap: break-word;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 6;
+      width: 100%;
+      max-height: 100%;
+    }
+    .lyric-panel--current .lyric-text {
+      color: #fff;
+      text-shadow: 0 2px 12px rgba(251, 146, 60, 0.25);
+    }
+    .lyric-panel--next .lyric-text {
+      font-size: clamp(18px, 5vw, 32px);
+      font-weight: 600;
+      color: #9ca3af;
+      -webkit-line-clamp: 4;
+    }
+    .lyric-empty {
+      font-size: clamp(16px, 4vw, 24px);
+      color: #4b5563;
+      font-weight: 600;
+    }
+    .control-zone {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 0;
+    }
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      margin: 0;
+      padding: 0;
+      font-size: clamp(28px, 8vw, 52px);
+      font-weight: 900;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.12s ease, transform 0.08s ease;
+      min-height: 0;
+      touch-action: manipulation;
+    }
+    .nav-btn:active {
+      transform: scale(0.97);
+    }
+    .nav-btn--prev {
+      background: linear-gradient(145deg, #1e3a5f 0%, #152238 100%);
+      color: #e0f2fe;
+      border-right: 2px solid #0a0a0c;
+    }
+    .nav-btn--prev:active { background: #2563eb; }
+    .nav-btn--next {
+      background: linear-gradient(145deg, #3b1f5c 0%, #261540 100%);
+      color: #f3e8ff;
+    }
+    .nav-btn--next:active { background: #7c3aed; }
+    .nav-btn:disabled {
+      opacity: 0.35;
+      pointer-events: none;
+    }
+    .status-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 6px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      text-align: center;
+      pointer-events: none;
+      z-index: 10;
+      transition: opacity 0.2s;
+    }
+    .status-bar.is-ok { color: #4ade80; opacity: 0; }
+    .status-bar.is-ok.is-visible { opacity: 1; }
+    .status-bar.is-error { color: #f87171; background: rgba(0,0,0,0.6); opacity: 1; }
+    .status-bar.is-blackout { color: #fb923c; background: rgba(0,0,0,0.75); opacity: 1; }
+    .song-meta {
+      font-size: clamp(10px, 2.2vw, 13px);
+      color: #6b7280;
+      margin-top: 4px;
+      flex-shrink: 0;
+    }
+
+    /* Landscape: 상단 가로 2단, 하단 좌우 버튼 */
+    @media (orientation: landscape) {
+      .info-zone {
+        grid-template-rows: 1fr;
+        grid-template-columns: 1fr 1fr;
+      }
+      .lyric-panel--current {
+        border-bottom: none;
+        border-right: 1px solid #2a2a32;
+      }
+      .lyric-text {
+        font-size: clamp(20px, 4.5vh, 38px);
+        -webkit-line-clamp: 5;
+      }
+      .lyric-panel--next .lyric-text {
+        font-size: clamp(16px, 3.5vh, 28px);
+        -webkit-line-clamp: 4;
+      }
+      .nav-btn {
+        font-size: clamp(24px, 6vh, 44px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="statusBar" class="status-bar is-error">연결 중…</div>
+  <div class="remote-app">
+    <section class="info-zone" aria-label="가사 정보">
+      <div class="lyric-panel lyric-panel--current">
+        <div class="lyric-label">현재</div>
+        <div id="currentRef" class="lyric-ref" hidden></div>
+        <div id="currentText" class="lyric-text lyric-empty">—</div>
+        <div id="songMeta" class="song-meta" hidden></div>
+      </div>
+      <div class="lyric-panel lyric-panel--next">
+        <div class="lyric-label">다음</div>
+        <div id="nextRef" class="lyric-ref" hidden></div>
+        <div id="nextText" class="lyric-text lyric-empty">—</div>
+      </div>
+    </section>
+    <section class="control-zone" aria-label="슬라이드 제어">
+      <button type="button" id="btnPrev" class="nav-btn nav-btn--prev" aria-label="이전 슬라이드">◀ 이 전</button>
+      <button type="button" id="btnNext" class="nav-btn nav-btn--next" aria-label="다음 슬라이드">다 음 ▶</button>
+    </section>
+  </div>
+  <script>
+    const statusBar = document.getElementById('statusBar');
+    const currentTextEl = document.getElementById('currentText');
+    const currentRefEl = document.getElementById('currentRef');
+    const nextTextEl = document.getElementById('nextText');
+    const nextRefEl = document.getElementById('nextRef');
+    const songMetaEl = document.getElementById('songMeta');
+    const btnPrev = document.getElementById('btnPrev');
+    const btnNext = document.getElementById('btnNext');
+
+    let ws = null;
+    let reconnectTimer = null;
+    let okFlashTimer = null;
+
+    function setStatus(mode, text) {
+      statusBar.className = 'status-bar';
+      statusBar.textContent = text;
+      if (mode === 'ok') {
+        statusBar.classList.add('is-ok', 'is-visible');
+        clearTimeout(okFlashTimer);
+        okFlashTimer = setTimeout(() => statusBar.classList.remove('is-visible'), 1800);
+      } else if (mode === 'blackout') {
+        statusBar.classList.add('is-blackout');
+      } else {
+        statusBar.classList.add('is-error');
+      }
+    }
+
+    function formatLyric(text, ref, group) {
+      const body = String(text || '').trim();
+      const reference = String(ref || '').trim();
+      const grp = String(group || '').trim();
+      return { body, reference, grp };
+    }
+
+    function applyLyricPanel(textEl, refEl, data, isCurrent) {
+      const { body, reference, grp } = data;
+      if (!body && !reference) {
+        textEl.textContent = '—';
+        textEl.classList.add('lyric-empty');
+        refEl.hidden = true;
+        refEl.textContent = '';
+        return;
+      }
+      textEl.classList.remove('lyric-empty');
+      textEl.textContent = body || reference;
+      const refLine = [grp, reference].filter(Boolean).join(' · ');
+      if (refLine && body) {
+        refEl.hidden = false;
+        refEl.textContent = refLine;
+      } else {
+        refEl.hidden = true;
+        refEl.textContent = '';
+      }
+    }
+
+    function applyState(payload) {
+      if (!payload || typeof payload !== 'object') return;
+      if (payload.isBlackout) {
+        setStatus('blackout', '암전 중');
+      } else {
+        setStatus('ok', '연결됨');
+      }
+      const cur = formatLyric(
+        payload.currentText ?? payload.current?.body,
+        payload.currentReference ?? payload.current?.reference,
+        payload.currentGroup ?? payload.current?.group,
+      );
+      const nxt = formatLyric(
+        payload.nextText ?? payload.next?.body,
+        payload.nextReference ?? payload.next?.reference,
+        payload.nextGroup ?? payload.next?.group,
+      );
+      applyLyricPanel(currentTextEl, currentRefEl, cur, true);
+      applyLyricPanel(nextTextEl, nextRefEl, nxt, false);
+
+      const idx = Number(payload.slideIndex);
+      const total = Number(payload.totalSlides);
+      if (Number.isFinite(idx) && Number.isFinite(total) && total > 0) {
+        songMetaEl.hidden = false;
+        const title = payload.songTitle ? String(payload.songTitle) : '';
+        songMetaEl.textContent = title
+          ? `${title} · ${idx + 1} / ${total}`
+          : `${idx + 1} / ${total}`;
+      } else if (payload.songTitle) {
+        songMetaEl.hidden = false;
+        songMetaEl.textContent = String(payload.songTitle);
+      } else {
+        songMetaEl.hidden = true;
+      }
+
+      btnPrev.disabled = payload.canPrev === false;
+      btnNext.disabled = payload.canNext === false;
+    }
+
+    function sendNav(type) {
+      if (!ws || ws.readyState !== WebSocket.OPEN) return;
+      ws.send(JSON.stringify({ type }));
+    }
+
+    function connect() {
+      clearTimeout(reconnectTimer);
+      if (ws) {
+        try { ws.close(); } catch (_) { /* ignore */ }
+      }
+      const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      ws = new WebSocket(`${proto}//${location.host}`);
+      ws.onopen = () => setStatus('ok', '연결됨');
+      ws.onclose = () => {
+        setStatus('error', '연결 끊김 — 재연결 중…');
+        reconnectTimer = setTimeout(connect, 1500);
+      };
+      ws.onerror = () => setStatus('error', '연결 오류');
+      ws.onmessage = (ev) => {
+        try {
+          const msg = JSON.parse(ev.data);
+          if (msg?.type === 'state') applyState(msg.payload);
+        } catch (_) { /* ignore */ }
+      };
+    }
+
+    btnPrev.addEventListener('click', () => sendNav('prev'));
+    btnNext.addEventListener('click', () => sendNav('next'));
+
+    connect();
+  </script>
+</body>
+</html>

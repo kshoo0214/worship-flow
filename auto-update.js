@@ -4,6 +4,15 @@ const { app, dialog } = require('electron');
 const { autoUpdater } = require('electron-updater');
 
 let pendingUpdate = null;
+let updateDownloaded = false;
+
+function getUpdateState() {
+  return {
+    pendingVersion: pendingUpdate?.version || null,
+    updateDownloaded,
+    releaseNotes: pendingUpdate?.releaseNotes || '',
+  };
+}
 
 function getControllerWindow(getWin) {
   const win = getWin();
@@ -17,7 +26,10 @@ function sendToController(getWin, channel, payload) {
 
 function initAutoUpdater(getControllerWindowFn) {
   if (!app.isPackaged) {
-    return { checkForUpdates: () => Promise.resolve(null) };
+    return {
+      checkForUpdates: () => Promise.resolve(null),
+      getUpdateState: () => ({ pendingVersion: null, updateDownloaded: false, releaseNotes: '' }),
+    };
   }
 
   autoUpdater.autoDownload = false;
@@ -30,15 +42,20 @@ function initAutoUpdater(getControllerWindowFn) {
 
   autoUpdater.on('update-available', (info) => {
     pendingUpdate = info;
+    updateDownloaded = false;
     sendToController(getControllerWindowFn, 'app:update-available', {
       version: info?.version || '',
       releaseNotes: info?.releaseNotes || '',
     });
   });
 
-  autoUpdater.on('update-not-available', () => {
+  autoUpdater.on('update-not-available', (info) => {
     pendingUpdate = null;
-    sendToController(getControllerWindowFn, 'app:update-status', { phase: 'idle' });
+    updateDownloaded = false;
+    sendToController(getControllerWindowFn, 'app:update-status', {
+      phase: 'up-to-date',
+      version: info?.version || app.getVersion(),
+    });
   });
 
   autoUpdater.on('error', (err) => {
@@ -58,6 +75,7 @@ function initAutoUpdater(getControllerWindowFn) {
 
   autoUpdater.on('update-downloaded', (info) => {
     pendingUpdate = info;
+    updateDownloaded = true;
     sendToController(getControllerWindowFn, 'app:update-downloaded', {
       version: info?.version || pendingUpdate?.version || '',
     });
@@ -73,7 +91,8 @@ function initAutoUpdater(getControllerWindowFn) {
       autoUpdater.quitAndInstall(false, true);
     },
     getPendingUpdate: () => pendingUpdate,
+    getUpdateState,
   };
 }
 
-module.exports = { initAutoUpdater };
+module.exports = { initAutoUpdater, getUpdateState };

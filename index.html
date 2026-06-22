@@ -1748,6 +1748,48 @@
     .settings-row label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 5px; }
     .settings-row .hint { font-size: 10px; color: var(--muted); margin-top: 4px; line-height: 1.4; }
     .settings-row input[type="range"] { width: 100%; accent-color: var(--accent); }
+    .remote-qr-panel {
+      display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;
+      margin-top: 8px; padding: 12px;
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+    .remote-qr-canvas-wrap {
+      flex-shrink: 0; padding: 8px; background: #fff; border-radius: 8px;
+      line-height: 0;
+    }
+    #remoteQrCanvas { display: block; width: 180px; height: 180px; }
+    .remote-qr-meta { flex: 1; min-width: 200px; }
+    .remote-qr-url {
+      display: block; font-size: 13px; font-weight: 700; color: var(--text);
+      word-break: break-all; margin: 6px 0 8px; line-height: 1.35;
+    }
+    .remote-qr-alt { font-size: 10px; color: var(--muted); line-height: 1.45; word-break: break-all; }
+    .about-panel {
+      padding: 14px; background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+    .about-brand h3 {
+      margin: 0 0 12px; font-size: 18px; font-weight: 800; letter-spacing: -0.02em;
+      color: var(--text);
+    }
+    .about-meta-grid {
+      display: grid; grid-template-columns: auto 1fr; gap: 8px 16px;
+      margin-bottom: 14px; font-size: 12px;
+    }
+    .about-meta-grid dt { color: var(--muted); font-weight: 600; margin: 0; }
+    .about-meta-grid dd { margin: 0; font-weight: 700; color: var(--text); word-break: break-all; }
+    .about-update-status { font-size: 12px; line-height: 1.45; margin: 0 0 12px; min-height: 1.2em; }
+    .about-update-progress { font-size: 11px; color: var(--accent); margin: 0 0 10px; }
+    .about-actions {
+      display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;
+    }
+    .about-actions .primary, .about-actions .secondary { min-width: 140px; }
+    .about-release-notes {
+      margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);
+      font-size: 11px; color: var(--muted); line-height: 1.5; white-space: pre-wrap;
+      max-height: 160px; overflow-y: auto;
+    }
     .settings-displays { margin-bottom: 4px; }
     .display-mapper {
       position: relative; margin: 8px 0 10px;
@@ -2293,6 +2335,7 @@
       <button type="button" class="settings-tab" data-settings-tab="displays" role="tab" data-i18n="prefTabDisplays">화면</button>
       <button type="button" class="settings-tab" data-settings-tab="live" role="tab" data-i18n="prefTabLive">자막/송출</button>
       <button type="button" class="settings-tab" data-settings-tab="shortcuts" role="tab" data-i18n="prefTabShortcuts">단축키</button>
+      <button type="button" class="settings-tab" data-settings-tab="about" role="tab" data-i18n="prefTabAbout">정보·업데이트</button>
     </nav>
     <div class="settings-modal-body">
       <div id="settingsTabGeneral" class="settings-tab-panel is-active" role="tabpanel">
@@ -2432,6 +2475,21 @@
             <select id="logoMediaSelect"><option value="" data-i18n="logoMediaAuto">자동 (첫 이미지)</option></select>
           </div>
         </section>
+        <section class="settings-section">
+          <h3 class="settings-section-title" data-i18n="remoteTitle">스마트폰 리모컨</h3>
+          <p class="hint" data-i18n="remoteHint">같은 Wi-Fi에 연결한 스마트폰으로 아래 QR 코드를 스캔하세요.</p>
+          <div class="remote-qr-panel">
+            <div class="remote-qr-canvas-wrap">
+              <canvas id="remoteQrCanvas" width="180" height="180" aria-label="Remote QR code"></canvas>
+            </div>
+            <div class="remote-qr-meta">
+              <span class="hint" data-i18n="remoteLanUrl">스마트폰 접속 주소</span>
+              <strong id="remoteUrlText" class="remote-qr-url">—</strong>
+              <p id="remoteUrlAlt" class="remote-qr-alt" hidden></p>
+              <button type="button" id="btnRefreshRemoteQr" class="secondary" style="margin-top:4px;" data-i18n="remoteRefresh">QR 새로고침</button>
+            </div>
+          </div>
+        </section>
       </div>
       <div id="settingsTabShortcuts" class="settings-tab-panel" role="tabpanel" hidden>
         <section class="settings-section">
@@ -2441,6 +2499,30 @@
           <button type="button" id="btnResetShortcuts" class="secondary" style="margin-top:8px;max-width:280px;" data-i18n="shortcutsReset">단축키 기본값</button>
         </section>
         <p class="settings-note" data-i18n="restartNote">일부 설정은 재시작 필요</p>
+      </div>
+      <div id="settingsTabAbout" class="settings-tab-panel" role="tabpanel" hidden>
+        <section class="settings-section about-panel">
+          <div class="about-brand">
+            <h3>Worship FLOW</h3>
+          </div>
+          <dl class="about-meta-grid">
+            <dt data-i18n="aboutCurrentVersion">현재 버전</dt>
+            <dd id="aboutCurrentVersion">—</dd>
+            <dt data-i18n="aboutLatestVersion">최신 버전</dt>
+            <dd id="aboutLatestVersion">—</dd>
+            <dt data-i18n="aboutBuildMode">빌드</dt>
+            <dd id="aboutBuildMode">—</dd>
+          </dl>
+          <p id="aboutUpdateStatus" class="about-update-status hint" data-i18n="aboutUpdateIdle">업데이트를 확인하려면 아래 버튼을 누르세요.</p>
+          <p id="aboutUpdateProgress" class="about-update-progress" hidden></p>
+          <div class="about-actions">
+            <button type="button" id="btnAboutCheckUpdate" class="primary" data-i18n="aboutCheckUpdate">업데이트 확인</button>
+            <button type="button" id="btnAboutDownloadUpdate" class="secondary" hidden data-i18n="appUpdateDownload">다운로드</button>
+            <button type="button" id="btnAboutInstallUpdate" class="primary" hidden data-i18n="appUpdateInstall">지금 재시작</button>
+          </div>
+          <p id="aboutDevHint" class="hint" hidden data-i18n="aboutUpdateDevHint">개발 모드(npm start)에서는 자동 업데이트가 비활성화됩니다. 설치된 앱에서만 동작합니다.</p>
+          <div id="aboutReleaseNotes" class="about-release-notes" hidden></div>
+        </section>
       </div>
     </div>
     <div class="settings-footer">
@@ -2517,6 +2599,7 @@ const PlaylistStore = require('./playlists');
 const { EditorHistory } = require('./editor-history');
 const Themes = require('./themes');
 const DisplayMapperUI = require('./display-mapper-ui');
+const QRCode = require('qrcode');
 
 let appSettings = AppSettings.loadSettings();
 I18N.setLanguage(appSettings.language);
@@ -3141,6 +3224,8 @@ function switchSettingsTab(tabId) {
     panel.classList.toggle('is-active', on);
     panel.hidden = !on;
   });
+  if (tabId === 'live') refreshRemoteQrPanel();
+  if (tabId === 'about') refreshAboutSettingsPanel();
 }
 
 function initSettingsTabs() {
@@ -3314,6 +3399,56 @@ function openSettings() {
   refreshDisplayMapper();
   switchSettingsTab('general');
   openModal(settingsModal);
+  refreshRemoteQrPanel();
+}
+
+function pickRemoteUrlForQr(urls) {
+  if (!Array.isArray(urls) || !urls.length) return '';
+  const lan = urls.find((u) => !/127\.0\.0\.1|localhost/i.test(u));
+  return lan || urls[0];
+}
+
+async function refreshRemoteQrPanel() {
+  const canvas = document.getElementById('remoteQrCanvas');
+  const urlEl = document.getElementById('remoteUrlText');
+  const altEl = document.getElementById('remoteUrlAlt');
+  if (!canvas || !urlEl) return;
+  return new Promise((resolve) => {
+    ipcRenderer.once('remote:info', async (_e, info) => {
+      const urls = info?.urls || [];
+      const qrUrl = pickRemoteUrlForQr(urls);
+      if (!qrUrl) {
+        urlEl.textContent = I18N.t('remoteUnavailable');
+        if (altEl) altEl.hidden = true;
+        resolve();
+        return;
+      }
+      urlEl.textContent = qrUrl;
+      try {
+        await QRCode.toCanvas(canvas, qrUrl, {
+          width: 180,
+          margin: 1,
+          errorCorrectionLevel: 'M',
+          color: { dark: '#111111', light: '#ffffff' },
+        });
+      } catch (err) {
+        console.error('remote QR failed:', err);
+        urlEl.textContent = I18N.t('remoteUnavailable');
+      }
+      if (altEl) {
+        const others = urls.filter((u) => u !== qrUrl);
+        if (others.length) {
+          altEl.hidden = false;
+          altEl.textContent = `${I18N.t('remoteAltUrls')}: ${others.join(' · ')}`;
+        } else {
+          altEl.hidden = true;
+          altEl.textContent = '';
+        }
+      }
+      resolve();
+    });
+    ipcRenderer.send('remote:get-info');
+  });
 }
 
 function closeSettings() {
@@ -3322,6 +3457,7 @@ function closeSettings() {
 
 document.getElementById('btnSettings').onclick = openSettings;
 document.getElementById('btnCloseSettings').onclick = closeSettings;
+document.getElementById('btnRefreshRemoteQr')?.addEventListener('click', () => refreshRemoteQrPanel());
 settingsModal.onclick = (e) => { if (e.target === settingsModal) closeSettings(); };
 
 document.getElementById('masterVolume')?.addEventListener('input', (e) => {
@@ -10787,17 +10923,226 @@ ipcRenderer.on('bible:download-required', () => {
 
 let pendingAppUpdateVersion = '';
 
+const appUpdateUi = {
+  pendingVersion: '',
+  downloaded: false,
+  phase: 'idle',
+};
+
+function getAboutUpdateEls() {
+  return {
+    current: document.getElementById('aboutCurrentVersion'),
+    latest: document.getElementById('aboutLatestVersion'),
+    build: document.getElementById('aboutBuildMode'),
+    status: document.getElementById('aboutUpdateStatus'),
+    progress: document.getElementById('aboutUpdateProgress'),
+    devHint: document.getElementById('aboutDevHint'),
+    notes: document.getElementById('aboutReleaseNotes'),
+    btnCheck: document.getElementById('btnAboutCheckUpdate'),
+    btnDownload: document.getElementById('btnAboutDownloadUpdate'),
+    btnInstall: document.getElementById('btnAboutInstallUpdate'),
+  };
+}
+
+function setAboutUpdateButtons({ showDownload, showInstall, checking }) {
+  const els = getAboutUpdateEls();
+  if (els.btnCheck) els.btnCheck.disabled = checking === true;
+  if (els.btnDownload) els.btnDownload.hidden = !showDownload;
+  if (els.btnInstall) els.btnInstall.hidden = !showInstall;
+}
+
+function renderAboutUpdateNotes(notes) {
+  const el = document.getElementById('aboutReleaseNotes');
+  if (!el) return;
+  const text = typeof notes === 'string' ? notes.trim() : '';
+  if (!text) {
+    el.hidden = true;
+    el.textContent = '';
+    return;
+  }
+  el.hidden = false;
+  el.textContent = `${I18N.t('aboutReleaseNotes')}\n${text}`;
+}
+
+function applyAppUpdateUiState(patch = {}) {
+  if (patch.pendingVersion != null) {
+    appUpdateUi.pendingVersion = patch.pendingVersion;
+    pendingAppUpdateVersion = patch.pendingVersion;
+  }
+  if (patch.downloaded != null) appUpdateUi.downloaded = patch.downloaded;
+  if (patch.phase) appUpdateUi.phase = patch.phase;
+
+  const els = getAboutUpdateEls();
+  const version = appUpdateUi.pendingVersion;
+  if (els.latest) {
+    if (version) els.latest.textContent = version;
+    else if (appUpdateUi.phase === 'up-to-date' && els.current?.textContent) {
+      els.latest.textContent = els.current.textContent;
+    }
+  }
+
+  const modalMsg = document.getElementById('appUpdateMessage');
+  const modalProgress = document.getElementById('appUpdateProgress');
+  const modalBtnDownload = document.getElementById('btnAppUpdateDownload');
+  const modalBtnInstall = document.getElementById('btnAppUpdateInstall');
+
+  switch (appUpdateUi.phase) {
+    case 'checking':
+      if (els.status) els.status.textContent = I18N.t('aboutUpdateChecking');
+      if (els.progress) els.progress.hidden = true;
+      setAboutUpdateButtons({ showDownload: false, showInstall: false, checking: true });
+      break;
+    case 'available':
+      if (els.status) els.status.textContent = I18N.t('aboutUpdateAvailable', { version });
+      if (modalMsg) modalMsg.textContent = I18N.t('appUpdateAvailable', { version });
+      setAboutUpdateButtons({ showDownload: true, showInstall: false, checking: false });
+      if (modalBtnDownload) { modalBtnDownload.hidden = false; modalBtnDownload.disabled = false; }
+      if (modalBtnInstall) modalBtnInstall.hidden = true;
+      break;
+    case 'downloading': {
+      const pct = patch.percent != null ? Math.round(patch.percent) : null;
+      const line = pct != null
+        ? I18N.t('appUpdateDownloading', { percent: pct })
+        : I18N.t('appUpdateDownloading', { percent: 0 });
+      if (els.progress) { els.progress.hidden = false; els.progress.textContent = line; }
+      if (modalProgress) { modalProgress.hidden = false; modalProgress.textContent = line; }
+      setAboutUpdateButtons({ showDownload: false, showInstall: false, checking: true });
+      if (modalBtnDownload) modalBtnDownload.disabled = true;
+      break;
+    }
+    case 'ready':
+      if (els.status) els.status.textContent = I18N.t('appUpdateReady');
+      if (els.progress) { els.progress.hidden = false; els.progress.textContent = I18N.t('appUpdateReady'); }
+      if (modalProgress) { modalProgress.hidden = false; modalProgress.textContent = I18N.t('appUpdateReady'); }
+      setAboutUpdateButtons({ showDownload: false, showInstall: true, checking: false });
+      if (modalBtnDownload) modalBtnDownload.hidden = true;
+      if (modalBtnInstall) modalBtnInstall.hidden = false;
+      break;
+    case 'up-to-date':
+      if (els.status) els.status.textContent = I18N.t('aboutUpdateUpToDate');
+      if (els.progress) els.progress.hidden = true;
+      setAboutUpdateButtons({ showDownload: false, showInstall: false, checking: false });
+      break;
+    case 'dev':
+      if (els.status) els.status.textContent = I18N.t('aboutUpdateDevHint');
+      if (els.devHint) els.devHint.hidden = false;
+      setAboutUpdateButtons({ showDownload: false, showInstall: false, checking: false });
+      break;
+    case 'error':
+      if (els.status) els.status.textContent = patch.message || I18N.t('appUpdateError');
+      if (modalProgress) {
+        modalProgress.hidden = false;
+        modalProgress.textContent = patch.message || I18N.t('appUpdateError');
+      }
+      setAboutUpdateButtons({
+        showDownload: Boolean(version) && !appUpdateUi.downloaded,
+        showInstall: appUpdateUi.downloaded,
+        checking: false,
+      });
+      break;
+    default:
+      if (els.status) els.status.textContent = I18N.t('aboutUpdateIdle');
+      setAboutUpdateButtons({ showDownload: false, showInstall: false, checking: false });
+      break;
+  }
+}
+
+async function refreshAboutSettingsPanel() {
+  const els = getAboutUpdateEls();
+  try {
+    const info = await ipcRenderer.invoke('app:get-version-info');
+    if (els.current) els.current.textContent = info?.currentVersion || '—';
+    if (els.build) {
+      els.build.textContent = info?.isPackaged ? I18N.t('aboutBuildPackaged') : I18N.t('aboutBuildDev');
+    }
+    if (els.devHint) els.devHint.hidden = info?.isPackaged === true;
+    if (info?.pendingVersion) {
+      if (els.latest) els.latest.textContent = info.pendingVersion;
+      renderAboutUpdateNotes(info.releaseNotes);
+      if (info.updateDownloaded) {
+        applyAppUpdateUiState({
+          phase: 'ready',
+          pendingVersion: info.pendingVersion,
+          downloaded: true,
+        });
+      } else {
+        applyAppUpdateUiState({
+          phase: 'available',
+          pendingVersion: info.pendingVersion,
+        });
+      }
+    } else if (!info?.isPackaged) {
+      applyAppUpdateUiState({ phase: 'dev' });
+      if (els.latest) els.latest.textContent = info?.currentVersion || '—';
+    } else if (appUpdateUi.phase === 'idle') {
+      if (els.latest) els.latest.textContent = info?.currentVersion || '—';
+      applyAppUpdateUiState({ phase: 'idle' });
+    }
+  } catch (err) {
+    console.error('about panel refresh failed:', err);
+  }
+}
+
+async function checkAppUpdateFromSettings() {
+  const info = await ipcRenderer.invoke('app:get-version-info');
+  if (!info?.isPackaged) {
+    applyAppUpdateUiState({ phase: 'dev' });
+    return;
+  }
+  applyAppUpdateUiState({ phase: 'checking' });
+  try {
+    const result = await ipcRenderer.invoke('app:update-check');
+    if (!result?.ok) {
+      applyAppUpdateUiState({ phase: 'dev' });
+      return;
+    }
+    if (result.updateDownloaded) {
+      applyAppUpdateUiState({
+        phase: 'ready',
+        pendingVersion: result.pendingVersion || appUpdateUi.pendingVersion,
+        downloaded: true,
+      });
+      return;
+    }
+    if (result.updateInfo?.version) {
+      applyAppUpdateUiState({
+        phase: 'available',
+        pendingVersion: result.updateInfo.version,
+      });
+      renderAboutUpdateNotes(result.updateInfo.releaseNotes);
+      return;
+    }
+    if (result.pendingVersion) {
+      applyAppUpdateUiState({ phase: 'available', pendingVersion: result.pendingVersion });
+      return;
+    }
+    applyAppUpdateUiState({ phase: 'up-to-date' });
+    const els = getAboutUpdateEls();
+    if (els.latest && result.currentVersion) els.latest.textContent = result.currentVersion;
+  } catch (err) {
+    applyAppUpdateUiState({ phase: 'error', message: err?.message || I18N.t('appUpdateError') });
+  }
+}
+
+async function downloadAppUpdate() {
+  applyAppUpdateUiState({ phase: 'downloading', percent: 0 });
+  try {
+    await ipcRenderer.invoke('app:update-download');
+  } catch (err) {
+    applyAppUpdateUiState({
+      phase: 'error',
+      message: err?.message || I18N.t('appUpdateError'),
+      pendingVersion: appUpdateUi.pendingVersion,
+    });
+  }
+}
+
 function openAppUpdateModal(version) {
   pendingAppUpdateVersion = version || '';
+  applyAppUpdateUiState({ phase: 'available', pendingVersion: version || '' });
   const modal = document.getElementById('appUpdateModal');
-  const msg = document.getElementById('appUpdateMessage');
   const progress = document.getElementById('appUpdateProgress');
-  const btnDownload = document.getElementById('btnAppUpdateDownload');
-  const btnInstall = document.getElementById('btnAppUpdateInstall');
-  if (msg) msg.textContent = I18N.t('appUpdateAvailable', { version: pendingAppUpdateVersion });
   if (progress) progress.hidden = true;
-  if (btnDownload) { btnDownload.hidden = false; btnDownload.disabled = false; }
-  if (btnInstall) btnInstall.hidden = true;
   modal?.classList.add('is-open');
 }
 
@@ -10806,43 +11151,50 @@ function closeAppUpdateModal() {
 }
 
 ipcRenderer.on('app:update-available', (_e, payload) => {
+  renderAboutUpdateNotes(payload?.releaseNotes);
+  applyAppUpdateUiState({
+    phase: 'available',
+    pendingVersion: payload?.version || '',
+  });
   openAppUpdateModal(payload?.version || '');
 });
-ipcRenderer.on('app:update-progress', (_e, payload) => {
-  const progress = document.getElementById('appUpdateProgress');
-  const btnDownload = document.getElementById('btnAppUpdateDownload');
-  if (progress) {
-    progress.hidden = false;
-    progress.textContent = I18N.t('appUpdateDownloading', { percent: Math.round(payload?.percent || 0) });
+ipcRenderer.on('app:update-status', (_e, payload) => {
+  if (payload?.phase === 'checking') applyAppUpdateUiState({ phase: 'checking' });
+  if (payload?.phase === 'up-to-date') {
+    applyAppUpdateUiState({ phase: 'up-to-date', pendingVersion: '' });
+    const els = getAboutUpdateEls();
+    if (els.latest && payload?.version) els.latest.textContent = payload.version;
   }
-  if (btnDownload) btnDownload.disabled = true;
 });
-ipcRenderer.on('app:update-downloaded', () => {
-  const progress = document.getElementById('appUpdateProgress');
-  const btnDownload = document.getElementById('btnAppUpdateDownload');
-  const btnInstall = document.getElementById('btnAppUpdateInstall');
-  if (progress) {
-    progress.hidden = false;
-    progress.textContent = I18N.t('appUpdateReady');
-  }
-  if (btnDownload) btnDownload.hidden = true;
-  if (btnInstall) btnInstall.hidden = false;
+ipcRenderer.on('app:update-progress', (_e, payload) => {
+  applyAppUpdateUiState({
+    phase: 'downloading',
+    percent: payload?.percent ?? 0,
+    pendingVersion: appUpdateUi.pendingVersion,
+  });
+});
+ipcRenderer.on('app:update-downloaded', (_e, payload) => {
+  applyAppUpdateUiState({
+    phase: 'ready',
+    pendingVersion: payload?.version || appUpdateUi.pendingVersion,
+    downloaded: true,
+  });
 });
 ipcRenderer.on('app:update-error', (_e, payload) => {
-  const progress = document.getElementById('appUpdateProgress');
-  if (progress) {
-    progress.hidden = false;
-    progress.textContent = payload?.message || I18N.t('appUpdateError');
-  }
+  applyAppUpdateUiState({
+    phase: 'error',
+    message: payload?.message || I18N.t('appUpdateError'),
+    pendingVersion: appUpdateUi.pendingVersion,
+  });
 });
 document.getElementById('btnAppUpdateLater')?.addEventListener('click', () => closeAppUpdateModal());
-document.getElementById('btnAppUpdateDownload')?.addEventListener('click', async () => {
-  try { await ipcRenderer.invoke('app:update-download'); } catch (err) {
-    const progress = document.getElementById('appUpdateProgress');
-    if (progress) { progress.hidden = false; progress.textContent = err?.message || I18N.t('appUpdateError'); }
-  }
-});
+document.getElementById('btnAppUpdateDownload')?.addEventListener('click', () => downloadAppUpdate());
 document.getElementById('btnAppUpdateInstall')?.addEventListener('click', () => {
+  ipcRenderer.invoke('app:update-install');
+});
+document.getElementById('btnAboutCheckUpdate')?.addEventListener('click', () => checkAppUpdateFromSettings());
+document.getElementById('btnAboutDownloadUpdate')?.addEventListener('click', () => downloadAppUpdate());
+document.getElementById('btnAboutInstallUpdate')?.addEventListener('click', () => {
   ipcRenderer.invoke('app:update-install');
 });
 document.getElementById('btnPlaylistModalCancel')?.addEventListener('click', () => closePlaylistModal());
@@ -10878,6 +11230,17 @@ ipcRenderer.on('output:state-changed', (_e, state) => {
 ipcRenderer.on('stage:state-changed', (_e, state) => {
   stageDisplayVisible = Boolean(state?.visible);
   updateMacroBarUI();
+});
+
+ipcRenderer.on('remote:navigate', (_e, payload) => {
+  if (appWorkspaceMode !== 'slides' || !currentSlides.length) return;
+  const dir = payload?.direction;
+  if (dir === 'prev') {
+    if (activeSlideIndex > 0) selectSlide(activeSlideIndex - 1);
+    else if (appSettings.slideAdvanceWrap) selectSlide(currentSlides.length - 1);
+  } else if (dir === 'next') {
+    advanceLiveNextSlide();
+  }
 });
 
 ipcRenderer.on('relay:state-changed', (_e, state) => {

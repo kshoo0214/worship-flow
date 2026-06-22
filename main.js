@@ -14,6 +14,7 @@ const AppPaths = require('./app-paths');
 const MacrosStore = require('./macros-store');
 const StageConfig = require('./stage-config');
 const { initAutoUpdater } = require('./auto-update');
+const RemoteServer = require('./remote-server');
 
 let autoUpdateApi = null;
 
@@ -564,8 +565,42 @@ function rebuildLastStageMeta(meta = {}) {
   };
 }
 
+function getRemotePayload() {
+  const meta = lastStageMeta || rebuildLastStageMeta({});
+  const settings = AppSettings.loadSettings();
+  const slideIndex = Number.isFinite(meta.slideIndex) ? meta.slideIndex : -1;
+  const totalSlides = Number.isFinite(meta.totalSlides) ? meta.totalSlides : 0;
+  const wrap = settings.slideAdvanceWrap === true;
+  return {
+    songTitle: meta.songTitle || '',
+    slideIndex: slideIndex >= 0 ? slideIndex : null,
+    totalSlides: totalSlides > 0 ? totalSlides : null,
+    currentText: meta.current?.body || lastSubtitleText || '',
+    currentReference: meta.current?.reference || '',
+    currentGroup: meta.current?.group || '',
+    current: meta.current || { body: '', reference: '', group: '' },
+    nextText: meta.next?.body || '',
+    nextReference: meta.next?.reference || '',
+    nextGroup: meta.next?.group || '',
+    next: meta.next || { body: '', reference: '', group: '' },
+    isBlackout,
+    canPrev: slideIndex > 0 || (wrap && totalSlides > 0),
+    canNext: totalSlides > 0,
+    timestamp: Date.now(),
+  };
+}
+
+function syncRemoteClients() {
+  try {
+    RemoteServer.broadcastRemoteState(getRemotePayload());
+  } catch (err) {
+    console.error('remote broadcast failed:', err);
+  }
+}
+
 function pushStageUpdate(meta = {}) {
   lastStageMeta = rebuildLastStageMeta(meta);
+  syncRemoteClients();
   if (!stageWindow || stageWindow.isDestroyed() || !stageReady) return;
   stageWindow.webContents.send('stage:update', lastStageMeta);
   if (stageEditorWindow && !stageEditorWindow.isDestroyed()) {
@@ -1784,9 +1819,24 @@ function createWindows() {
   });
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   autoUpdateApi = initAutoUpdater(() => controllerWindow);
   createWindows();
+  try {
+    const remoteInfo = await RemoteServer.initRemoteServer({
+      appRoot: APP_ROOT,
+      port: RemoteServer.DEFAULT_PORT,
+      getState: getRemotePayload,
+      onNavigate: (direction) => {
+        if (controllerWindow && !controllerWindow.isDestroyed()) {
+          controllerWindow.webContents.send('remote:navigate', { direction });
+        }
+      },
+    });
+    console.log('Worship FLOW remote:', remoteInfo.urls.join(' '));
+  } catch (err) {
+    console.error('Remote server failed to start:', err);
+  }
   if (autoUpdateApi?.checkForUpdates) {
     setTimeout(() => {
       autoUpdateApi.checkForUpdates();
@@ -1807,7 +1857,12 @@ process.on('unhandledRejection', (err) => {
 });
 
 app.on('window-all-closed', () => {
+  RemoteServer.stopRemoteServer();
   if (process.platform !== 'darwin') app.quit();
+});
+
+ipcMain.on('remote:get-info', (event) => {
+  event.reply('remote:info', RemoteServer.getRemoteServerInfo());
 });
 
 ipcMain.on('request-library', (event) => {
@@ -1884,8 +1939,37 @@ ipcMain.handle('app:update-install', () => {
 });
 
 ipcMain.handle('app:update-check', async () => {
-  if (!autoUpdateApi?.checkForUpdates) return null;
-  return autoUpdateApi.checkForUpdates();
+  if (!app.isPackaged || !autoUpdateApi?.checkForUpdates) {
+    return {
+      ok: false,
+      isPackaged: app.isPackaged,
+      currentVersion: app.getVersion(),
+      reason: 'unavailable',
+    };
+  }
+  const result = await autoUpdateApi.checkForUpdates();
+  const state = autoUpdateApi.getUpdateState?.() || {};
+  return {
+    ok: true,
+    isPackaged: true,
+    currentVersion: app.getVersion(),
+    updateInfo: result?.updateInfo || null,
+    pendingVersion: state.pendingVersion || null,
+    updateDownloaded: state.updateDownloaded === true,
+  };
+});
+
+ipcMain.handle('app:get-version-info', () => {
+  const state = autoUpdateApi?.getUpdateState?.() || {};
+  return {
+    productName: app.getName(),
+    currentVersion: app.getVersion(),
+    isPackaged: app.isPackaged,
+    pendingVersion: state.pendingVersion || null,
+    updateDownloaded: state.updateDownloaded === true,
+    releaseNotes: state.releaseNotes || '',
+    homepage: 'https://github.com/kshoo0214/worship-flow',
+  };
 });
 
 ipcMain.on('request-playlists', (event) => {
@@ -2236,6 +2320,7 @@ function parseSendSlidePayload(payload) {
         currentReference: payload.currentReference,
         currentGroup: payload.currentGroup,
         current: payload.current,
+        next: payload.next,
         resyncBackground: payload.resyncBackground,
         layerRestore: payload.layerRestore,
       },
