@@ -20,6 +20,8 @@
     "publish:mac": "npm run build:prep && electron-builder --mac --publish always",
     "publish:win": "npm run build:prep && electron-builder --win --publish always",
     "publish:all": "npm run build:prep && electron-builder --mac --win --publish always",
+    "organize:releases": "bash scripts/organize-releases.sh",
+    "release:tag": "bash scripts/release-tag.sh",
     "postinstall": "node scripts/fix-electron.js"
   },
   "dependencies": {

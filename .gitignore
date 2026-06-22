@@ -4,6 +4,7 @@ media-library.json
 .DS_Store
 npm-debug.log*
 dist/
+releases/
 resources/bible/bible_ko_revised.json
 .env.local
 .gh-token
