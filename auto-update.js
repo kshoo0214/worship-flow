@@ -33,7 +33,8 @@ function initAutoUpdater(getControllerWindowFn) {
   }
 
   autoUpdater.autoDownload = false;
-  autoUpdater.autoInstallOnAppQuit = true;
+  // macOS Squirrel install requires code signing; unsigned builds use manual DMG download.
+  autoUpdater.autoInstallOnAppQuit = process.platform !== 'darwin';
   autoUpdater.allowDowngrade = false;
 
   autoUpdater.on('checking-for-update', () => {

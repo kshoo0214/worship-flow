@@ -14,6 +14,7 @@ const AppPaths = require('./app-paths');
 const MacrosStore = require('./macros-store');
 const StageConfig = require('./stage-config');
 const { initAutoUpdater } = require('./auto-update');
+const { getMacDmgDownloadUrl, macUsesManualReleaseDownload } = require('./release-url');
 const RemoteServer = require('./remote-server');
 
 let autoUpdateApi = null;
@@ -1927,12 +1928,22 @@ ipcMain.handle('bible:repair', () => {
   };
 });
 
-ipcMain.handle('app:update-download', async () => {
+ipcMain.handle('app:update-download', async (_event, payload) => {
+  if (macUsesManualReleaseDownload()) {
+    const state = autoUpdateApi?.getUpdateState?.() || {};
+    const version = payload?.version || state.pendingVersion || null;
+    const url = getMacDmgDownloadUrl(version);
+    await shell.openExternal(url);
+    return { ok: true, mode: 'mac-manual', url };
+  }
   if (!autoUpdateApi?.downloadUpdate) throw new Error('Auto-update unavailable');
   return autoUpdateApi.downloadUpdate();
 });
 
 ipcMain.handle('app:update-install', () => {
+  if (macUsesManualReleaseDownload()) {
+    throw new Error('Mac updates must be installed from the downloaded DMG.');
+  }
   if (!autoUpdateApi?.quitAndInstall) throw new Error('Auto-update unavailable');
   autoUpdateApi.quitAndInstall();
   return true;
@@ -1949,24 +1960,27 @@ ipcMain.handle('app:update-check', async () => {
   }
   const result = await autoUpdateApi.checkForUpdates();
   const state = autoUpdateApi.getUpdateState?.() || {};
+  const macManualDownload = macUsesManualReleaseDownload();
   return {
     ok: true,
     isPackaged: true,
     currentVersion: app.getVersion(),
     updateInfo: result?.updateInfo || null,
     pendingVersion: state.pendingVersion || null,
-    updateDownloaded: state.updateDownloaded === true,
+    updateDownloaded: macManualDownload ? false : state.updateDownloaded === true,
   };
 });
 
 ipcMain.handle('app:get-version-info', () => {
   const state = autoUpdateApi?.getUpdateState?.() || {};
+  const macManualDownload = macUsesManualReleaseDownload();
   return {
     productName: app.getName(),
     currentVersion: app.getVersion(),
     isPackaged: app.isPackaged,
+    macManualDownload,
     pendingVersion: state.pendingVersion || null,
-    updateDownloaded: state.updateDownloaded === true,
+    updateDownloaded: macManualDownload ? false : state.updateDownloaded === true,
     releaseNotes: state.releaseNotes || '',
     homepage: 'https://github.com/kshoo0214/worship-flow',
   };

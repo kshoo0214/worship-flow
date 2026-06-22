@@ -2514,6 +2514,7 @@
             <dd id="aboutBuildMode">—</dd>
           </dl>
           <p id="aboutUpdateStatus" class="about-update-status hint" data-i18n="aboutUpdateIdle">업데이트를 확인하려면 아래 버튼을 누르세요.</p>
+          <p id="aboutMacManualHint" class="hint" hidden data-i18n="aboutUpdateMacHint">Mac은 DMG를 브라우저에서 받아 Applications에 설치합니다.</p>
           <p id="aboutUpdateProgress" class="about-update-progress" hidden></p>
           <div class="about-actions">
             <button type="button" id="btnAboutCheckUpdate" class="primary" data-i18n="aboutCheckUpdate">업데이트 확인</button>
@@ -10922,6 +10923,7 @@ ipcRenderer.on('bible:download-required', () => {
 });
 
 let pendingAppUpdateVersion = '';
+let appUpdateMacManual = typeof process !== 'undefined' && process.platform === 'darwin';
 
 const appUpdateUi = {
   pendingVersion: '',
@@ -10929,12 +10931,21 @@ const appUpdateUi = {
   phase: 'idle',
 };
 
+function syncAppUpdateDownloadLabels() {
+  const label = appUpdateMacManual ? I18N.t('appUpdateDownloadMac') : I18N.t('appUpdateDownload');
+  const aboutBtn = document.getElementById('btnAboutDownloadUpdate');
+  const modalBtn = document.getElementById('btnAppUpdateDownload');
+  if (aboutBtn) aboutBtn.textContent = label;
+  if (modalBtn) modalBtn.textContent = label;
+}
+
 function getAboutUpdateEls() {
   return {
     current: document.getElementById('aboutCurrentVersion'),
     latest: document.getElementById('aboutLatestVersion'),
     build: document.getElementById('aboutBuildMode'),
     status: document.getElementById('aboutUpdateStatus'),
+    macHint: document.getElementById('aboutMacManualHint'),
     progress: document.getElementById('aboutUpdateProgress'),
     devHint: document.getElementById('aboutDevHint'),
     notes: document.getElementById('aboutReleaseNotes'),
@@ -10948,7 +10959,8 @@ function setAboutUpdateButtons({ showDownload, showInstall, checking }) {
   const els = getAboutUpdateEls();
   if (els.btnCheck) els.btnCheck.disabled = checking === true;
   if (els.btnDownload) els.btnDownload.hidden = !showDownload;
-  if (els.btnInstall) els.btnInstall.hidden = !showInstall;
+  if (els.btnInstall) els.btnInstall.hidden = appUpdateMacManual || !showInstall;
+  syncAppUpdateDownloadLabels();
 }
 
 function renderAboutUpdateNotes(notes) {
@@ -10985,6 +10997,7 @@ function applyAppUpdateUiState(patch = {}) {
   const modalProgress = document.getElementById('appUpdateProgress');
   const modalBtnDownload = document.getElementById('btnAppUpdateDownload');
   const modalBtnInstall = document.getElementById('btnAppUpdateInstall');
+  if (modalBtnInstall) modalBtnInstall.hidden = appUpdateMacManual || modalBtnInstall.hidden;
 
   switch (appUpdateUi.phase) {
     case 'checking':
@@ -10993,11 +11006,20 @@ function applyAppUpdateUiState(patch = {}) {
       setAboutUpdateButtons({ showDownload: false, showInstall: false, checking: true });
       break;
     case 'available':
-      if (els.status) els.status.textContent = I18N.t('aboutUpdateAvailable', { version });
-      if (modalMsg) modalMsg.textContent = I18N.t('appUpdateAvailable', { version });
+      if (els.status) {
+        els.status.textContent = appUpdateMacManual
+          ? `${I18N.t('aboutUpdateAvailable', { version })}\n${I18N.t('aboutUpdateMacHint')}`
+          : I18N.t('aboutUpdateAvailable', { version });
+      }
+      if (modalMsg) {
+        modalMsg.textContent = appUpdateMacManual
+          ? I18N.t('appUpdateAvailableMac', { version })
+          : I18N.t('appUpdateAvailable', { version });
+      }
       setAboutUpdateButtons({ showDownload: true, showInstall: false, checking: false });
       if (modalBtnDownload) { modalBtnDownload.hidden = false; modalBtnDownload.disabled = false; }
       if (modalBtnInstall) modalBtnInstall.hidden = true;
+      syncAppUpdateDownloadLabels();
       break;
     case 'downloading': {
       const pct = patch.percent != null ? Math.round(patch.percent) : null;
@@ -11011,12 +11033,25 @@ function applyAppUpdateUiState(patch = {}) {
       break;
     }
     case 'ready':
+      if (appUpdateMacManual) {
+        applyAppUpdateUiState({ phase: 'available', pendingVersion: version });
+        break;
+      }
       if (els.status) els.status.textContent = I18N.t('appUpdateReady');
       if (els.progress) { els.progress.hidden = false; els.progress.textContent = I18N.t('appUpdateReady'); }
       if (modalProgress) { modalProgress.hidden = false; modalProgress.textContent = I18N.t('appUpdateReady'); }
       setAboutUpdateButtons({ showDownload: false, showInstall: true, checking: false });
       if (modalBtnDownload) modalBtnDownload.hidden = true;
       if (modalBtnInstall) modalBtnInstall.hidden = false;
+      break;
+    case 'mac-manual':
+      if (els.status) els.status.textContent = I18N.t('appUpdateMacManualHint');
+      if (els.progress) { els.progress.hidden = false; els.progress.textContent = I18N.t('appUpdateMacManualHint'); }
+      if (modalProgress) { modalProgress.hidden = false; modalProgress.textContent = I18N.t('appUpdateMacManualHint'); }
+      setAboutUpdateButtons({ showDownload: true, showInstall: false, checking: false });
+      if (modalBtnDownload) { modalBtnDownload.hidden = false; modalBtnDownload.disabled = false; }
+      if (modalBtnInstall) modalBtnInstall.hidden = true;
+      syncAppUpdateDownloadLabels();
       break;
     case 'up-to-date':
       if (els.status) els.status.textContent = I18N.t('aboutUpdateUpToDate');
@@ -11036,7 +11071,7 @@ function applyAppUpdateUiState(patch = {}) {
       }
       setAboutUpdateButtons({
         showDownload: Boolean(version) && !appUpdateUi.downloaded,
-        showInstall: appUpdateUi.downloaded,
+        showInstall: !appUpdateMacManual && appUpdateUi.downloaded,
         checking: false,
       });
       break;
@@ -11051,6 +11086,8 @@ async function refreshAboutSettingsPanel() {
   const els = getAboutUpdateEls();
   try {
     const info = await ipcRenderer.invoke('app:get-version-info');
+    appUpdateMacManual = info?.macManualDownload === true;
+    if (els.macHint) els.macHint.hidden = !appUpdateMacManual || info?.isPackaged !== true;
     if (els.current) els.current.textContent = info?.currentVersion || '—';
     if (els.build) {
       els.build.textContent = info?.isPackaged ? I18N.t('aboutBuildPackaged') : I18N.t('aboutBuildDev');
@@ -11059,7 +11096,7 @@ async function refreshAboutSettingsPanel() {
     if (info?.pendingVersion) {
       if (els.latest) els.latest.textContent = info.pendingVersion;
       renderAboutUpdateNotes(info.releaseNotes);
-      if (info.updateDownloaded) {
+      if (info.updateDownloaded && !appUpdateMacManual) {
         applyAppUpdateUiState({
           phase: 'ready',
           pendingVersion: info.pendingVersion,
@@ -11085,6 +11122,9 @@ async function refreshAboutSettingsPanel() {
 
 async function checkAppUpdateFromSettings() {
   const info = await ipcRenderer.invoke('app:get-version-info');
+  appUpdateMacManual = info?.macManualDownload === true;
+  const els = getAboutUpdateEls();
+  if (els.macHint) els.macHint.hidden = !appUpdateMacManual || info?.isPackaged !== true;
   if (!info?.isPackaged) {
     applyAppUpdateUiState({ phase: 'dev' });
     return;
@@ -11096,7 +11136,7 @@ async function checkAppUpdateFromSettings() {
       applyAppUpdateUiState({ phase: 'dev' });
       return;
     }
-    if (result.updateDownloaded) {
+    if (result.updateDownloaded && !appUpdateMacManual) {
       applyAppUpdateUiState({
         phase: 'ready',
         pendingVersion: result.pendingVersion || appUpdateUi.pendingVersion,
@@ -11125,9 +11165,26 @@ async function checkAppUpdateFromSettings() {
 }
 
 async function downloadAppUpdate() {
+  if (appUpdateMacManual) {
+    try {
+      await ipcRenderer.invoke('app:update-download', { version: appUpdateUi.pendingVersion });
+      applyAppUpdateUiState({
+        phase: 'mac-manual',
+        pendingVersion: appUpdateUi.pendingVersion,
+      });
+      closeAppUpdateModal();
+    } catch (err) {
+      applyAppUpdateUiState({
+        phase: 'error',
+        message: err?.message || I18N.t('appUpdateError'),
+        pendingVersion: appUpdateUi.pendingVersion,
+      });
+    }
+    return;
+  }
   applyAppUpdateUiState({ phase: 'downloading', percent: 0 });
   try {
-    await ipcRenderer.invoke('app:update-download');
+    await ipcRenderer.invoke('app:update-download', { version: appUpdateUi.pendingVersion });
   } catch (err) {
     applyAppUpdateUiState({
       phase: 'error',
@@ -11167,6 +11224,7 @@ ipcRenderer.on('app:update-status', (_e, payload) => {
   }
 });
 ipcRenderer.on('app:update-progress', (_e, payload) => {
+  if (appUpdateMacManual) return;
   applyAppUpdateUiState({
     phase: 'downloading',
     percent: payload?.percent ?? 0,
@@ -11174,6 +11232,7 @@ ipcRenderer.on('app:update-progress', (_e, payload) => {
   });
 });
 ipcRenderer.on('app:update-downloaded', (_e, payload) => {
+  if (appUpdateMacManual) return;
   applyAppUpdateUiState({
     phase: 'ready',
     pendingVersion: payload?.version || appUpdateUi.pendingVersion,
