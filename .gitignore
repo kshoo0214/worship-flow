@@ -5,3 +5,5 @@ media-library.json
 npm-debug.log*
 dist/
 resources/bible/bible_ko_revised.json
+.env.local
+.gh-token

@@ -56,8 +56,6 @@
       "provider": "github",
       "owner": "kshoo0214",
       "repo": "worship-flow",
-      "host": "github.com",
-      "protocol": "https",
       "releaseType": "release",
       "publishAutoUpdate": true,
       "vPrefixedTagName": true
