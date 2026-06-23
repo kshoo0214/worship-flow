@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Copy install artifacts from dist/ into releases/{mac|windows}/{version}/
 set -euo pipefail
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT="${SUBTITLE_BROADCAST_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
 DIST="$ROOT/dist"
 OUT="$ROOT/releases"
 
@@ -32,9 +32,18 @@ copy_glob() {
 echo "Organizing releases from dist/ …"
 copy_glob mac 'Worship FLOW-*-arm64.dmg'
 copy_glob mac 'Worship FLOW-*-arm64.dmg.blockmap'
+copy_glob mac 'Worship FLOW-*-arm64.zip'
+copy_glob mac 'Worship FLOW-*-arm64.zip.blockmap'
+copy_glob mac 'Worship-FLOW-*-arm64.dmg'
+copy_glob mac 'Worship-FLOW-*-arm64.dmg.blockmap'
+copy_glob mac 'Worship-FLOW-*-arm64.zip'
+copy_glob mac 'Worship-FLOW-*-arm64.zip.blockmap'
 copy_glob windows 'Worship FLOW-*-win-x64.exe'
 copy_glob windows 'Worship FLOW-*-win-x64.exe.blockmap'
 copy_glob windows 'Worship FLOW-*-win-x64.zip'
+copy_glob windows 'Worship-FLOW-*-win-x64.exe'
+copy_glob windows 'Worship-FLOW-*-win-x64.exe.blockmap'
+copy_glob windows 'Worship-FLOW-*-win-x64.zip'
 
 VER="$(node -p "require('$ROOT/package.json').version")"
 if [[ -f "$DIST/latest-mac.yml" ]]; then

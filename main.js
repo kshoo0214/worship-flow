@@ -20,6 +20,15 @@ const RemoteServer = require('./remote-server');
 let autoUpdateApi = null;
 
 const APP_NAME = 'Worship FLOW';
+const APP_ICON = path.join(__dirname, 'build', 'icon.png');
+
+function resolveAppIcon() {
+  try {
+    return fs.existsSync(APP_ICON) ? APP_ICON : undefined;
+  } catch {
+    return undefined;
+  }
+}
 const WINDOW_TITLES = {
   control: `${APP_NAME} — Control`,
   program: `${APP_NAME} — Program`,
@@ -1778,6 +1787,7 @@ function createWindows() {
     minHeight: 720,
     title: WINDOW_TITLES.control,
     backgroundColor: '#14141a',
+    icon: resolveAppIcon(),
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -1821,6 +1831,10 @@ function createWindows() {
 }
 
 app.whenReady().then(async () => {
+  const appIcon = resolveAppIcon();
+  if (appIcon && process.platform === 'darwin' && app.dock?.setIcon) {
+    app.dock.setIcon(appIcon);
+  }
   autoUpdateApi = initAutoUpdater(() => controllerWindow);
   createWindows();
   try {

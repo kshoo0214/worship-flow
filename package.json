@@ -1,7 +1,7 @@
 {
   "name": "subtitle-broadcast",
   "productName": "Worship FLOW",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "description": "Worship FLOW — 멀티 디스플레이 자막 송출",
   "main": "main.js",
   "author": "Worship FLOW",
@@ -21,10 +21,13 @@
     "publish:win": "npm run build:prep && electron-builder --win --publish always",
     "publish:all": "npm run build:prep && electron-builder --mac --win --publish always",
     "organize:releases": "bash scripts/organize-releases.sh",
+    "download:releases": "bash scripts/download-releases-local.sh",
+    "build:releases-local": "bash scripts/build-all-versions-local.sh",
     "release:tag": "bash scripts/release-tag.sh",
     "git:push": "bash scripts/git-push.sh",
     "release:publish": "bash scripts/release-and-push.sh",
-    "postinstall": "node scripts/fix-electron.js"
+    "postinstall": "node scripts/fix-electron.js",
+    "prepare:icons": "bash scripts/prepare-icons.sh"
   },
   "dependencies": {
     "electron-updater": "^6.6.2",
@@ -56,7 +59,8 @@
       "!media/assets/**"
     ],
     "directories": {
-      "output": "dist"
+      "output": "dist",
+      "buildResources": "build"
     },
     "publish": {
       "provider": "github",

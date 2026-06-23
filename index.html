@@ -110,10 +110,13 @@
     .library-search-delete:hover { background: rgba(220, 80, 80, 0.25); color: #ffb8b8; }
     .app-top .header-actions { margin-left: auto; flex-shrink: 0; }
     .brand { display: flex; align-items: center; gap: 10px; }
+    .brand-icon, .brand-logo {
+      width: 28px; height: 28px; border-radius: 6px;
+      flex-shrink: 0; object-fit: cover;
+    }
     .brand-icon {
-      width: 28px; height: 28px; border-radius: 4px;
-      background: linear-gradient(180deg, #4a90e2 0%, #2563eb 100%);
       display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(180deg, #4a90e2 0%, #2563eb 100%);
       font-size: 14px; font-weight: 800; color: #fff;
     }
     .brand h1 { margin: 0; font-size: 14px; font-weight: 600; letter-spacing: -0.02em; }
@@ -1769,8 +1772,14 @@
       padding: 14px; background: var(--surface-2); border: 1px solid var(--border);
       border-radius: 10px;
     }
+    .about-brand {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 12px;
+    }
+    .about-logo {
+      width: 56px; height: 56px; border-radius: 10px; object-fit: cover; flex-shrink: 0;
+    }
     .about-brand h3 {
-      margin: 0 0 12px; font-size: 18px; font-weight: 800; letter-spacing: -0.02em;
+      margin: 0; font-size: 18px; font-weight: 800; letter-spacing: -0.02em;
       color: var(--text);
     }
     .about-meta-grid {
@@ -1967,7 +1976,7 @@
 
 <header class="app-top" id="topNav" aria-label="Main navigation">
   <div class="brand">
-    <div class="brand-icon">SB</div>
+    <img class="brand-logo" src="resources/logo.png" width="28" height="28" alt="">
     <div>
       <h1><span data-i18n="appTitle">Worship FLOW</span> <span id="broadcastStatus" class="status-pill"><span class="dot"></span><span data-i18n="statusIdle">대기</span></span></h1>
     </div>
@@ -2503,6 +2512,7 @@
       <div id="settingsTabAbout" class="settings-tab-panel" role="tabpanel" hidden>
         <section class="settings-section about-panel">
           <div class="about-brand">
+            <img class="about-logo" src="resources/logo.png" width="56" height="56" alt="">
             <h3>Worship FLOW</h3>
           </div>
           <dl class="about-meta-grid">
