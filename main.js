@@ -16,8 +16,11 @@ const StageConfig = require('./stage-config');
 const { initAutoUpdater } = require('./auto-update');
 const { getMacDmgDownloadUrl, macUsesManualReleaseDownload } = require('./release-url');
 const RemoteServer = require('./remote-server');
+const CloudRemote = require('./cloud-remote-pc');
 
 let autoUpdateApi = null;
+let useCloudRemote = false;
+let cloudRemoteShutdownDone = false;
 
 const APP_NAME = 'Worship FLOW';
 const APP_ICON = path.join(__dirname, 'build', 'icon.png');
@@ -601,11 +604,57 @@ function getRemotePayload() {
 }
 
 function syncRemoteClients() {
+  const payload = getRemotePayload();
   try {
-    RemoteServer.broadcastRemoteState(getRemotePayload());
+    if (useCloudRemote) CloudRemote.broadcastState(payload);
+    else RemoteServer.broadcastRemoteState(payload);
   } catch (err) {
     console.error('remote broadcast failed:', err);
   }
+}
+
+function resolveRelayUrl() {
+  const settings = AppSettings.loadSettings();
+  if (settings.remoteUseCloud === false) return '';
+  const envUrl = String(process.env.WORSHIP_FLOW_RELAY_URL || '').trim();
+  if (envUrl) return envUrl.replace(/\/$/, '');
+  return String(settings.remoteCloudUrl || '').trim().replace(/\/$/, '');
+}
+
+function notifyRemoteJoinRequest(request) {
+  if (controllerWindow && !controllerWindow.isDestroyed()) {
+    controllerWindow.webContents.send('remote:join-request', request);
+  }
+}
+
+async function initRemoteServices() {
+  const relayUrl = resolveRelayUrl();
+  if (relayUrl) {
+    useCloudRemote = true;
+    const info = await CloudRemote.initCloudRemotePc({
+      relayUrl,
+      userDataDir: app.getPath('userData'),
+      onJoinRequest: notifyRemoteJoinRequest,
+      onNavigate: (direction) => {
+        if (controllerWindow && !controllerWindow.isDestroyed()) {
+          controllerWindow.webContents.send('remote:navigate', { direction });
+        }
+      },
+    });
+    console.log('Worship FLOW cloud remote:', info.joinUrl, 'code:', info.code);
+    return info;
+  }
+  useCloudRemote = false;
+  return RemoteServer.initRemoteServer({
+    appRoot: APP_ROOT,
+    port: RemoteServer.DEFAULT_PORT,
+    getState: getRemotePayload,
+    onNavigate: (direction) => {
+      if (controllerWindow && !controllerWindow.isDestroyed()) {
+        controllerWindow.webContents.send('remote:navigate', { direction });
+      }
+    },
+  });
 }
 
 function pushStageUpdate(meta = {}) {
@@ -1838,17 +1887,9 @@ app.whenReady().then(async () => {
   autoUpdateApi = initAutoUpdater(() => controllerWindow);
   createWindows();
   try {
-    const remoteInfo = await RemoteServer.initRemoteServer({
-      appRoot: APP_ROOT,
-      port: RemoteServer.DEFAULT_PORT,
-      getState: getRemotePayload,
-      onNavigate: (direction) => {
-        if (controllerWindow && !controllerWindow.isDestroyed()) {
-          controllerWindow.webContents.send('remote:navigate', { direction });
-        }
-      },
-    });
-    console.log('Worship FLOW remote:', remoteInfo.urls.join(' '));
+    const remoteInfo = await initRemoteServices();
+    const urls = remoteInfo?.urls || remoteInfo?.joinUrl ? [remoteInfo.joinUrl] : [];
+    console.log('Worship FLOW remote:', Array.isArray(remoteInfo?.urls) ? remoteInfo.urls.join(' ') : urls.join(' '));
   } catch (err) {
     console.error('Remote server failed to start:', err);
   }
@@ -1872,12 +1913,39 @@ process.on('unhandledRejection', (err) => {
 });
 
 app.on('window-all-closed', () => {
-  RemoteServer.stopRemoteServer();
+  if (!useCloudRemote) RemoteServer.stopRemoteServer();
   if (process.platform !== 'darwin') app.quit();
 });
 
+app.on('before-quit', (event) => {
+  if (!useCloudRemote || cloudRemoteShutdownDone) return;
+  event.preventDefault();
+  CloudRemote.shutdownCloudRemotePc()
+    .catch((err) => console.error('cloud remote shutdown failed:', err))
+    .finally(() => {
+      cloudRemoteShutdownDone = true;
+      useCloudRemote = false;
+      app.quit();
+    });
+});
+
 ipcMain.on('remote:get-info', (event) => {
-  event.reply('remote:info', RemoteServer.getRemoteServerInfo());
+  const info = useCloudRemote
+    ? CloudRemote.getCloudRemoteInfo()
+    : RemoteServer.getRemoteServerInfo();
+  event.reply('remote:info', info);
+});
+
+ipcMain.on('remote:approve', (_event, payload) => {
+  if (!useCloudRemote) return;
+  const deviceId = payload?.deviceId;
+  if (deviceId) CloudRemote.approveDevice(deviceId);
+});
+
+ipcMain.on('remote:deny', (_event, payload) => {
+  if (!useCloudRemote) return;
+  const deviceId = payload?.deviceId;
+  if (deviceId) CloudRemote.denyDevice(deviceId);
 });
 
 ipcMain.on('request-library', (event) => {

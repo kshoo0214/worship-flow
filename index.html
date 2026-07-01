@@ -2486,14 +2486,24 @@
         </section>
         <section class="settings-section">
           <h3 class="settings-section-title" data-i18n="remoteTitle">스마트폰 리모컨</h3>
-          <p class="hint" data-i18n="remoteHint">같은 Wi-Fi에 연결한 스마트폰으로 아래 QR 코드를 스캔하세요.</p>
+          <p class="hint" data-i18n="remoteCloudHint">QR을 스캔한 뒤 PC에 표시된 방 코드를 확인하고, 연결 승인을 눌러 주세요.</p>
+          <label class="settings-check-row" style="margin-bottom:8px;">
+            <input type="checkbox" id="remoteUseCloud" checked>
+            <span data-i18n="remoteUseCloud">클라우드 리모트 사용</span>
+          </label>
+          <label for="remoteCloudUrl" data-i18n="remoteCloudUrl">클라우드 릴레이 주소</label>
+          <input type="url" id="remoteCloudUrl" class="settings-input" placeholder="https://relay.example.com" spellcheck="false">
+          <p class="hint" data-i18n="remoteCloudUrlHint">앱 재시작 후 적용됩니다. 로컬 테스트: PC에서 npm run cloud-relay 실행 후, 폰은 PC와 같은 Wi-Fi에서 QR(내부 IP)로 접속하세요.</p>
+          <p class="hint" data-i18n="remoteHotspotHint">아이폰 핫스팟: Mac·iPad를 핫스팟에 연결하고 QR의 172.20.10.x 주소로 접속하세요. iOS「인터넷 없음」은 무시해도 됩니다.</p>
           <div class="remote-qr-panel">
             <div class="remote-qr-canvas-wrap">
               <canvas id="remoteQrCanvas" width="180" height="180" aria-label="Remote QR code"></canvas>
             </div>
             <div class="remote-qr-meta">
-              <span class="hint" data-i18n="remoteLanUrl">스마트폰 접속 주소</span>
+              <span class="hint" data-i18n="remoteJoinUrl">스마트폰 접속 주소</span>
               <strong id="remoteUrlText" class="remote-qr-url">—</strong>
+              <span class="hint" data-i18n="remoteRoomCode">방 코드</span>
+              <strong id="remoteRoomCode" class="remote-qr-url" style="font-size:22px;letter-spacing:0.15em;">—</strong>
               <p id="remoteUrlAlt" class="remote-qr-alt" hidden></p>
               <button type="button" id="btnRefreshRemoteQr" class="secondary" style="margin-top:4px;" data-i18n="remoteRefresh">QR 새로고침</button>
             </div>
@@ -2562,6 +2572,17 @@
     <div class="song-form-actions">
       <button type="button" id="btnBibleDownloadOpenFolder" class="secondary" hidden data-i18n="bibleDownloadOpenFolder">성경 폴더 열기</button>
       <button type="button" id="btnBibleDownloadConfirm" class="primary" data-i18n="btnConfirm">확인</button>
+    </div>
+  </div>
+</div>
+
+<div id="remoteJoinModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="remoteJoinTitle">
+  <div class="song-form-modal">
+    <h2 id="remoteJoinTitle" data-i18n="remoteJoinTitle">리모트 연결 요청</h2>
+    <p id="remoteJoinMessage" class="hint"></p>
+    <div class="song-form-actions">
+      <button type="button" id="btnRemoteJoinDeny" class="secondary" data-i18n="remoteJoinDeny">거부</button>
+      <button type="button" id="btnRemoteJoinApprove" class="primary" data-i18n="remoteJoinApprove">허용</button>
     </div>
   </div>
 </div>
@@ -2876,6 +2897,8 @@ function readSettingsForm() {
     slideAdvanceWrap: document.getElementById('slideWrap').checked,
     playlistAdvanceToNextSong: document.getElementById('playlistAutoNext').checked,
     logoMediaId: document.getElementById('logoMediaSelect')?.value || '',
+    remoteUseCloud: document.getElementById('remoteUseCloud')?.checked !== false,
+    remoteCloudUrl: document.getElementById('remoteCloudUrl')?.value || '',
     shortcuts: readShortcutsFromForm(),
   };
 }
@@ -3219,6 +3242,10 @@ function writeSettingsForm(s) {
   document.getElementById('slideWrap').checked = s.slideAdvanceWrap;
   document.getElementById('playlistAutoNext').checked = s.playlistAdvanceToNextSong !== false;
   populateLogoMediaSelect(s.logoMediaId || '');
+  const remoteUseCloud = document.getElementById('remoteUseCloud');
+  const remoteCloudUrl = document.getElementById('remoteCloudUrl');
+  if (remoteUseCloud) remoteUseCloud.checked = s.remoteUseCloud !== false;
+  if (remoteCloudUrl) remoteCloudUrl.value = s.remoteCloudUrl || '';
   renderShortcutsSettingsList(s);
 }
 
@@ -3411,8 +3438,9 @@ function openSettings() {
   refreshRemoteQrPanel();
 }
 
-function pickRemoteUrlForQr(urls) {
-  if (!Array.isArray(urls) || !urls.length) return '';
+function pickRemoteUrlForQr(info) {
+  const urls = info?.urls?.length ? info.urls : (info?.joinUrl ? [info.joinUrl] : []);
+  if (!urls.length) return '';
   const lan = urls.find((u) => !/127\.0\.0\.1|localhost/i.test(u));
   return lan || urls[0];
 }
@@ -3420,12 +3448,13 @@ function pickRemoteUrlForQr(urls) {
 async function refreshRemoteQrPanel() {
   const canvas = document.getElementById('remoteQrCanvas');
   const urlEl = document.getElementById('remoteUrlText');
+  const codeEl = document.getElementById('remoteRoomCode');
   const altEl = document.getElementById('remoteUrlAlt');
   if (!canvas || !urlEl) return;
   return new Promise((resolve) => {
     ipcRenderer.once('remote:info', async (_e, info) => {
-      const urls = info?.urls || [];
-      const qrUrl = pickRemoteUrlForQr(urls);
+      const qrUrl = pickRemoteUrlForQr(info);
+      if (codeEl) codeEl.textContent = info?.code || '—';
       if (!qrUrl) {
         urlEl.textContent = I18N.t('remoteUnavailable');
         if (altEl) altEl.hidden = true;
@@ -3445,10 +3474,15 @@ async function refreshRemoteQrPanel() {
         urlEl.textContent = I18N.t('remoteUnavailable');
       }
       if (altEl) {
+        const urls = info?.urls || [];
         const others = urls.filter((u) => u !== qrUrl);
-        if (others.length) {
+        const parts = [];
+        if (info?.lanIpMissing) parts.push(I18N.t('remoteNoLanIpWarning'));
+        else if (/172\.20\.10\./.test(qrUrl)) parts.push(I18N.t('remoteHotspotIosHint'));
+        if (others.length) parts.push(`${I18N.t('remoteAltUrls')}: ${others.join(' · ')}`);
+        if (parts.length) {
           altEl.hidden = false;
-          altEl.textContent = `${I18N.t('remoteAltUrls')}: ${others.join(' · ')}`;
+          altEl.textContent = parts.join(' ');
         } else {
           altEl.hidden = true;
           altEl.textContent = '';
@@ -3459,6 +3493,43 @@ async function refreshRemoteQrPanel() {
     ipcRenderer.send('remote:get-info');
   });
 }
+
+let pendingRemoteJoin = null;
+
+function openRemoteJoinModal(payload) {
+  pendingRemoteJoin = payload;
+  const modal = document.getElementById('remoteJoinModal');
+  const msg = document.getElementById('remoteJoinMessage');
+  if (msg) {
+    msg.textContent = I18N.t('remoteJoinMessage', { label: payload?.label || 'Phone' });
+  }
+  modal?.classList.add('is-open');
+}
+
+function closeRemoteJoinModal() {
+  pendingRemoteJoin = null;
+  document.getElementById('remoteJoinModal')?.classList.remove('is-open');
+}
+
+document.getElementById('btnRemoteJoinApprove')?.addEventListener('click', () => {
+  if (pendingRemoteJoin?.deviceId) {
+    ipcRenderer.send('remote:approve', { deviceId: pendingRemoteJoin.deviceId });
+  }
+  closeRemoteJoinModal();
+});
+document.getElementById('btnRemoteJoinDeny')?.addEventListener('click', () => {
+  if (pendingRemoteJoin?.deviceId) {
+    ipcRenderer.send('remote:deny', { deviceId: pendingRemoteJoin.deviceId });
+  }
+  closeRemoteJoinModal();
+});
+document.getElementById('remoteJoinModal')?.addEventListener('click', (e) => {
+  if (e.target?.id === 'remoteJoinModal') closeRemoteJoinModal();
+});
+
+ipcRenderer.on('remote:join-request', (_e, payload) => {
+  openRemoteJoinModal(payload);
+});
 
 function closeSettings() {
   closeModal(settingsModal);

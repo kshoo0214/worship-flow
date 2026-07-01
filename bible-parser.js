@@ -100,15 +100,6 @@ function validateBibleJson(data) {
   return Boolean(data && typeof data === 'object' && !Array.isArray(data) && Object.keys(data).length > 0);
 }
 
-function collapseHangulSpacing(str) {
-  let prev;
-  do {
-    prev = str;
-    str = str.replace(/([\uAC00-\uD7A3\u3131-\u318E])\s+([\uAC00-\uD7A3\u3131-\u318E])/g, '$1$2');
-  } while (str !== prev);
-  return str;
-}
-
 function extractBalancedJson(text) {
   let depth = 0;
   let inStr = false;
@@ -144,7 +135,7 @@ function parseRtfBibleText(rtf) {
   body = body.replace(/\\[a-z]+-?\d* ?/gi, '');
   const start = body.search(/\{\s*"/);
   if (start < 0) throw new Error('RTF 내부 JSON을 찾을 수 없습니다.');
-  body = collapseHangulSpacing(body.slice(start));
+  body = body.slice(start);
   body = extractBalancedJson(body);
   return JSON.parse(body);
 }

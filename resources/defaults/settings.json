@@ -31,6 +31,8 @@
   "slidesFilmstripZoom": 100,
   "biblePreviewZoom": 80,
   "logoMediaId": "",
+  "remoteCloudUrl": "http://127.0.0.1:8766",
+  "remoteUseCloud": true,
   "bibleThemeId": "",
   "bibleVersion": "old",
   "relayWidth": 1920,

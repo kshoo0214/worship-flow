@@ -3,8 +3,8 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const os = require('os');
 const { WebSocketServer } = require('ws');
+const LanAddresses = require('./lan-addresses');
 
 const DEFAULT_PORT = 8765;
 
@@ -14,22 +14,8 @@ let getStateFn = null;
 let onNavigateFn = null;
 let activePort = DEFAULT_PORT;
 
-function getLanAddresses() {
-  const nets = os.networkInterfaces();
-  const ips = [];
-  Object.values(nets).forEach((ifaces) => {
-    if (!ifaces) return;
-    ifaces.forEach((iface) => {
-      if (iface.family === 'IPv4' && !iface.internal) ips.push(iface.address);
-    });
-  });
-  return ips;
-}
-
 function buildRemoteUrls(port) {
-  const urls = [`http://127.0.0.1:${port}/`];
-  getLanAddresses().forEach((ip) => urls.push(`http://${ip}:${port}/`));
-  return urls;
+  return LanAddresses.buildLocalHttpUrls(port, '/');
 }
 
 function broadcastRemoteState(payload) {

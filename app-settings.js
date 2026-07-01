@@ -59,6 +59,10 @@ const DEFAULTS = {
   biblePreviewZoom: 80,
   /** Media library item id for Logo quick-send overlay */
   logoMediaId: '',
+  /** Cloud relay base URL (e.g. https://relay.example.com or http://127.0.0.1:8766) */
+  remoteCloudUrl: 'http://127.0.0.1:8766',
+  /** Use cloud relay for phone remote (room code + PC approval) */
+  remoteUseCloud: true,
   /** Theme id applied to Bible workspace slides (empty = default black) */
   bibleThemeId: '',
   /** Active Bible translation: old (개역한글) | revised (개역개정) */
@@ -251,6 +255,8 @@ function normalize(raw) {
   s.slidesFilmstripZoom = clamp(Math.round(Number(s.slidesFilmstripZoom ?? s.slidesCanvasZoom) || 100), 50, 200);
   s.biblePreviewZoom = clamp(Math.round(Number(s.biblePreviewZoom) || 80), 50, 200);
   s.logoMediaId = String(s.logoMediaId || '').trim();
+  s.remoteCloudUrl = String(s.remoteCloudUrl || 'http://127.0.0.1:8766').trim().replace(/\/$/, '');
+  s.remoteUseCloud = s.remoteUseCloud !== false;
   s.bibleThemeId = String(s.bibleThemeId || '').trim();
   let bibleVersion = String(s.bibleVersion || '').trim();
   if (!bibleVersion && s.bibleTranslation === 'ko') bibleVersion = 'revised';

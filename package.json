@@ -1,7 +1,7 @@
 {
   "name": "subtitle-broadcast",
   "productName": "Worship FLOW",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "Worship FLOW — 멀티 디스플레이 자막 송출",
   "main": "main.js",
   "author": "Worship FLOW",
@@ -23,6 +23,7 @@
     "organize:releases": "bash scripts/organize-releases.sh",
     "download:releases": "bash scripts/download-releases-local.sh",
     "build:releases-local": "bash scripts/build-all-versions-local.sh",
+    "cloud-relay": "WORSHIP_FLOW_APP_ROOT=. node cloud-relay-server.js",
     "release:tag": "bash scripts/release-tag.sh",
     "git:push": "bash scripts/git-push.sh",
     "release:publish": "bash scripts/release-and-push.sh",

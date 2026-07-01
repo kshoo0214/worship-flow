@@ -115,7 +115,7 @@ try {
 
 const jsFiles = [
   'main.js', 'slide-engine.js', 'display-mapper-ui.js', 'app-settings.js',
-  'theme-store.js', 'macros-store.js', 'bible-engine.js', 'bible-parser.js', 'app-paths.js', 'auto-update.js', 'remote-server.js', 'stage-config.js',
+  'theme-store.js', 'macros-store.js', 'bible-engine.js', 'bible-parser.js', 'app-paths.js', 'auto-update.js', 'remote-server.js', 'cloud-relay-server.js', 'cloud-remote-pc.js', 'stage-config.js',
 ];
 for (const f of jsFiles) {
   try {
